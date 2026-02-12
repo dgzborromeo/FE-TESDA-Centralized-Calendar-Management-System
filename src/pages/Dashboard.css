@@ -77,7 +77,7 @@
 .dashboard-card-label {
   font-size: 0.85rem;
   color: var(--text-muted);
-  text-transform: uppercase;
+  /* text-transform: upperc; */
   letter-spacing: 0.05em;
 }
 
