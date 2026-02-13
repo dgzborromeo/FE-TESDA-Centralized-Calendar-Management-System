@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -112,6 +112,15 @@ function dateRangeYMD(startYmd, endYmd) {
   return out;
 }
 
+function extractCodesFromName(name) {
+  const matches = String(name || '').match(/\(([^)]+)\)/g) || [];
+  return matches
+    .map((m) => m.replace(/[()]/g, '').trim())
+    .flatMap((raw) => raw.split('/'))
+    .map((s) => s.trim().toUpperCase())
+    .filter((s) => s && /^[A-Z0-9-]+$/.test(s));
+}
+
 export default function EventForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -151,6 +160,8 @@ export default function EventForm() {
   const [color, setColor] = useState(assignedAccountColor);
   const [attendeeIds, setAttendeeIds] = useState([]);
   const [users, setUsers] = useState([]);
+  const [clusterLegend, setClusterLegend] = useState([]);
+  const [openClusters, setOpenClusters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [conflictWarning, setConflictWarning] = useState(null);
@@ -178,7 +189,15 @@ export default function EventForm() {
   }, [dateParam]);
 
   useEffect(() => {
-    usersApi.list().then(setUsers).catch(console.error);
+    Promise.all([
+      usersApi.list(),
+      usersApi.legendClusters().catch(() => []),
+    ])
+      .then(([allUsers, clusters]) => {
+        setUsers(Array.isArray(allUsers) ? allUsers : []);
+        setClusterLegend(Array.isArray(clusters) ? clusters : []);
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -319,6 +338,70 @@ export default function EventForm() {
   const toggleAttendee = (uid) => {
     setAttendeeIds((prev) =>
       prev.includes(uid) ? prev.filter((i) => i !== uid) : [...prev, uid]
+    );
+  };
+
+  const participantData = useMemo(() => {
+    const usersByEmail = new Map(
+      users
+        .filter((u) => u?.id && u?.email)
+        .map((u) => [String(u.email).toLowerCase(), u])
+    );
+    const clusteredIds = new Set();
+    const clusters = (clusterLegend || []).map((cluster) => {
+      const offices = (cluster.offices || []).map((office) => {
+        const officeUsers = new Map();
+        const codes = extractCodesFromName(office.name);
+        for (const code of codes) {
+          const local = code.toLowerCase();
+          const byEmail = usersByEmail.get(`${local}@tesda.gov.ph`);
+          if (byEmail && !String(byEmail.email || '').toLowerCase().startsWith('cluster.')) {
+            officeUsers.set(byEmail.id, byEmail);
+          }
+          for (const u of users) {
+            const uname = String(u?.name || '').toUpperCase();
+            if (
+              u?.id &&
+              uname.includes(`(${code})`) &&
+              !String(u?.email || '').toLowerCase().startsWith('cluster.')
+            ) {
+              officeUsers.set(u.id, u);
+            }
+          }
+        }
+        const officeUserList = Array.from(officeUsers.values());
+        officeUserList.forEach((u) => clusteredIds.add(u.id));
+        return {
+          ...office,
+          users: officeUserList,
+        };
+      });
+      return {
+        ...cluster,
+        offices,
+      };
+    });
+
+    const otherUsers = users.filter(
+      (u) => u?.id && !clusteredIds.has(u.id) && !String(u.email || '').toLowerCase().startsWith('cluster.')
+    );
+    return { clusters, otherUsers };
+  }, [users, clusterLegend]);
+
+  const applySelectionForIds = (ids, checked) => {
+    setAttendeeIds((prev) => {
+      const set = new Set(prev);
+      for (const id of ids) {
+        if (checked) set.add(id);
+        else set.delete(id);
+      }
+      return Array.from(set);
+    });
+  };
+
+  const toggleClusterOpen = (clusterId) => {
+    setOpenClusters((prev) =>
+      prev.includes(clusterId) ? prev.filter((id) => id !== clusterId) : [...prev, clusterId]
     );
   };
 
@@ -479,7 +562,7 @@ export default function EventForm() {
         </div>
 
         <label>
-          Location / Room
+          Location / Room / Zoom Link
           <input
             type="text"
             value={location}
@@ -491,16 +574,69 @@ export default function EventForm() {
         <label>
           Participants
           <div className="event-form-attendees">
-            {users.filter((u) => u.id).map((u) => (
-              <label key={u.id} className="event-form-attendee">
-                <input
-                  type="checkbox"
-                  checked={attendeeIds.includes(u.id)}
-                  onChange={() => toggleAttendee(u.id)}
-                />
-                {u.name} ({u.email})
-              </label>
-            ))}
+            {participantData.clusters.map((cluster) => {
+              const clusterIds = cluster.offices.flatMap((o) => (o.users || []).map((u) => u.id));
+              const clusterChecked = clusterIds.length > 0 && clusterIds.every((id) => attendeeIds.includes(id));
+              const isOpen = openClusters.includes(cluster.id);
+              return (
+                <div key={cluster.id} className="event-form-cluster">
+                  <div className="event-form-cluster-head">
+                    <button
+                      type="button"
+                      className="event-form-cluster-toggle"
+                      onClick={() => toggleClusterOpen(cluster.id)}
+                      aria-expanded={isOpen}
+                    >
+                      <span>{cluster.name}</span>
+                      <span className="event-form-cluster-chevron">{isOpen ? '▼' : '▶'}</span>
+                    </button>
+                    <label className="event-form-attendee event-form-cluster-label">
+                      <input
+                        type="checkbox"
+                        checked={clusterChecked}
+                        onChange={(e) => applySelectionForIds(clusterIds, e.target.checked)}
+                        disabled={clusterIds.length === 0}
+                      />
+                      Select all
+                    </label>
+                  </div>
+                  {isOpen && (
+                    <div className="event-form-cluster-offices">
+                      {cluster.offices.map((office) => {
+                        const officeIds = (office.users || []).map((u) => u.id);
+                        const officeChecked = officeIds.length > 0 && officeIds.every((id) => attendeeIds.includes(id));
+                        return (
+                          <label key={`${cluster.id}-${office.name}`} className="event-form-attendee event-form-office-label">
+                            <input
+                              type="checkbox"
+                              checked={officeChecked}
+                              onChange={(e) => applySelectionForIds(officeIds, e.target.checked)}
+                              disabled={officeIds.length === 0}
+                            />
+                            {office.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {participantData.otherUsers.length > 0 && (
+              <div className="event-form-cluster">
+                <div className="event-form-other-title">Other offices/accounts</div>
+                {participantData.otherUsers.map((u) => (
+                  <label key={u.id} className="event-form-attendee event-form-office-label">
+                    <input
+                      type="checkbox"
+                      checked={attendeeIds.includes(u.id)}
+                      onChange={() => toggleAttendee(u.id)}
+                    />
+                    {u.name} ({u.email})
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         </label>
 
