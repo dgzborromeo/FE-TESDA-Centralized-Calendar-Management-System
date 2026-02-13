@@ -67,9 +67,7 @@ export default function Header() {
           <div className="header-nav-scroll">
             <Link to="/dashboard" className="header-link">Dashboard</Link>
             <Link to="/calendar" className="header-link">Calendar</Link>
-            <Link to="/invitations" className="header-link">Invitations</Link>
             <Link to="/upcoming" className="header-link">Upcoming</Link>
-            <Link to="/recent" className="header-link">Recent</Link>
           </div>
 
           <div className="header-help" ref={helpRef}>

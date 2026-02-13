@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { events as eventsApi, invitations as invitationsApi } from '../api';
+import { useMemo, useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
 import './Dashboard.css';
 
@@ -32,17 +32,35 @@ function timeToMinutes(t) {
   return h * 60 + m;
 }
 
+function isWithinRange(targetYmd, startYmd, endYmd) {
+  if (!targetYmd || !startYmd) return false;
+  const end = endYmd || startYmd;
+  return targetYmd >= startYmd && targetYmd <= end;
+}
+
+function getDayColors(events, ymd) {
+  const set = new Set();
+  for (const e of events) {
+    if (!isWithinRange(ymd, e.date, e.end_date || e.date)) continue;
+    set.add(e.color || '#3b82f6');
+  }
+  return Array.from(set).slice(0, 3);
+}
+
+function formatDateRange(e) {
+  const endDate = e.end_date || e.date;
+  if (!endDate || endDate === e.date) return formatDate(e.date);
+  return `${formatDate(e.date)} - ${formatDate(endDate)}`;
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
-  const [invitations, setInvitations] = useState([]);
-  const [conflictCount, setConflictCount] = useState(0);
   const [todayCount, setTodayCount] = useState(0);
   const [weekCount, setWeekCount] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [nowTick, setNowTick] = useState(0);
 
   useEffect(() => {
     const now = new Date();
@@ -54,33 +72,35 @@ export default function Dashboard() {
 
     Promise.all([
       eventsApi.list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) }),
-      eventsApi.conflicts(),
-      invitationsApi.list().catch(() => []),
     ])
-      .then(([list, conf, invites]) => {
+      .then(([list]) => {
         setEvents(list);
-        setConflictCount(conf.count || 0);
-        setInvitations(invites || []);
-        setTodayCount(list.filter((e) => e.date === today).length);
+        setTodayCount(list.filter((e) => isWithinRange(today, e.date, e.end_date || e.date)).length);
 
         const next7 = new Date(now);
         next7.setDate(next7.getDate() + 7);
         const next7YMD = toLocalYMD(next7);
-        setWeekCount(list.filter((e) => e.date >= today && e.date <= next7YMD).length);
+        setWeekCount(
+          list.filter((e) => {
+            const start = e.date;
+            const end = e.end_date || e.date;
+            return end >= today && start <= next7YMD;
+          }).length
+        );
 
         const next30 = new Date(now);
         next30.setDate(next30.getDate() + 30);
         const next30YMD = toLocalYMD(next30);
-        setMonthCount(list.filter((e) => e.date >= today && e.date <= next30YMD).length);
+        setMonthCount(
+          list.filter((e) => {
+            const start = e.date;
+            const end = e.end_date || e.date;
+            return end >= today && start <= next30YMD;
+          }).length
+        );
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
-
-  // Update "ongoing" section every minute
-  useEffect(() => {
-    const t = setInterval(() => setNowTick((x) => x + 1), 60_000);
-    return () => clearInterval(t);
   }, []);
 
   const refresh = () => {
@@ -94,51 +114,118 @@ export default function Dashboard() {
       .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
       .then(setEvents)
       .finally(() => setLoading(false));
-    eventsApi.conflicts().then((r) => setConflictCount(r.count || 0));
-    invitationsApi.list().then((inv) => setInvitations(inv || [])).catch(() => setInvitations([]));
   };
 
-  const searchLower = searchQuery.trim().toLowerCase();
   const now = new Date();
   const today = toLocalYMD(now);
   const nowMins = now.getHours() * 60 + now.getMinutes();
+  const next7 = new Date(now);
+  next7.setDate(next7.getDate() + 7);
+  const next7Ymd = toLocalYMD(next7);
 
-  const ongoingEvents = events
-    .filter((e) => e.date === today)
+  const upcomingEvents = events
     .filter((e) => {
-      const start = timeToMinutes(e.start_time);
-      const end = timeToMinutes(e.end_time);
-      return start <= nowMins && nowMins < end;
+      const endDate = e.end_date || e.date;
+      const endMins = timeToMinutes(e.end_time);
+      const isStillToday = endDate === today && endMins > nowMins;
+      const isFutureDate = endDate > today;
+      const startsWithinNext7 = e.date <= next7Ymd;
+      return startsWithinNext7 && (isStillToday || isFutureDate);
     })
-    .filter((e) => !searchLower || [e.title, e.location, e.description].some((v) => v && String(v).toLowerCase().includes(searchLower)))
-    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+    .sort((a, b) => (a.date + (a.start_time || '')).localeCompare(b.date + (b.start_time || '')))
+    .slice(0, 5);
 
-  const recentEvents = events
-    .filter((e) => e.date < today || (e.date === today && timeToMinutes(e.end_time) <= nowMins))
-    .filter((e) => !searchLower || [e.title, e.location, e.description].some((v) => v && String(v).toLowerCase().includes(searchLower)))
-    .sort((a, b) => (b.date + (b.start_time || '')).localeCompare(a.date + (a.start_time || '')))
-    ;
-
-  const next7Days = events
-    .filter((e) => e.date > today || (e.date === today && timeToMinutes(e.end_time) > nowMins))
-    .filter((e) => !searchLower || [e.title, e.location, e.description].some((v) => v && String(v).toLowerCase().includes(searchLower)))
-    .sort((a, b) => (a.date + a.start_time).localeCompare(b.date + b.start_time))
-    ;
+  const monthInfo = useMemo(() => {
+    const current = new Date();
+    const year = current.getFullYear();
+    const month = current.getMonth();
+    const first = new Date(year, month, 1, 12, 0, 0);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startWeekday = first.getDay(); // 0=Sun
+    const monthTitle = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const cells = [];
+    for (let i = 0; i < startWeekday; i += 1) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d += 1) {
+      const ymd = toLocalYMD(new Date(year, month, d, 12, 0, 0));
+      cells.push({
+        day: d,
+        ymd,
+        colors: getDayColors(events, ymd),
+      });
+    }
+    while (cells.length % 7 !== 0) cells.push(null);
+    return { monthTitle, cells };
+  }, [events]);
 
   if (loading) return <div className="dashboard-loading">Loading dashboard...</div>;
 
   return (
     <div className="dashboard">
-      <div className="dashboard-topbar">
-        <div className="dashboard-topbar-left">
-          <h1 className="dashboard-title">Dashboard</h1>
-          <p className="dashboard-subtitle">Overview of events, meetings, conflicts, and invitations</p>
-        </div>
+      <section className="dashboard-panel dashboard-panel-overview">
+        <h1 className="dashboard-title">Dashboard</h1>
+        <p className="dashboard-subtitle">
+          Overview of COROPOTI Programs, Activities and Plans for CY 2026
+        </p>
         <div className="dashboard-actions">
           <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
           <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
         </div>
+      </section>
+
+      <div className="dashboard-panels">
+        <section className="dashboard-panel dashboard-panel-upcoming">
+          <h2>Upcoming Events/Meetings (Next 7 Days)</h2>
+          {upcomingEvents.length === 0 ? (
+            <p className="dashboard-empty">No upcoming events.</p>
+          ) : (
+            <ul className="dashboard-upcoming-list">
+              {upcomingEvents.map((e) => (
+                <li key={e.id}>
+                  <button type="button" className="dashboard-upcoming-item" onClick={() => setSelectedEvent(e.id)}>
+                    <span className="dashboard-upcoming-date">{formatDateRange(e)}</span>
+                    <span className="dashboard-upcoming-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
+                    <span className="dashboard-upcoming-title">{e.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="dashboard-panel dashboard-panel-mini-calendar">
+          <button
+            type="button"
+            className="dashboard-mini-calendar-btn"
+            onClick={() => navigate('/calendar')}
+            title="Open full calendar"
+          >
+            <div className="dashboard-mini-calendar-head">
+              <h2>View Calendar</h2>
+              <span>{monthInfo.monthTitle}</span>
+            </div>
+            <div className="dashboard-mini-grid">
+              {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
+                <span key={w} className="dashboard-mini-weekday">{w}</span>
+              ))}
+              {monthInfo.cells.map((cell, idx) => (
+                <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : ''}`}>
+                  {cell ? (
+                    <>
+                      <span className="dashboard-mini-day">{cell.day}</span>
+                      <div className="dashboard-mini-colors">
+                        {cell.colors.map((c, cIdx) => (
+                          <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </button>
+        </section>
       </div>
+
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <span className="dashboard-card-label">Today</span>
@@ -154,103 +241,7 @@ export default function Dashboard() {
           <span className="dashboard-card-label">This month</span>
           <span className="dashboard-card-value">{monthCount}</span>
           <span className="dashboard-card-sublabel">Events/Meetings</span>
-        </div> 
-        <div className="dashboard-card dashboard-card-warning">
-          <span className="dashboard-card-label">Conflicts</span>
-          <span className="dashboard-card-value">{conflictCount}</span>
-          <span className="dashboard-card-sublabel">Overlapping</span>
         </div>
-      </div>
-      <div className="dashboard-search">
-        <input
-          type="search"
-          placeholder="Search events..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="dashboard-search-input"
-        />
-      </div>
-
-      <section className="dashboard-invitations">
-        <div className="dashboard-section-head">
-          <h2>Invitations</h2>
-          <span className={`dashboard-count-pill ${invitations.length ? 'active' : ''}`}>{invitations.length}</span>
-        </div>
-        {invitations.length === 0 ? (
-          <p className="dashboard-empty">No pending invitations.</p>
-        ) : (
-          <ul className="dashboard-event-list">
-            {invitations.map((inv) => (
-              <li key={`${inv.event_id}`} className="dashboard-event-item">
-                <button
-                  type="button"
-                  className="dashboard-event-row dashboard-invitation-row"
-                  onClick={() => setSelectedEvent(inv.event_id)}
-                >
-                  <span className="dashboard-event-date">{formatDate(inv.date)}</span>
-                  <span className="dashboard-event-time">{formatTime(inv.start_time)} – {formatTime(inv.end_time)}</span>
-                  <span className="dashboard-event-title-wrap">
-                    <span className="dashboard-event-title">{inv.title}</span>
-                    {inv.location ? <span className="dashboard-event-location">• {inv.location}</span> : null}
-                  </span>
-                  <span className="dashboard-invite-from" title={`Host: ${inv.creator_name || ''}`}>
-                    Host: {inv.creator_name || '—'}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <div className="dashboard-grids">
-        <section className="dashboard-recent">
-          <h2>Ongoing Events/Meetings</h2>
-          {ongoingEvents.length === 0 ? (
-            <p className="dashboard-empty">No ongoing events right now.</p>
-          ) : (
-            <ul className="dashboard-event-list">
-              {ongoingEvents.map((e) => (
-                <li key={e.id} className="dashboard-event-item">
-                  <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
-                    <span className="dashboard-event-date">{formatDate(e.date)}</span>
-                    <span className="dashboard-event-time">{formatTime(e.start_time)} – {formatTime(e.end_time)}</span>
-                    <span className="dashboard-event-title-wrap">
-                      <span className="dashboard-event-title">{e.title}</span>
-                      {e.location ? <span className="dashboard-event-location">• {e.location}</span> : null}
-                    </span>
-                    <span className="dashboard-event-ongoing" title="Ongoing">●</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="dashboard-recent">
-          <h2>Upcoming Events/Meetings (Next 7 Days)</h2>
-          {next7Days.length === 0 ? (
-            <p className="dashboard-empty">No upcoming events. <Link to="/events/new">Create one</Link>.</p>
-          ) : (
-            <ul className="dashboard-event-list">
-              {next7Days.map((e) => (
-                <li key={e.id} className="dashboard-event-item">
-                  <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
-                    <span className="dashboard-event-date">{formatDate(e.date)}</span>
-                    <span className="dashboard-event-time">{formatTime(e.start_time)} – {formatTime(e.end_time)}</span>
-                    <span className="dashboard-event-title-wrap">
-                      <span className="dashboard-event-title">{e.title}</span>
-                      {e.location ? <span className="dashboard-event-location">• {e.location}</span> : null}
-                    </span>
-                    {e.conflict_count > 0 && (
-                      <span className="dashboard-event-conflict" title="Has conflict">⚠</span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
 
       {selectedEvent && (
