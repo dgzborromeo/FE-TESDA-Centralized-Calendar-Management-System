@@ -244,9 +244,10 @@ export default function EventForm() {
       });
     }, 500);
     return () => clearTimeout(t);
-  }, [date, endDate, startTime, endTime, id, isEdit]);
+  }, [date, endDate, startTime, endTime, attendeeIds, id, isEdit]);
 
   const validate = () => {
+    const todayYmd = toLocalDateString(new Date());
     if (!title.trim()) {
       setError('Title is required.');
       return false;
@@ -262,6 +263,10 @@ export default function EventForm() {
       }
       if (endDate < date) {
         setError('End date must be the same as or after start date.');
+        return false;
+      }
+      if (date < todayYmd) {
+        setError('Past dates are view-only. Please select today or a future date.');
         return false;
       }
       const hasWeekend = dateRangeYMD(date, endDate).some((d) => isWeekendYMD(d));
@@ -448,6 +453,11 @@ export default function EventForm() {
                     <span className="event-form-conflict-time">
                       {formatTimeShort(cStart)} – {formatTimeShort(cEnd)}
                     </span>
+                    {c.overlapping_participants ? (
+                      <span className="event-form-conflict-time">
+                        Participants: {c.overlapping_participants}
+                      </span>
+                    ) : null}
                     {hasOverlap ? (
                       <span className="event-form-conflict-overlap">
                         Overlap: {formatTimeShort(overlapStart)} – {formatTimeShort(overlapEnd)}
@@ -523,6 +533,7 @@ export default function EventForm() {
             <input
               type="date"
               value={date}
+              min={!isEdit ? toLocalDateString(new Date()) : undefined}
               onChange={(e) => {
                 const nextStart = e.target.value;
                 setDate(nextStart);

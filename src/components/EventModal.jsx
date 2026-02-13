@@ -17,6 +17,11 @@ function formatDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function normalizeTime(t) {
+  if (!t) return '';
+  return t.length === 5 ? `${t}:00` : t;
+}
+
 export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -107,9 +112,13 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   }
 
   const isCreator = Number(event.created_by) === Number(user?.id);
-  const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator);
+  const eventDate = String(event.date || '').slice(0, 10);
+  const eventEndDate = String(event.end_date || event.date || '').slice(0, 10);
+  const endAt = new Date(`${eventEndDate}T${normalizeTime(event.end_time)}`);
+  const isDone = Number.isFinite(endAt.getTime()) ? new Date() >= endAt : false;
+  const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone;
   const myRsvp = event.rsvps?.find((r) => Number(r.office_user_id) === Number(user?.id)) || null;
-  const startAt = new Date(`${event.date}T${event.start_time}`);
+  const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
 

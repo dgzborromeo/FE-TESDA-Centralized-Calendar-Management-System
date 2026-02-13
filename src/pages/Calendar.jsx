@@ -274,6 +274,10 @@ export default function Calendar() {
         alert('Weekends are locked. Please select a weekday.');
         return;
       }
+      if (d < toLocalDateString(new Date())) {
+        alert('This date is already done. It is view-only.');
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       navigate(`/events/new?date=${d}`);
@@ -419,8 +423,8 @@ export default function Calendar() {
           borderColor: backgroundColor,
           textColor: '#fff',
           allDay: isMultiDay,
-          startEditable: canEditThis && !isMultiDay,
-          durationEditable: canEditThis && !isMultiDay,
+          startEditable: canEditThis && !isMultiDay && !done,
+          durationEditable: canEditThis && !isMultiDay && !done,
           classNames: done ? ['fc-event-done'] : [],
           extendedProps: {
             conflict_count: e.conflict_count || 0,
@@ -621,6 +625,12 @@ export default function Calendar() {
                   info.revert();
                   return;
                 }
+                const done = Boolean(info.event.extendedProps?.done);
+                if (done) {
+                  alert('This event is already done and is view-only.');
+                  info.revert();
+                  return;
+                }
                 lastDropAtRef.current = Date.now();
                 // Correct the date using the real pointer position (fixes adjacent-cell drops)
                 const { x, y } = lastPointerRef.current || { x: 0, y: 0 };
@@ -678,6 +688,12 @@ export default function Calendar() {
                 const createdBy = info.event.extendedProps?.created_by;
                 const canEditThis = isAdmin || Number(createdBy) === Number(user?.id);
                 if (!canEditThis) {
+                  info.revert();
+                  return;
+                }
+                const done = Boolean(info.event.extendedProps?.done);
+                if (done) {
+                  alert('This event is already done and is view-only.');
                   info.revert();
                   return;
                 }
