@@ -226,6 +226,7 @@ export default function EventForm() {
         end_date: !isEdit ? endDate : undefined,
         start_time: startTime.length === 5 ? startTime + ':00' : startTime,
         end_time: endTime.length === 5 ? endTime + ':00' : endTime,
+        attendee_ids: attendeeIds,
         exclude_event_id: isEdit ? id : undefined,
       });
       return conflicts;
@@ -284,7 +285,7 @@ export default function EventForm() {
       return false;
     }
     if (conflictWarning?.length > 0) {
-      setError('Selected time conflicts with existing event(s). Please adjust the time.');
+      setError('Selected participant(s) have overlapping schedule in this time slot.');
       return false;
     }
     setError('');
