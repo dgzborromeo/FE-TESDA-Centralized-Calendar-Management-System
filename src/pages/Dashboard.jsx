@@ -56,11 +56,16 @@ function formatDateRange(e) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
+  const [miniMonthEvents, setMiniMonthEvents] = useState([]);
   const [todayCount, setTodayCount] = useState(0);
   const [weekCount, setWeekCount] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [miniMonthDate, setMiniMonthDate] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
+  });
 
   useEffect(() => {
     const now = new Date();
@@ -103,6 +108,17 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const year = miniMonthDate.getFullYear();
+    const month = miniMonthDate.getMonth();
+    const start = toLocalYMD(new Date(year, month, 1, 12, 0, 0));
+    const end = toLocalYMD(new Date(year, month + 1, 0, 12, 0, 0));
+    eventsApi
+      .list({ start, end })
+      .then(setMiniMonthEvents)
+      .catch(() => setMiniMonthEvents([]));
+  }, [miniMonthDate]);
+
   const refresh = () => {
     setLoading(true);
     const now = new Date();
@@ -136,13 +152,13 @@ export default function Dashboard() {
     .slice(0, 5);
 
   const monthInfo = useMemo(() => {
-    const current = new Date();
-    const year = current.getFullYear();
-    const month = current.getMonth();
+    const year = miniMonthDate.getFullYear();
+    const month = miniMonthDate.getMonth();
     const first = new Date(year, month, 1, 12, 0, 0);
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startWeekday = first.getDay(); // 0=Sun
     const monthTitle = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const focusDate = toLocalYMD(first);
     const cells = [];
     for (let i = 0; i < startWeekday; i += 1) cells.push(null);
     for (let d = 1; d <= daysInMonth; d += 1) {
@@ -150,12 +166,21 @@ export default function Dashboard() {
       cells.push({
         day: d,
         ymd,
-        colors: getDayColors(events, ymd),
+        colors: getDayColors(miniMonthEvents, ymd),
       });
     }
     while (cells.length % 7 !== 0) cells.push(null);
-    return { monthTitle, cells };
-  }, [events]);
+    return { monthTitle, cells, focusDate };
+  }, [miniMonthDate, miniMonthEvents]);
+
+  const shiftMiniMonth = (delta) => {
+    setMiniMonthDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1, 12, 0, 0));
+  };
+
+  const resetMiniMonth = () => {
+    const d = new Date();
+    setMiniMonthDate(new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0));
+  };
 
   if (loading) return <div className="dashboard-loading">Loading dashboard...</div>;
 
@@ -193,16 +218,41 @@ export default function Dashboard() {
         </section>
 
         <section className="dashboard-panel dashboard-panel-mini-calendar">
+          <div className="dashboard-mini-calendar-head">
+            <h2>View Calendar</h2>
+            <div className="dashboard-mini-calendar-controls">
+              <button
+                type="button"
+                className="dashboard-mini-month-btn"
+                onClick={() => shiftMiniMonth(-1)}
+                aria-label="Previous month"
+              >
+                &#8249;
+              </button>
+              <span>{monthInfo.monthTitle}</span>
+              <button
+                type="button"
+                className="dashboard-mini-month-btn"
+                onClick={() => shiftMiniMonth(1)}
+                aria-label="Next month"
+              >
+                &#8250;
+              </button>
+              <button
+                type="button"
+                className="dashboard-mini-today-btn"
+                onClick={resetMiniMonth}
+              >
+                Today
+              </button>
+            </div>
+          </div>
           <button
             type="button"
             className="dashboard-mini-calendar-btn"
-            onClick={() => navigate('/calendar')}
+            onClick={() => navigate(`/calendar?date=${monthInfo.focusDate}`)}
             title="Open full calendar"
           >
-            <div className="dashboard-mini-calendar-head">
-              <h2>View Calendar</h2>
-              <span>{monthInfo.monthTitle}</span>
-            </div>
             <div className="dashboard-mini-grid">
               {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
                 <span key={w} className="dashboard-mini-weekday">{w}</span>

@@ -135,7 +135,7 @@
 
 .dashboard-mini-calendar-btn {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 2.4rem);
   border: none;
   background: transparent;
   text-align: left;
@@ -146,13 +146,47 @@
 .dashboard-mini-calendar-head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 0.45rem;
+  gap: 0.65rem;
 }
 
 .dashboard-mini-calendar-head span {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.dashboard-mini-calendar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard-mini-month-btn,
+.dashboard-mini-today-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.dashboard-mini-month-btn {
+  width: 1.9rem;
+  height: 1.9rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.dashboard-mini-today-btn {
+  padding: 0.22rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.dashboard-mini-month-btn:hover,
+.dashboard-mini-today-btn:hover {
+  background: rgba(37, 99, 235, 0.09);
 }
 
 .dashboard-mini-grid {
@@ -592,6 +626,17 @@
 }
 
 @media (max-width: 420px) {
+  .dashboard-mini-calendar-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-mini-calendar-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .dashboard-upcoming-item {
     grid-template-columns: 1fr;
   }
