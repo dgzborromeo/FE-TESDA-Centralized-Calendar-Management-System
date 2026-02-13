@@ -41,7 +41,7 @@ export default function Invitations() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">Invitations</h1>
-          <p className="dashboard-subtitle">Pending invites that need your response.</p>
+          <p className="dashboard-subtitle">Pending invites that need your response</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
@@ -55,7 +55,7 @@ export default function Invitations() {
       </div>
 
       {invitations.length === 0 ? (
-        <p className="dashboard-empty">No pending invitations.</p>
+        <p className="dashboard-empty">No pending invitations</p>
       ) : (
         <ul className="dashboard-event-list">
           {invitations.map((inv) => (

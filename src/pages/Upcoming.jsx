@@ -72,7 +72,7 @@ export default function Upcoming() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">Upcoming Events/Meetings</h1>
-          <p className="dashboard-subtitle">All upcoming schedules (including today if not finished).</p>
+          <p className="dashboard-subtitle">All upcoming schedules (including today if not finished)</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
@@ -96,7 +96,7 @@ export default function Upcoming() {
       </div>
 
       {upcoming.length === 0 ? (
-        <p className="dashboard-empty">No upcoming events.</p>
+        <p className="dashboard-empty">No upcoming events</p>
       ) : (
         <ul className="dashboard-event-list">
           {upcoming.map((e) => (

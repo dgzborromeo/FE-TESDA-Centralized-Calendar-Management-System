@@ -72,7 +72,7 @@ export default function Recent() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">Recent Events/Meetings</h1>
-          <p className="dashboard-subtitle">Events that already ended.</p>
+          <p className="dashboard-subtitle">Events that already ended</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
