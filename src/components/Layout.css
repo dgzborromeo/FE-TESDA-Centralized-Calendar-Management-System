@@ -6,8 +6,8 @@
 
 .layout-main {
   flex: 1;
-  padding: 1.5rem;
-  max-width: 1600px;
+  padding: clamp(0.95rem, 1.4vw, 1.5rem);
+  max-width: min(96vw, 1920px);
   margin: 0 auto;
   width: 100%;
 }
