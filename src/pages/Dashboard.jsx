@@ -225,6 +225,11 @@ export default function Dashboard() {
                     <span className="dashboard-upcoming-date">{formatDateRange(e)}</span>
                     <span className="dashboard-upcoming-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
                     <span className="dashboard-upcoming-title">{e.title}</span>
+                    <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
+                    <span className="dashboard-upcoming-meta">
+                      Participants: {e.participants_summary || 'None'}
+                    </span>
+                    <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>
                 </li>
               ))}
