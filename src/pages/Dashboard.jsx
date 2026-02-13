@@ -135,6 +135,12 @@ export default function Dashboard() {
   const now = new Date();
   const today = toLocalYMD(now);
   const nowMins = now.getHours() * 60 + now.getMinutes();
+  const overviewDateLabel = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
   const next7 = new Date(now);
   next7.setDate(next7.getDate() + 7);
   const next7Ymd = toLocalYMD(next7);
@@ -191,6 +197,9 @@ export default function Dashboard() {
         <p className="dashboard-subtitle">
           Overview of COROPOTI Programs, Activities and Plans for CY 2026
         </p>
+        <div className="dashboard-overview-meta">
+          <span className="dashboard-overview-chip">{overviewDateLabel}</span>
+        </div>
         <div className="dashboard-actions">
           <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
           <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
