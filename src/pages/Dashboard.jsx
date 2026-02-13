@@ -132,7 +132,7 @@ export default function Dashboard() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">Dashboard</h1>
-          <p className="dashboard-subtitle">Overview of Events, Meetings, conflicts, and invitations</p>
+          <p className="dashboard-subtitle">Overview of events, meetings, conflicts, and invitations</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>

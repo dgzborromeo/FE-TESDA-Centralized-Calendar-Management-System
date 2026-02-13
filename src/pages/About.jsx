@@ -7,7 +7,7 @@ export default function About() {
       <div className="info-topbar">
         <div>
           <h1 className="info-title">About</h1>
-          <p className="info-subtitle">TESDA Centralized Scheduling Management System overview.</p>
+          <p className="info-subtitle">COROPOTI Centralized Schedule Management System overview.</p>
         </div>
         <div className="info-actions">
           <Link to="/dashboard" className="info-btn">Back to Dashboard</Link>

@@ -37,8 +37,8 @@ export default function Login() {
           <img className="auth-split-img" src="/login-hero.png" alt="" />
           <div className="auth-split-overlay">
             <div className="auth-split-overlay-inner">
-              <div className="auth-split-kicker">TESDA</div>
-              <div className="auth-split-title">Scheduling Management</div>
+              <div className="auth-split-kicker">COROPOTI</div>
+              <div className="auth-split-title">Centralized Schedule Management</div>
               <div className="auth-split-subtitle">Plan, coordinate, and confirm events across offices.</div>
             </div>
           </div>
@@ -50,7 +50,7 @@ export default function Login() {
               <span className="auth-logo" aria-hidden="true">
                 <Logo src="/tesda-logo.png" alt="" transparentBlack className="auth-logo-img" />
               </span>
-              <h1>TESDA Centralized Scheduling Management System</h1>
+              <h1>COROPOTI Centralized Schedule Management System</h1>
               <p>Sign in to continue</p>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">

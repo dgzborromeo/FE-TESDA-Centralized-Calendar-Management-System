@@ -61,7 +61,7 @@ export default function Header() {
       <div className="header-inner">
         <Link to="/dashboard" className="header-logo">
           <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-          <span className="header-logo-text">TESDA Centralized Scheduling Management System</span>
+          <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
         </Link>
         <nav className="header-nav">
           <div className="header-nav-scroll">

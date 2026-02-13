@@ -43,7 +43,7 @@ export default function Register() {
         <div className="auth-header">
           <span className="auth-logo">📅</span>
           <h1>Create account</h1>
-          <p>Register for TESDA Centralized Scheduling Management System</p>
+          <p>Register for COROPOTI Centralized Schedule Management System</p>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="auth-error">{error}</div>}
