@@ -193,16 +193,22 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       <section className="dashboard-panel dashboard-panel-overview">
-        <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">
-          Overview of COROPOTI Programs, Activities and Plans for CY 2026
-        </p>
-        <div className="dashboard-overview-meta">
-          <span className="dashboard-overview-chip">{overviewDateLabel}</span>
-        </div>
-        <div className="dashboard-actions">
-          <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
-          <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
+        <div className="dashboard-overview-top">
+          <div className="dashboard-overview-titleblock">
+            <h1 className="dashboard-title">Dashboard</h1>
+            <p className="dashboard-subtitle">
+              Overview of COROPOTI Programs, Activities and Plans for CY 2026
+            </p>
+          </div>
+          <div className="dashboard-overview-side">
+            <div className="dashboard-overview-meta">
+              <span className="dashboard-overview-chip">{overviewDateLabel}</span>
+            </div>
+            <div className="dashboard-actions">
+              <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
+              <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
+            </div>
+          </div>
         </div>
       </section>
 

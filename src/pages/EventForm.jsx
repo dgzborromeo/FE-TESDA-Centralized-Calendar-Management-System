@@ -285,7 +285,7 @@ export default function EventForm() {
       return false;
     }
     if (conflictWarning?.length > 0) {
-      setError('Selected participant(s) have overlapping schedule in this time slot.');
+      setError('Participant conflict detected. You or one of the selected participants is already scheduled at this date/time.');
       return false;
     }
     setError('');
@@ -420,9 +420,12 @@ export default function EventForm() {
 
         {conflictWarning?.length > 0 && (
           <div className="event-form-conflict-warning">
-            <strong>⚠ Conflict detected</strong>
+            <strong>⚠ Participant conflict detected</strong>
             <div>
               Your selected time: <strong>{formatTimeShort(startTime)} – {formatTimeShort(endTime)}</strong>
+            </div>
+            <div>
+              You or one of the selected participants is already included in another event for this schedule.
             </div>
             <ul className="event-form-conflict-list">
               {conflictWarning.map((c) => {
@@ -454,7 +457,7 @@ export default function EventForm() {
                 );
               })}
             </ul>
-            <div>Adjust time to continue.</div>
+            <div>To continue, change the participants or choose a different schedule.</div>
           </div>
         )}
 
@@ -666,7 +669,7 @@ export default function EventForm() {
             type="submit"
             className="event-form-submit"
             disabled={loading || (conflictWarning?.length > 0)}
-            title={conflictWarning?.length > 0 ? 'Cannot save while time is conflicting.' : undefined}
+            title={conflictWarning?.length > 0 ? 'Cannot save while selected participants are conflicting.' : undefined}
           >
             {loading ? 'Saving...' : isEdit ? 'Update Event' : 'Create Event'}
           </button>
