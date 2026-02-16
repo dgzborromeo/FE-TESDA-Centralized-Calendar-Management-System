@@ -125,6 +125,107 @@
   flex-direction: column;
 }
 
+.calendar-legend-top {
+  width: 100%;
+  align-self: auto;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0.35rem 0.2rem 0.65rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.calendar-legend-top h3 {
+  margin: 0;
+}
+
+.calendar-legend-top-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.calendar-legend-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.calendar-legend-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.calendar-legend-filter label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.calendar-legend-filter select {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  padding: 0.3rem 0.45rem;
+}
+
+.calendar-legend-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.32rem 0.62rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid transparent;
+}
+
+.calendar-legend-add:hover {
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.calendar-legend-toggle {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.32rem 0.6rem;
+  cursor: pointer;
+}
+
+.calendar-legend-toggle:hover {
+  background: rgba(37, 99, 235, 0.09);
+}
+
+.calendar-legend-top .calendar-cluster-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.45rem;
+  max-height: 210px;
+  overflow: auto;
+  padding-right: 0.3rem;
+}
+
+.calendar-legend-top .calendar-cluster-item + .calendar-cluster-item {
+  margin-top: 0;
+}
+
 .calendar-legend h3 {
   font-size: 1rem;
   margin-bottom: 0.75rem;
@@ -261,6 +362,10 @@
 .calendar-main-fullcalendar {
   padding: 0.75rem;
   position: relative;
+}
+
+.calendar-legend-top + .fc {
+  margin-top: 0.45rem;
 }
 
 /* Lock weekends visually (still viewable, but creation/drag is blocked in logic) */

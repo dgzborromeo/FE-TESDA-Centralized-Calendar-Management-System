@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
 import './Header.css';
@@ -7,10 +7,13 @@ import './Header.css';
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [accountOpen, setAccountOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [calendarSearch, setCalendarSearch] = useState('');
   const accountRef = useRef(null);
   const helpRef = useRef(null);
+  const isCalendarPage = location.pathname.startsWith('/calendar');
 
   const officeShort = (() => {
     const email = (user?.email || '').trim().toLowerCase();
@@ -50,6 +53,25 @@ export default function Header() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!isCalendarPage) {
+      setCalendarSearch('');
+      return;
+    }
+    const params = new URLSearchParams(location.search || '');
+    setCalendarSearch(params.get('q') || '');
+  }, [isCalendarPage, location.search]);
+
+  const handleCalendarSearchChange = (value) => {
+    setCalendarSearch(value);
+    const params = new URLSearchParams(location.search || '');
+    const trimmed = String(value || '').trim();
+    if (trimmed) params.set('q', trimmed);
+    else params.delete('q');
+    const qs = params.toString();
+    navigate(`/calendar${qs ? `?${qs}` : ''}`, { replace: true });
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -59,10 +81,21 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to="/dashboard" className="header-logo">
-          <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-          <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
-        </Link>
+        <div className="header-left">
+          <Link to="/dashboard" className="header-logo">
+            <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
+            <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
+          </Link>
+          {isCalendarPage && (
+            <input
+              type="search"
+              className="header-calendar-search"
+              placeholder="Search events..."
+              value={calendarSearch}
+              onChange={(e) => handleCalendarSearchChange(e.target.value)}
+            />
+          )}
+        </div>
         <nav className="header-nav">
           <div className="header-nav-scroll">
             <Link to="/dashboard" className="header-link">Dashboard</Link>

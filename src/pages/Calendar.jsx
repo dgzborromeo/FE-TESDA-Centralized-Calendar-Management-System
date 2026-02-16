@@ -172,14 +172,12 @@ export default function Calendar() {
   const [error, setError] = useState('');
   const [events, setEvents] = useState([]);
   const [holidayEvents, setHolidayEvents] = useState([]);
-  const [conflictList, setConflictList] = useState([]);
-  const [conflictsLoading, setConflictsLoading] = useState(false);
   const [clusterLegend, setClusterLegend] = useState([]);
   const [legendLoading, setLegendLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterType, setFilterType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [legendCollapsed, setLegendCollapsed] = useState(false);
   const [nowTick, setNowTick] = useState(0);
   const [pendingMove, setPendingMove] = useState(null);
   const [moveReason, setMoveReason] = useState('');
@@ -224,20 +222,6 @@ export default function Calendar() {
     const t = setInterval(() => setNowTick((x) => x + 1), 60_000);
     return () => clearInterval(t);
   }, []);
-
-  // When the mobile sidebar opens/closes, ask FullCalendar to recalc sizes.
-  useEffect(() => {
-    const api = calendarRef.current?.getApi?.();
-    if (!api) return;
-    const t = setTimeout(() => {
-      try {
-        api.updateSize();
-      } catch {
-        // ignore
-      }
-    }, 60);
-    return () => clearTimeout(t);
-  }, [sidebarOpen]);
 
   // Track pointer globally so drag-drop can use the real cursor position.
   useEffect(() => {
@@ -288,6 +272,12 @@ export default function Calendar() {
   }, [navigate]);
 
   const dateParam = searchParams.get('date');
+  const queryParam = searchParams.get('q') || '';
+
+  useEffect(() => {
+    setSearchQuery(queryParam);
+  }, [queryParam]);
+
   useEffect(() => {
     if (!dateParam) return;
     const d = new Date(`${dateParam}T12:00:00`);
@@ -296,8 +286,10 @@ export default function Calendar() {
       const api = calendarRef.current?.getApi?.();
       if (api) api.gotoDate(d);
     }
-    setSearchParams({}, { replace: true });
-  }, [dateParam, setSearchParams]);
+    const next = new URLSearchParams(searchParams);
+    next.delete('date');
+    setSearchParams(next, { replace: true });
+  }, [dateParam, searchParams, setSearchParams]);
 
   const fetchEventsForRange = async (rangeStart, rangeEndExclusive) => {
     // FullCalendar's `end` is exclusive; backend expects inclusive.
@@ -311,19 +303,6 @@ export default function Calendar() {
     if (searchQuery.trim()) params.q = searchQuery.trim();
     const rows = await eventsApi.list(params);
     setEvents(rows);
-  };
-
-  const fetchConflicts = async () => {
-    setConflictsLoading(true);
-    try {
-      const rows = await eventsApi.conflictsList();
-      setConflictList(rows);
-    } catch (e) {
-      // non-fatal
-      console.error(e);
-    } finally {
-      setConflictsLoading(false);
-    }
   };
 
   const fetchLegend = async () => {
@@ -348,7 +327,7 @@ export default function Calendar() {
   const refreshData = async () => {
     const { start, end } = activeRangeRef.current;
     if (start && end) {
-      await Promise.all([fetchEventsForRange(start, end), fetchConflicts()]);
+      await fetchEventsForRange(start, end);
     }
   };
 
@@ -444,33 +423,6 @@ export default function Calendar() {
       });
   }, [events, filterType, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
 
-  const dedupedConflicts = useMemo(() => {
-    const seen = new Set();
-    const isDoneAt = (ymd, endTime) => {
-      if (!ymd || !endTime) return false;
-      const endRaw = normalizeTime(endTime);
-      const endAt = new Date(`${String(ymd).slice(0, 10)}T${endRaw}`);
-      if (!Number.isFinite(endAt.getTime())) return false;
-      return new Date() >= endAt;
-    };
-
-    return (conflictList || [])
-      // Hide conflicts for events that are already done
-      .filter((row) => {
-        const eventDone = isDoneAt(row.event_date, row.event_end);
-        const otherDone = isDoneAt(row.conflicting_date, row.conflicting_end);
-        return !eventDone && !otherDone;
-      })
-      .filter((row) => {
-      const a = Number(row.event_id);
-      const b = Number(row.conflicting_event_id);
-      const key = [a, b].sort((x, y) => x - y).join('-');
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-      });
-  }, [conflictList, nowTick]);
-
   if (loading) {
     // we'll flip `loading` off once the first `datesSet` fetch completes
   }
@@ -479,74 +431,78 @@ export default function Calendar() {
     <div className="calendar-page">
       <div className="calendar-toolbar">
         <h1 className="calendar-title">Calendar</h1>
-        <div className="calendar-toolbar-right">
-          <button
-            type="button"
-            className="calendar-sidebar-toggle"
-            onClick={() => setSidebarOpen((v) => !v)}
-            aria-expanded={sidebarOpen}
-          >
-            {sidebarOpen ? 'Close Filters' : 'Filters'}
-          </button>
-          <input
-            type="search"
-            placeholder="Search events..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="calendar-search"
-          />
-        </div>
       </div>
 
       <div className="calendar-content">
-        {sidebarOpen && (
-          <button
-            type="button"
-            className="calendar-sidebar-backdrop"
-            aria-label="Close filters"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-        <aside className="calendar-legend">
-          <h3>Legend</h3>
-          {legendLoading ? (
-            <p className="calendar-legend-empty">Loading…</p>
-          ) : clusterLegend.length === 0 ? (
-            <p className="calendar-legend-empty">No clusters found</p>
-          ) : (
-            <div className="calendar-cluster-list">
-              {clusterLegend.map((cluster) => (
-                <details key={cluster.id} className="calendar-cluster-item">
-                  <summary className="calendar-cluster-summary">
-                    <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
-                    <span className="calendar-legend-name">{cluster.name}</span>
-                  </summary>
-                  <ul className="calendar-cluster-offices">
-                    {(cluster.offices || []).map((office) => (
-                      <li key={office.name} className="calendar-cluster-office-item">
-                        <div className="calendar-legend-item">
-                          <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
-                          <span className="calendar-legend-name">{office.name}</span>
-                        </div>
-                        {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
-                          <ul className="calendar-cluster-divisions">
-                            {office.divisions.map((division) => (
-                              <li key={division} className="calendar-cluster-division-item">
-                                {division}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ))}
-            </div>
-          )}
-        </aside>
-
         <div ref={containerRef} className="calendar-main calendar-main-fullcalendar">
+          <section className="calendar-legend calendar-legend-top">
+            <div className="calendar-legend-top-head">
+              <h3>Legend</h3>
+              <div className="calendar-legend-top-actions">
+                <div className="calendar-legend-filter">
+                  <label htmlFor="calendar-type-filter">Type:</label>
+                  <select
+                    id="calendar-type-filter"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="zoom">Zoom</option>
+                    <option value="event">Event</option>
+                  </select>
+                </div>
+                <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
+                <button
+                  type="button"
+                  className="calendar-legend-toggle"
+                  onClick={() => setLegendCollapsed((v) => !v)}
+                  aria-expanded={!legendCollapsed}
+                >
+                  {legendCollapsed ? 'Show Legend' : 'Hide Legend'}
+                </button>
+              </div>
+            </div>
+            {!legendCollapsed && (
+              <>
+                {legendLoading ? (
+                  <p className="calendar-legend-empty">Loading…</p>
+                ) : clusterLegend.length === 0 ? (
+                  <p className="calendar-legend-empty">No clusters found</p>
+                ) : (
+                  <div className="calendar-cluster-list">
+                    {clusterLegend.map((cluster) => (
+                      <details key={cluster.id} className="calendar-cluster-item">
+                        <summary className="calendar-cluster-summary">
+                          <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
+                          <span className="calendar-legend-name">{cluster.name}</span>
+                        </summary>
+                        <ul className="calendar-cluster-offices">
+                          {(cluster.offices || []).map((office) => (
+                            <li key={office.name} className="calendar-cluster-office-item">
+                              <div className="calendar-legend-item">
+                                <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
+                                <span className="calendar-legend-name">{office.name}</span>
+                              </div>
+                              {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
+                                <ul className="calendar-cluster-divisions">
+                                  {office.divisions.map((division) => (
+                                    <li key={division} className="calendar-cluster-division-item">
+                                      {division}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -582,7 +538,7 @@ export default function Calendar() {
                 setError('');
                 activeRangeRef.current = { start: arg.start, end: arg.end };
                 setHolidayEvents(holidayEventsForRange(arg.start, arg.end));
-                await Promise.all([fetchEventsForRange(arg.start, arg.end), fetchConflicts()]);
+                await fetchEventsForRange(arg.start, arg.end);
               } catch (e) {
                 console.error(e);
                 const msg = e?.message || 'Failed to load events.';
@@ -726,7 +682,7 @@ export default function Calendar() {
                 <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`} title={tooltip}>
                   {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
                   {done && <span className="fc-event-done-badge">Done</span>}
-                  {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">FILE</span>}
+                  {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>
                 </div>
@@ -744,66 +700,6 @@ export default function Calendar() {
             </div>
           )}
         </div>
-
-        <aside className={`calendar-sidebar ${sidebarOpen ? 'calendar-sidebar-open' : ''}`}>
-          <h3>Filters</h3>
-          <div className="calendar-sidebar-filter">
-            <label>Type:</label>
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="">All</option>
-              <option value="meeting">Meeting</option>
-              <option value="zoom">Zoom</option>
-              <option value="event">Event</option>
-            </select>
-          </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-            Loaded events: <strong>{events.length}</strong>
-          </div>
-
-          <section className="calendar-conflicts-section">
-            <h3 className="calendar-conflicts-title">⚠ Conflicts</h3>
-            {conflictsLoading ? (
-              <p className="calendar-conflicts-empty">Loading…</p>
-            ) : dedupedConflicts.length === 0 ? (
-              <p className="calendar-conflicts-empty">No conflicts</p>
-            ) : (
-              <ul className="calendar-conflicts-list">
-                {dedupedConflicts.map((row) => (
-                  <li key={row.conflict_id} className="calendar-conflict-item">
-                    <button
-                      type="button"
-                      className="calendar-conflict-row"
-                      onClick={() => {
-                        const api = calendarRef.current?.getApi?.();
-                        if (api) {
-                          api.gotoDate(row.event_date);
-                          api.changeView('timeGridDay');
-                        }
-                        setSelectedEvent(row.event_id);
-                      }}
-                    >
-                      <span className="calendar-conflict-event">{row.event_title}</span>
-                      <span className="calendar-conflict-meta">
-                        {row.event_date} {formatTimeShort(row.event_start)}–{formatTimeShort(row.event_end)}
-                      </span>
-                      <span className="calendar-conflict-with">↔ conflicts with</span>
-                      <span className="calendar-conflict-event">{row.conflicting_title}</span>
-                      <span className="calendar-conflict-meta">
-                        {row.conflicting_date} {formatTimeShort(row.conflicting_start)}–{formatTimeShort(row.conflicting_end)}
-                      </span>
-                      <span className="calendar-conflict-badges">
-                        {Number(row.time_conflict) === 1 && <span className="conflict-badge conflict-time">Time</span>}
-                        {Number(row.participant_conflict) === 1 && <span className="conflict-badge conflict-participants">Participants</span>}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <Link to="/events/new" className="calendar-sidebar-new">+ New Event</Link>
-        </aside>
       </div>
 
       {selectedEvent && (
