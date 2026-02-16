@@ -410,7 +410,8 @@ export default function Calendar() {
         const host = e.creator_name || 'Unknown';
         const done = isEventDone(e);
         const dateRangeText = isMultiDay ? `${date} to ${endDate}` : date;
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${done ? '\nStatus: Done' : ''}`;
+        const hasAttachment = Number(e.attachment_count || 0) > 0;
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -431,6 +432,7 @@ export default function Calendar() {
             type: e.type,
             tooltip,
             done,
+            has_attachment: hasAttachment,
             is_multi_day: isMultiDay,
             end_date: endDate,
             start_time_raw,
@@ -718,11 +720,13 @@ export default function Calendar() {
               const conflict = (arg.event.extendedProps?.conflict_count || 0) > 0;
               const tooltip = arg.event.extendedProps?.tooltip || arg.event.title;
               const done = Boolean(arg.event.extendedProps?.done);
+              const hasAttachment = Boolean(arg.event.extendedProps?.has_attachment);
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
               return (
                 <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`} title={tooltip}>
                   {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
                   {done && <span className="fc-event-done-badge">Done</span>}
+                  {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">FILE</span>}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>
                 </div>
