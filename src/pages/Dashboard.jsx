@@ -53,6 +53,34 @@ function formatDateRange(e) {
   return `${formatDate(e.date)} - ${formatDate(endDate)}`;
 }
 
+function acronymFromParticipantName(rawName) {
+  const name = String(rawName || '').trim();
+  if (!name) return '';
+  const paren = name.match(/\(([^()]+)\)\s*$/);
+  if (paren?.[1]) return String(paren[1]).trim().toUpperCase();
+
+  const words = name
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!words.length) return '';
+  if (words.length === 1 && words[0].length <= 10) return words[0].toUpperCase();
+  return words
+    .slice(0, 8)
+    .map((w) => w[0].toUpperCase())
+    .join('');
+}
+
+function formatParticipantsAcronymList(summary) {
+  if (!summary || !String(summary).trim()) return 'None';
+  const acronyms = String(summary)
+    .split(',')
+    .map((s) => acronymFromParticipantName(s))
+    .filter(Boolean);
+  if (!acronyms.length) return 'None';
+  return Array.from(new Set(acronyms)).join(', ');
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
@@ -227,7 +255,7 @@ export default function Dashboard() {
                     <span className="dashboard-upcoming-title">{e.title}</span>
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
-                      Participants: {e.participants_summary || 'None'}
+                      Participants: {formatParticipantsAcronymList(e.participants_summary)}
                     </span>
                     <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>
