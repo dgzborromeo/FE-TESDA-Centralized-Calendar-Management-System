@@ -572,7 +572,7 @@ export default function Calendar() {
                 <div className="calendar-legend-host-filter" ref={hostFilterRef}>
                   <button
                     type="button"
-                    className="calendar-legend-host-btn"
+                    className={`calendar-legend-host-btn ${hostFilterOpen ? 'is-open' : ''}`}
                     onPointerDown={stopEvent}
                     onMouseDown={stopEvent}
                     onClick={(e) => {
@@ -585,8 +585,10 @@ export default function Calendar() {
                       setHostFilterOpen((v) => !v);
                     }}
                     aria-expanded={hostFilterOpen}
+                    aria-label="Host filter: view events by host account"
                   >
-                    Host
+                    <span className="calendar-legend-host-btn-text">Host Events</span>
+                    <span className="calendar-legend-host-btn-caret">▾</span>
                   </button>
                   {hostFilterOpen && (
                     <>

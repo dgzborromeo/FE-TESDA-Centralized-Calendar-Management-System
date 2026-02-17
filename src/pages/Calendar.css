@@ -181,21 +181,43 @@
 
 .calendar-legend-host-filter {
   position: relative;
+  display: grid;
+  gap: 0.16rem;
 }
 
 .calendar-legend-host-btn {
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
+  border: 1px solid rgba(37, 99, 235, 0.45);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #0f172a;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.32rem 0.55rem;
+  font-weight: 700;
+  padding: 0.36rem 0.58rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.16);
+}
+
+.calendar-legend-host-btn-text {
+  line-height: 1;
+}
+
+.calendar-legend-host-btn-caret {
+  font-size: 0.75rem;
+  color: #1d4ed8;
+  line-height: 1;
+  transform: translateY(0.5px);
 }
 
 .calendar-legend-host-btn:hover {
-  background: rgba(37, 99, 235, 0.08);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.calendar-legend-host-btn.is-open {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: rgba(30, 64, 175, 0.55);
 }
 
 .calendar-legend-host-menu {
