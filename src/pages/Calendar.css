@@ -579,6 +579,38 @@
   pointer-events: none;
 }
 
+/* Make weekend columns thinner than weekdays (month/week views). */
+.calendar-main-fullcalendar .fc {
+  --calendar-weekend-col: 7%;
+  --calendar-weekday-col: calc((100% - (var(--calendar-weekend-col) * 2)) / 5);
+}
+
+.calendar-main-fullcalendar .fc .fc-col-header-cell.fc-day-sat,
+.calendar-main-fullcalendar .fc .fc-col-header-cell.fc-day-sun,
+.calendar-main-fullcalendar .fc .fc-daygrid-day.fc-day-sat,
+.calendar-main-fullcalendar .fc .fc-daygrid-day.fc-day-sun,
+.calendar-main-fullcalendar .fc .fc-timegrid-col.fc-day-sat,
+.calendar-main-fullcalendar .fc .fc-timegrid-col.fc-day-sun {
+  width: var(--calendar-weekend-col) !important;
+  min-width: var(--calendar-weekend-col) !important;
+  max-width: var(--calendar-weekend-col) !important;
+}
+
+.calendar-main-fullcalendar .fc .fc-col-header-cell:not(.fc-day-sat):not(.fc-day-sun),
+.calendar-main-fullcalendar .fc .fc-daygrid-day:not(.fc-day-sat):not(.fc-day-sun),
+.calendar-main-fullcalendar .fc .fc-timegrid-col:not(.fc-day-sat):not(.fc-day-sun) {
+  width: var(--calendar-weekday-col) !important;
+  min-width: var(--calendar-weekday-col) !important;
+  max-width: var(--calendar-weekday-col) !important;
+}
+
+@media (max-width: 900px) {
+  .calendar-main-fullcalendar .fc {
+    --calendar-weekend-col: 11%;
+    --calendar-weekday-col: calc((100% - (var(--calendar-weekend-col) * 2)) / 5);
+  }
+}
+
 .calendar-legend-top {
   position: relative;
   z-index: 90;
