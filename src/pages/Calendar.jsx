@@ -144,6 +144,38 @@ function isWeekendYMD(ymd) {
   return day === 0 || day === 6;
 }
 
+function clusterShortLabel(name) {
+  const raw = String(name || '').trim();
+  if (!raw) return 'CLUSTER';
+  const paren = raw.match(/\(([^()]+)\)\s*$/);
+  if (paren?.[1]) return String(paren[1]).trim().toUpperCase();
+  const words = raw.split(/\s+/).filter(Boolean);
+  return words.slice(0, 6).map((w) => w[0]?.toUpperCase() || '').join('') || raw.slice(0, 8).toUpperCase();
+}
+
+function stopEvent(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function extractCodesFromName(name) {
+  const out = new Set();
+  const n = String(name || '').trim();
+  if (!n) return [];
+  const parenMatches = n.matchAll(/\(([^()]+)\)/g);
+  for (const m of parenMatches) {
+    const inner = String(m[1] || '').trim();
+    if (!inner) continue;
+    for (const token of inner.split(/[\/,]/)) {
+      const t = token.trim().toUpperCase();
+      if (t && t.length <= 16) out.add(t);
+    }
+  }
+  const allCaps = n.match(/\b[A-Z]{2,10}\b/g) || [];
+  for (const c of allCaps) out.add(c.toUpperCase());
+  return Array.from(out);
+}
+
 export default function Calendar() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -172,18 +204,23 @@ export default function Calendar() {
   const [error, setError] = useState('');
   const [events, setEvents] = useState([]);
   const [holidayEvents, setHolidayEvents] = useState([]);
+  const [users, setUsers] = useState([]);
   const [clusterLegend, setClusterLegend] = useState([]);
   const [legendLoading, setLegendLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterType, setFilterType] = useState('');
+  const [hostFilterOpen, setHostFilterOpen] = useState(false);
+  const [hostModalTarget, setHostModalTarget] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [legendCollapsed, setLegendCollapsed] = useState(false);
+  const [openLegendClusterId, setOpenLegendClusterId] = useState(null);
   const [nowTick, setNowTick] = useState(0);
   const [pendingMove, setPendingMove] = useState(null);
   const [moveReason, setMoveReason] = useState('');
   const [moveSubmitting, setMoveSubmitting] = useState(false);
 
   const activeRangeRef = useRef({ start: null, end: null });
+  const hostFilterRef = useRef(null);
 
   // Keep FullCalendar's internal hit-detection in sync with actual layout.
   // This fixes "click/drag goes to adjacent day" when the page/layout changes after render.
@@ -250,6 +287,8 @@ export default function Calendar() {
       if (Date.now() - lastDropAtRef.current < 400) return;
 
       const target = e.target;
+      // Only handle clicks that actually happen inside the FullCalendar grid area.
+      if (!target?.closest?.('.fc')) return;
       // Don't hijack event clicks / "+more" links
       if (target?.closest?.('.fc-event, .fc-more-link, .fc-daygrid-more-link')) return;
       const d = getDateFromRects(el, e.clientX, e.clientY) || getDateFromPoint(e.clientX, e.clientY);
@@ -321,6 +360,7 @@ export default function Calendar() {
 
   useEffect(() => {
     fetchLegend();
+    usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -329,6 +369,10 @@ export default function Calendar() {
     if (start && end) {
       await fetchEventsForRange(start, end);
     }
+  };
+
+  const toggleLegendCluster = (clusterId) => {
+    setOpenLegendClusterId((prev) => (prev === clusterId ? null : clusterId));
   };
 
   const cancelPendingMove = () => {
@@ -366,6 +410,66 @@ export default function Calendar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!hostFilterRef.current) return;
+      if (!hostFilterRef.current.contains(e.target)) setHostFilterOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const hostOptions = useMemo(() => {
+    const usersByEmailLocal = new Map();
+    for (const u of users || []) {
+      const email = String(u?.email || '').toLowerCase();
+      const local = email.includes('@') ? email.split('@')[0] : '';
+      if (local) usersByEmailLocal.set(local, u);
+    }
+
+    return (clusterLegend || [])
+      .map((cluster) => {
+        const items = [];
+        const clusterAccountId = Number(cluster?.account?.id) || null;
+        if (Number.isFinite(clusterAccountId) && clusterAccountId > 0) {
+          items.push({
+            key: `${cluster.id}-cluster`,
+            label: cluster.name,
+            short: clusterShortLabel(cluster.name),
+            color: cluster.color || '#94a3b8',
+            accountId: clusterAccountId,
+          });
+        }
+
+        for (const office of cluster.offices || []) {
+          const codes = extractCodesFromName(office.name);
+          let matchedUser = null;
+          for (const code of codes) {
+            const u = usersByEmailLocal.get(String(code || '').toLowerCase());
+            if (u && !String(u.email || '').toLowerCase().startsWith('cluster.')) {
+              matchedUser = u;
+              break;
+            }
+          }
+          if (!matchedUser) continue;
+          items.push({
+            key: `${cluster.id}-${office.name}`,
+            label: office.name,
+            short: clusterShortLabel(office.name),
+            color: office.color || cluster.color || '#94a3b8',
+            accountId: Number(matchedUser.id),
+          });
+        }
+
+        return {
+          clusterId: cluster.id,
+          clusterName: cluster.name,
+          items: items.filter((x) => Number.isFinite(x.accountId) && x.accountId > 0),
+        };
+      })
+      .filter((g) => g.items.length > 0);
+  }, [clusterLegend, users]);
+
   function isEventDone(e) {
     const date = normalizeDateValue(e?.date);
     const endDate = normalizeDateValue(e?.end_date) || date;
@@ -378,7 +482,10 @@ export default function Calendar() {
 
   const fcEvents = useMemo(() => {
     return events
-      .filter((e) => (!filterType ? true : e.type === filterType))
+      .filter((e) => {
+        const typeOk = !filterType ? true : e.type === filterType;
+        return typeOk;
+      })
       .map((e) => {
         const date = normalizeDateValue(e.date);
         const endDate = normalizeDateValue(e.end_date) || date;
@@ -423,6 +530,13 @@ export default function Calendar() {
       });
   }, [events, filterType, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
 
+  const hostModalEvents = useMemo(() => {
+    if (!hostModalTarget?.accountId) return [];
+    return (events || [])
+      .filter((e) => Number(e.created_by) === Number(hostModalTarget.accountId))
+      .sort((a, b) => (String(a.date || '') + String(a.start_time || '')).localeCompare(String(b.date || '') + String(b.start_time || '')));
+  }, [events, hostModalTarget]);
+
   if (loading) {
     // we'll flip `loading` off once the first `datesSet` fetch completes
   }
@@ -434,7 +548,10 @@ export default function Calendar() {
       </div>
 
       <div className="calendar-content">
-        <div ref={containerRef} className="calendar-main calendar-main-fullcalendar">
+        <div
+          ref={containerRef}
+          className={`calendar-main calendar-main-fullcalendar ${hostFilterOpen ? 'host-menu-open' : ''}`}
+        >
           <section className="calendar-legend calendar-legend-top">
             <div className="calendar-legend-top-head">
               <h3>Legend</h3>
@@ -451,6 +568,82 @@ export default function Calendar() {
                     <option value="zoom">Zoom</option>
                     <option value="event">Event</option>
                   </select>
+                </div>
+                <div className="calendar-legend-host-filter" ref={hostFilterRef}>
+                  <button
+                    type="button"
+                    className="calendar-legend-host-btn"
+                    onPointerDown={stopEvent}
+                    onMouseDown={stopEvent}
+                    onClick={(e) => {
+                      stopEvent(e);
+                      setHostFilterOpen((v) => !v);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' && e.key !== ' ') return;
+                      stopEvent(e);
+                      setHostFilterOpen((v) => !v);
+                    }}
+                    aria-expanded={hostFilterOpen}
+                  >
+                    Host
+                  </button>
+                  {hostFilterOpen && (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Close host menu"
+                        className="calendar-legend-host-backdrop"
+                        onPointerDown={stopEvent}
+                        onMouseDown={stopEvent}
+                        onClick={(e) => {
+                          stopEvent(e);
+                          setHostFilterOpen(false);
+                        }}
+                      />
+                      <div
+                        className="calendar-legend-host-menu"
+                        onPointerDownCapture={stopEvent}
+                        onPointerDown={stopEvent}
+                        onMouseDownCapture={stopEvent}
+                        onMouseDown={stopEvent}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {hostOptions.length === 0 ? (
+                          <div className="calendar-legend-host-empty">No host options found.</div>
+                        ) : hostOptions.map((group) => (
+                          <div key={group.clusterId} className="calendar-legend-host-group">
+                            <div className="calendar-legend-host-group-title" title={group.clusterName}>
+                              {clusterShortLabel(group.clusterName)}
+                            </div>
+                            {group.items.map((opt) => (
+                              <button
+                                key={opt.key}
+                                type="button"
+                                className="calendar-legend-host-item"
+                                onPointerDown={stopEvent}
+                                onMouseDown={stopEvent}
+                                onClick={(e) => {
+                                  stopEvent(e);
+                                  setHostFilterOpen(false);
+                                  setHostModalTarget(opt);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key !== 'Enter' && e.key !== ' ') return;
+                                  stopEvent(e);
+                                  setHostFilterOpen(false);
+                                  setHostModalTarget(opt);
+                                }}
+                              >
+                                <span className="calendar-legend-swatch" style={{ backgroundColor: opt.color }} />
+                                <span className="calendar-legend-host-short" title={opt.label}>{opt.short}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
                 <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
                 <button
@@ -470,33 +663,57 @@ export default function Calendar() {
                 ) : clusterLegend.length === 0 ? (
                   <p className="calendar-legend-empty">No clusters found</p>
                 ) : (
-                  <div className="calendar-cluster-list">
-                    {clusterLegend.map((cluster) => (
-                      <details key={cluster.id} className="calendar-cluster-item">
-                        <summary className="calendar-cluster-summary">
-                          <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
-                          <span className="calendar-legend-name">{cluster.name}</span>
-                        </summary>
-                        <ul className="calendar-cluster-offices">
-                          {(cluster.offices || []).map((office) => (
-                            <li key={office.name} className="calendar-cluster-office-item">
-                              <div className="calendar-legend-item">
-                                <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
-                                <span className="calendar-legend-name">{office.name}</span>
-                              </div>
-                              {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
-                                <ul className="calendar-cluster-divisions">
-                                  {office.divisions.map((division) => (
-                                    <li key={division} className="calendar-cluster-division-item">
-                                      {division}
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : null}
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
+                  <div
+                    className="calendar-cluster-list"
+                    style={{ gridTemplateColumns: `repeat(${Math.max(clusterLegend.length, 1)}, minmax(0, 1fr))` }}
+                  >
+                    {clusterLegend.map((cluster, idx) => (
+                      <div
+                        key={cluster.id}
+                        className={`calendar-cluster-item ${openLegendClusterId === cluster.id ? 'is-open' : ''} ${idx >= clusterLegend.length - 2 ? 'dropdown-right' : ''}`}
+                      >
+                        <button
+                          type="button"
+                          className="calendar-cluster-summary"
+                          onClick={() => toggleLegendCluster(cluster.id)}
+                          aria-expanded={openLegendClusterId === cluster.id}
+                        >
+                          <span className="calendar-cluster-summary-main">
+                            <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
+                            <span className="calendar-cluster-name-short" title={cluster.name}>
+                              {clusterShortLabel(cluster.name)}
+                            </span>
+                          </span>
+                          <span className="calendar-cluster-chevron">▾</span>
+                        </button>
+                        {openLegendClusterId === cluster.id && (
+                          <div className="calendar-cluster-dropdown">
+                            <div className="calendar-cluster-dropdown-title">
+                              <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
+                              <span>{cluster.name}</span>
+                            </div>
+                            <ul className="calendar-cluster-offices">
+                              {(cluster.offices || []).map((office) => (
+                                <li key={office.name} className="calendar-cluster-office-item">
+                                  <div className="calendar-legend-item">
+                                    <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
+                                    <span className="calendar-legend-name">{office.name}</span>
+                                  </div>
+                                  {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
+                                    <ul className="calendar-cluster-divisions">
+                                      {office.divisions.map((division) => (
+                                        <li key={division} className="calendar-cluster-division-item">
+                                          {division}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : null}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}
@@ -709,6 +926,34 @@ export default function Calendar() {
           onEdit={() => setSelectedEvent(null)}
           onDelete={() => { refreshData(); setSelectedEvent(null); }}
         />
+      )}
+
+      {hostModalTarget && (
+        <div className="calendar-host-modal-overlay" onClick={() => setHostModalTarget(null)}>
+          <div className="calendar-host-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="calendar-host-modal-head">
+              <h3>{hostModalTarget.label}</h3>
+              <button type="button" className="calendar-host-modal-close" onClick={() => setHostModalTarget(null)}>×</button>
+            </div>
+            <p className="calendar-host-modal-subtitle">Hosted events in current loaded range</p>
+            {hostModalEvents.length === 0 ? (
+              <p className="calendar-host-modal-empty">No events found for this host.</p>
+            ) : (
+              <ul className="calendar-host-modal-list">
+                {hostModalEvents.map((e) => (
+                  <li key={e.id} className="calendar-host-modal-item">
+                    <button type="button" onClick={() => { setHostModalTarget(null); setSelectedEvent(e.id); }}>
+                      <span className="calendar-host-modal-title">{e.title}</span>
+                      <span className="calendar-host-modal-meta">
+                        {normalizeDateValue(e.date)} {formatTimeShort(e.start_time)}–{formatTimeShort(e.end_time)}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       )}
 
       {pendingMove && (
