@@ -105,7 +105,7 @@ export default function YearEvents() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">All Events by Year</h1>
-          <p className="dashboard-subtitle">Shows all registered events for the selected year, including done and upcoming schedules</p>
+          <p className="dashboard-subtitle">Shows All Registered Events for the Selected Year, Including Completed and Upcoming Schedules</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
