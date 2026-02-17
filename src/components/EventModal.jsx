@@ -17,6 +17,14 @@ function formatDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
+function formatDateRange(startDate, endDate) {
+  const start = String(startDate || '').slice(0, 10);
+  const end = String(endDate || startDate || '').slice(0, 10);
+  if (!start) return '';
+  if (!end || end === start) return formatDate(start);
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
 function normalizeTime(t) {
   if (!t) return '';
   return t.length === 5 ? `${t}:00` : t;
@@ -132,7 +140,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
         <div className="modal-body">
           <div className="modal-row">
             <span className="modal-label">Date</span>
-            <span>{formatDate(event.date)}</span>
+            <span>{formatDateRange(eventDate, eventEndDate)}</span>
           </div>
           <div className="modal-row">
             <span className="modal-label">Time</span>
