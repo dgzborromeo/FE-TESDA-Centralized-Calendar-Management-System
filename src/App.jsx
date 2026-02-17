@@ -10,6 +10,7 @@ import EventForm from './pages/EventForm';
 import Invitations from './pages/Invitations';
 import Upcoming from './pages/Upcoming';
 import Recent from './pages/Recent';
+import YearEvents from './pages/YearEvents';
 import About from './pages/About';
 import HelpGuide from './pages/HelpGuide';
 import FAQ from './pages/FAQ';
@@ -43,6 +44,7 @@ function AppRoutes() {
         <Route path="calendar" element={<Calendar />} />
         <Route path="invitations" element={<Invitations />} />
         <Route path="upcoming" element={<Upcoming />} />
+        <Route path="year-events" element={<YearEvents />} />
         <Route path="recent" element={<Recent />} />
         <Route path="about" element={<About />} />
         <Route path="help" element={<HelpGuide />} />

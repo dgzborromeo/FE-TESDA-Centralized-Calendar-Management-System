@@ -101,6 +101,7 @@ export default function Header() {
             <Link to="/dashboard" className="header-link">Dashboard</Link>
             <Link to="/calendar" className="header-link">Calendar</Link>
             <Link to="/upcoming" className="header-link">Upcoming</Link>
+            <Link to="/year-events" className="header-link">Year Events</Link>
           </div>
 
           <div className="header-help" ref={helpRef}>
