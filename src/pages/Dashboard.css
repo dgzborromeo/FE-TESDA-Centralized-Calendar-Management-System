@@ -640,6 +640,19 @@
   position: relative;
 }
 
+/* Compact layout for dedicated list pages (Upcoming / Year Events / etc.) */
+.dashboard.dashboard-page .dashboard-event-row {
+  gap: 0.22rem 0.85rem;
+  padding-top: 0.62rem;
+  padding-bottom: 0.62rem;
+}
+
+.dashboard.dashboard-page .dashboard-event-row .dashboard-upcoming-meta {
+  display: block;
+  line-height: 1.18;
+  margin: 0;
+}
+
 .dashboard-event-row:hover {
   background: rgba(37, 99, 235, 0.10);
 }

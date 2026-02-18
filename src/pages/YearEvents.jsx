@@ -146,35 +146,30 @@ export default function YearEvents() {
         <p className="dashboard-empty">No events found for {year}.</p>
       ) : (
         <ul className="dashboard-event-list">
-          {filtered.map((e) => (
-            <li key={e.id} className="dashboard-event-item">
-              <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
-                {(() => {
-                  const tentative = parseTentativeDescription(e.description || '');
-                  return (
-                    <>
-                <span className="dashboard-event-date">{formatDateRange(e.date, e.end_date)}</span>
-                <span className="dashboard-event-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
-                <span className="dashboard-event-title-wrap">
-                  <span className="dashboard-event-title">{e.title}</span>
-                  {e.location ? <span className="dashboard-event-location">- {e.location}</span> : null}
-                </span>
-                <span className="dashboard-upcoming-meta">
-                  <span className="dashboard-upcoming-meta-item">Host: {e.creator_name || 'Unknown'}</span>
-                  <span className="dashboard-upcoming-meta-item">Participants: {formatParticipantsAcronymList(e.participants_summary)}</span>
-                  <span className="dashboard-upcoming-meta-item">Venue: {e.location || 'TBA'}</span>
+          {filtered.map((e) => {
+            const tentative = parseTentativeDescription(e.description || '');
+            return (
+              <li key={e.id} className="dashboard-event-item">
+                <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
+                  <span className="dashboard-event-date">{formatDateRange(e.date, e.end_date)}</span>
+                  <span className="dashboard-event-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
+                  <span className="dashboard-event-title-wrap">
+                    <span className="dashboard-event-title">{e.title}</span>
+                  </span>
+                  <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
+                  <span className="dashboard-upcoming-meta">
+                    Participants: {formatParticipantsAcronymList(e.participants_summary)}
+                  </span>
+                  <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   {tentative.isTentative ? (
-                    <span className="dashboard-upcoming-meta-item">
+                    <span className="dashboard-upcoming-meta">
                       Schedule: Tentative{tentative.note ? ` (${tentative.note})` : ''}
                     </span>
                   ) : null}
-                </span>
-                    </>
-                  );
-                })()}
-              </button>
-            </li>
-          ))}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
