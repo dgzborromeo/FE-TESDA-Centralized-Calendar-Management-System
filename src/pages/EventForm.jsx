@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { buildTentativeDescription, parseTentativeDescription } from '../utils/tentativeSchedule';
 import './EventForm.css';
 
 const TYPES = ['meeting', 'zoom', 'event'];
@@ -156,6 +157,8 @@ export default function EventForm() {
   const [endTime, setEndTime] = useState('10:00');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [isTentative, setIsTentative] = useState(false);
+  const [tentativeNote, setTentativeNote] = useState('');
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [color, setColor] = useState(assignedAccountColor);
   const [attendeeIds, setAttendeeIds] = useState([]);
@@ -203,6 +206,7 @@ export default function EventForm() {
   useEffect(() => {
     if (!isEdit || !id) return;
     eventsApi.get(id).then((e) => {
+      const tentative = parseTentativeDescription(e.description || '');
       setTitle(e.title);
       setType(e.type);
       setDate(e.date);
@@ -211,7 +215,9 @@ export default function EventForm() {
       setStartTime(e.start_time.slice(0, 5));
       setEndTime(e.end_time.slice(0, 5));
       setLocation(e.location || '');
-      setDescription(e.description || '');
+      setDescription(tentative.plainDescription || '');
+      setIsTentative(tentative.isTentative);
+      setTentativeNote(tentative.note || '');
       setAttachmentFile(null);
       setColor(e.color || COLORS[0]);
       setAttendeeIds((e.attendees || []).map((a) => a.user_id));
@@ -283,6 +289,10 @@ export default function EventForm() {
       setError('Start and end time are required.');
       return false;
     }
+    if (isTentative && !tentativeNote.trim()) {
+      setError('Tentative schedule note is required (example: 1st week of June).');
+      return false;
+    }
     const start = new Date(`1970-01-01T${startTime}`);
     const end = new Date(`1970-01-01T${endTime}`);
     if (end <= start) {
@@ -311,7 +321,7 @@ export default function EventForm() {
       start_time: startTime.length === 5 ? startTime + ':00' : startTime,
       end_time: endTime.length === 5 ? endTime + ':00' : endTime,
       location: location.trim() || undefined,
-      description: description.trim() || undefined,
+      description: buildTentativeDescription(isTentative, tentativeNote, description),
       color: (isEdit ? color : assignedAccountColor) || undefined,
       attendee_ids: attendeeIds.length ? attendeeIds : undefined,
     };
@@ -664,6 +674,29 @@ export default function EventForm() {
             rows={4}
           />
         </label>
+
+        <div className="event-form-row">
+          <label className="event-form-inline-check">
+            <input
+              type="checkbox"
+              checked={isTentative}
+              onChange={(e) => setIsTentative(e.target.checked)}
+            />
+            Tentative schedule only (no exact day yet)
+          </label>
+          {isTentative && (
+            <label>
+              Tentative schedule note <span className="required">*</span>
+              <input
+                type="text"
+                value={tentativeNote}
+                onChange={(e) => setTentativeNote(e.target.value)}
+                placeholder="Example: 1st week of June"
+                required={isTentative}
+              />
+            </label>
+          )}
+        </div>
 
         {!isEdit && (
           <label>

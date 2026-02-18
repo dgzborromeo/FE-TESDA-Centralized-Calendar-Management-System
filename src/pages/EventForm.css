@@ -133,6 +133,14 @@
   gap: 1rem;
 }
 
+.event-form-inline-check {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
 .event-form-colors {
   display: flex;
   gap: 0.5rem;

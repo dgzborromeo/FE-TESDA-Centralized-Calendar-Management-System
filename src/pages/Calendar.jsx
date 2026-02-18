@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import EventModal from '../components/EventModal';
 import { useAuth } from '../context/AuthContext';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -487,6 +488,7 @@ export default function Calendar() {
         return typeOk;
       })
       .map((e) => {
+        const tentativeMeta = parseTentativeDescription(e.description || '');
         const date = normalizeDateValue(e.date);
         const endDate = normalizeDateValue(e.end_date) || date;
         const isMultiDay = Boolean(endDate && date && endDate > date);
@@ -497,7 +499,7 @@ export default function Calendar() {
         const done = isEventDone(e);
         const dateRangeText = isMultiDay ? `${date} to ${endDate}` : date;
         const hasAttachment = Number(e.attachment_count || 0) > 0;
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}`;
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -519,6 +521,8 @@ export default function Calendar() {
             tooltip,
             done,
             has_attachment: hasAttachment,
+            is_tentative: tentativeMeta.isTentative,
+            tentative_note: tentativeMeta.note || '',
             is_multi_day: isMultiDay,
             end_date: endDate,
             start_time_raw,
@@ -896,11 +900,13 @@ export default function Calendar() {
               const tooltip = arg.event.extendedProps?.tooltip || arg.event.title;
               const done = Boolean(arg.event.extendedProps?.done);
               const hasAttachment = Boolean(arg.event.extendedProps?.has_attachment);
+              const isTentative = Boolean(arg.event.extendedProps?.is_tentative);
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
               return (
                 <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`} title={tooltip}>
                   {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
                   {done && <span className="fc-event-done-badge">Done</span>}
+                  {isTentative && <span className="fc-event-tentative-badge">T</span>}
                   {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>

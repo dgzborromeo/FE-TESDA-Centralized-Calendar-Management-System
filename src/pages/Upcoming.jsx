@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import EventModal from '../components/EventModal';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
 import './Calendar.css';
 
@@ -305,6 +306,10 @@ export default function Upcoming() {
           {upcoming.map((e) => (
             <li key={e.id} className="dashboard-event-item">
               <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
+                {(() => {
+                  const tentative = parseTentativeDescription(e.description || '');
+                  return (
+                    <>
                 <span className="dashboard-event-date">{formatDate(e.date)}</span>
                 <span className="dashboard-event-time">{formatTime(e.start_time)} – {formatTime(e.end_time)}</span>
                 <span className="dashboard-event-title-wrap">
@@ -315,10 +320,18 @@ export default function Upcoming() {
                   <span className="dashboard-upcoming-meta-item">Host: {e.creator_name || 'Unknown'}</span>
                   <span className="dashboard-upcoming-meta-item">Participants: {formatParticipantsAcronymList(e.participants_summary)}</span>
                   <span className="dashboard-upcoming-meta-item">Venue: {e.location || 'TBA'}</span>
+                  {tentative.isTentative ? (
+                    <span className="dashboard-upcoming-meta-item">
+                      Schedule: Tentative{tentative.note ? ` (${tentative.note})` : ''}
+                    </span>
+                  ) : null}
                 </span>
                 {e.conflict_count > 0 && (
                   <span className="dashboard-event-conflict" title="Has conflict">⚠</span>
                 )}
+                    </>
+                  );
+                })()}
               </button>
             </li>
           ))}

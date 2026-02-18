@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './EventModal.css';
 
 function formatTime(t) {
@@ -129,6 +130,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
+  const tentativeMeta = parseTentativeDescription(event.description || '');
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -138,6 +140,14 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="modal-body">
+          {tentativeMeta.isTentative && (
+            <div className="modal-row">
+              <span className="modal-label">Schedule</span>
+              <span>
+                Tentative{tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}
+              </span>
+            </div>
+          )}
           <div className="modal-row">
             <span className="modal-label">Date</span>
             <span>{formatDateRange(eventDate, eventEndDate)}</span>
@@ -249,7 +259,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           {event.description && (
             <div className="modal-row modal-description">
               <span className="modal-label">Description</span>
-              <p>{event.description}</p>
+              <p>{tentativeMeta.plainDescription || event.description}</p>
             </div>
           )}
           {Array.isArray(event.attachments) && event.attachments.length > 0 && (

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
 
 function formatTime(t) {
@@ -105,7 +106,7 @@ export default function YearEvents() {
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">
           <h1 className="dashboard-title">All Events by Year</h1>
-          <p className="dashboard-subtitle">Shows All Registered Events for the Selected Year, Including Completed and Upcoming Schedules</p>
+          <p className="dashboard-subtitle">Shows all registered events for the selected year, including done and upcoming schedules</p>
         </div>
         <div className="dashboard-actions">
           <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
@@ -148,6 +149,10 @@ export default function YearEvents() {
           {filtered.map((e) => (
             <li key={e.id} className="dashboard-event-item">
               <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
+                {(() => {
+                  const tentative = parseTentativeDescription(e.description || '');
+                  return (
+                    <>
                 <span className="dashboard-event-date">{formatDateRange(e.date, e.end_date)}</span>
                 <span className="dashboard-event-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
                 <span className="dashboard-event-title-wrap">
@@ -158,7 +163,15 @@ export default function YearEvents() {
                   <span className="dashboard-upcoming-meta-item">Host: {e.creator_name || 'Unknown'}</span>
                   <span className="dashboard-upcoming-meta-item">Participants: {formatParticipantsAcronymList(e.participants_summary)}</span>
                   <span className="dashboard-upcoming-meta-item">Venue: {e.location || 'TBA'}</span>
+                  {tentative.isTentative ? (
+                    <span className="dashboard-upcoming-meta-item">
+                      Schedule: Tentative{tentative.note ? ` (${tentative.note})` : ''}
+                    </span>
+                  ) : null}
                 </span>
+                    </>
+                  );
+                })()}
               </button>
             </li>
           ))}
