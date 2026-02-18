@@ -76,6 +76,17 @@
   margin-bottom: 0;
 }
 
+.modal-inline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.modal-inline-grid .modal-row {
+  margin-bottom: 0;
+}
+
 .modal-label {
   display: block;
   font-size: 0.8rem;
@@ -340,5 +351,10 @@
 
   .modal-rsvp-action .modal-btn {
     width: 100%;
+  }
+
+  .modal-inline-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 }

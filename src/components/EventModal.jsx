@@ -140,6 +140,26 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="modal-body">
+          {event.description ? (
+            <div className="modal-row modal-description">
+              <span className="modal-label">Description</span>
+              <p>{tentativeMeta.plainDescription || event.description}</p>
+            </div>
+          ) : null}
+          <div className="modal-inline-grid">
+            <div className="modal-row">
+              <span className="modal-label">Date</span>
+              <span>{formatDateRange(eventDate, eventEndDate)}</span>
+            </div>
+            <div className="modal-row">
+              <span className="modal-label">Time</span>
+              <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+            </div>
+          </div>
+          <div className="modal-row">
+            <span className="modal-label">Host</span>
+            <span>{event.creator_name || 'Unknown'}</span>
+          </div>
           {tentativeMeta.isTentative && (
             <div className="modal-row">
               <span className="modal-label">Schedule</span>
@@ -149,20 +169,8 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
           )}
           <div className="modal-row">
-            <span className="modal-label">Date</span>
-            <span>{formatDateRange(eventDate, eventEndDate)}</span>
-          </div>
-          <div className="modal-row">
-            <span className="modal-label">Time</span>
-            <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
-          </div>
-          <div className="modal-row">
             <span className="modal-label">Type</span>
             <span className="modal-type">{event.type}</span>
-          </div>
-          <div className="modal-row">
-            <span className="modal-label">Host</span>
-            <span>{event.creator_name || 'Unknown'}</span>
           </div>
           {event.location && (
             <div className="modal-row">
@@ -256,12 +264,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
           )}
 
-          {event.description && (
-            <div className="modal-row modal-description">
-              <span className="modal-label">Description</span>
-              <p>{tentativeMeta.plainDescription || event.description}</p>
-            </div>
-          )}
           {Array.isArray(event.attachments) && event.attachments.length > 0 && (
             <div className="modal-row modal-attachments">
               <span className="modal-label">Attachment</span>
