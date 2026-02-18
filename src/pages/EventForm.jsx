@@ -6,7 +6,7 @@ import { buildTentativeDescription, parseTentativeDescription } from '../utils/t
 import './EventForm.css';
 
 const TYPES = ['meeting', 'zoom', 'event'];
-const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4','#ec4899'];
 const ROMO_COLOR = '#3b82f6';
 const PO_COLOR = '#ec4899';
 const SMO_COLOR = '#ef4444';
