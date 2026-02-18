@@ -154,6 +154,16 @@ function clusterShortLabel(name) {
   return words.slice(0, 6).map((w) => w[0]?.toUpperCase() || '').join('') || raw.slice(0, 8).toUpperCase();
 }
 
+function textColorForBackground(hexColor) {
+  const hex = String(hexColor || '').replace('#', '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return '#ffffff';
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 150 ? '#0f172a' : '#ffffff';
+}
+
 function stopEvent(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -681,11 +691,14 @@ export default function Calendar() {
                         <button
                           type="button"
                           className="calendar-cluster-summary"
+                          style={{
+                            backgroundColor: cluster.color || '#94a3b8',
+                            color: textColorForBackground(cluster.color || '#94a3b8'),
+                          }}
                           onClick={() => toggleLegendCluster(cluster.id)}
                           aria-expanded={openLegendClusterId === cluster.id}
                         >
                           <span className="calendar-cluster-summary-main">
-                            <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
                             <span className="calendar-cluster-name-short" title={cluster.name}>
                               {clusterShortLabel(cluster.name)}
                             </span>
