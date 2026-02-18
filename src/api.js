@@ -57,3 +57,23 @@ export const users = {
   legend: () => api('/users/legend'),
   legendClusters: () => api('/users/legend/clusters'),
 };
+
+
+// ... existing exports (auth, events, users, etc.) ...
+
+export const profiles = {
+  // Para sa profile ng kasalukuyang user
+  getMe: () => api('/profile/me'),
+  
+  // Para sa profile ng ibang user (kung kailangan)
+  getById: (userId) => api(`/profile/${userId}`),
+  
+  // Para sa pag-save/update na may kasamang image upload
+  save: (formData) => api('/profile/save', {
+    method: 'POST',
+    body: formData, // FormData ito dahil may image file
+  }),
+  
+  // Pag-delete ng profile
+  remove: () => api('/profile/remove', { method: 'DELETE' }),
+};

@@ -154,6 +154,7 @@ export default function Header() {
                 <span>{user?.email}</span>
                 <span>{user?.role === 'admin' ? 'Admin' : 'User'}</span>
               </div>
+              <Link to="/profile" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Profile</Link>
               <Link to="/dashboard" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Dashboard</Link>
               <Link to="/calendar" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Calendar</Link>
               <Link to="/invitations" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Invitations</Link>
