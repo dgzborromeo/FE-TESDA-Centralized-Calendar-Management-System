@@ -598,10 +598,6 @@ export default function Calendar() {
 
   return (
     <div className="calendar-page">
-      <div className="calendar-toolbar">
-        <h1 className="calendar-title">Calendar</h1>
-      </div>
-
       <div className="calendar-content">
         <div
           ref={containerRef}
