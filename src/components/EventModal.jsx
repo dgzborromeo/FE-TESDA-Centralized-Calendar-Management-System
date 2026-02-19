@@ -62,6 +62,13 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [postDocFile, setPostDocFile] = useState(null);
   const [postDocUploading, setPostDocUploading] = useState(false);
+  const [nowTick, setNowTick] = useState(0);
+
+  // Update status periodically so it changes from Active -> Ongoing -> Done in real-time
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick((x) => x + 1), 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!eventId) return;
@@ -200,9 +207,40 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const isCreator = Number(event.created_by) === Number(user?.id);
   const eventDate = String(event.date || '').slice(0, 10);
   const eventEndDate = String(event.end_date || event.date || '').slice(0, 10);
+  const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
   const endAt = new Date(`${eventEndDate}T${normalizeTime(event.end_time)}`);
-  const isDone = Number.isFinite(endAt.getTime()) ? new Date() >= endAt : false;
+  const now = new Date();
+  
+  // Calculate event status based on current time
   const isCancelled = String(event.status || 'active').toLowerCase() === 'cancelled';
+  let eventStatus = 'active'; // default: upcoming
+  let statusLabel = 'Active';
+  let statusClass = 'modal-status-active';
+  
+  if (isCancelled) {
+    eventStatus = 'cancelled';
+    statusLabel = 'Cancelled';
+    statusClass = 'modal-status-cancelled';
+  } else if (Number.isFinite(startAt.getTime()) && Number.isFinite(endAt.getTime())) {
+    if (now >= endAt) {
+      // Event has finished
+      eventStatus = 'done';
+      statusLabel = 'Done';
+      statusClass = 'modal-status-done';
+    } else if (now >= startAt && now < endAt) {
+      // Event is currently happening
+      eventStatus = 'ongoing';
+      statusLabel = 'Ongoing';
+      statusClass = 'modal-status-ongoing';
+    } else {
+      // Event is upcoming
+      eventStatus = 'active';
+      statusLabel = 'Active';
+      statusClass = 'modal-status-active';
+    }
+  }
+  
+  const isDone = eventStatus === 'done';
   const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone && !isCancelled;
   const canAdminCancel = isAdmin && !isCancelled;
   const requiredPostDocLabel = event.required_post_document || (event.type === 'event' ? 'After Activity Report (AAR)' : 'Minutes of the Meeting');
@@ -213,7 +251,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const needsPostDoc = !isCancelled && postDocRequired;
   const missingPostDoc = needsPostDoc && postDocs.length === 0;
   const myRsvp = event.rsvps?.find((r) => Number(r.office_user_id) === Number(user?.id)) || null;
-  const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
   const tentativeMeta = parseTentativeDescription(event.description || '');
@@ -260,8 +297,8 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
             <div className="modal-row">
               <span className="modal-label">Status</span>
-              <span className={`modal-status-pill ${isCancelled ? 'modal-status-cancelled' : 'modal-status-active'}`}>
-                {isCancelled ? 'Cancelled' : 'Active'}
+              <span className={`modal-status-pill ${statusClass}`}>
+                {statusLabel}
               </span>
             </div>
             <div className="modal-row">
