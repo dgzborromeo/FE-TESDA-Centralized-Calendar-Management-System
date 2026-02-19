@@ -89,6 +89,14 @@ function formatParticipantsAcronymList(summary) {
   return Array.from(new Set(acronyms)).join(', ');
 }
 
+/** True if event is today and current time is between start_time and end_time (not yet finished). */
+function isEventOngoing(e, todayYmd, nowMins) {
+  if (!e?.date || e.date !== todayYmd) return false;
+  const startMins = timeToMinutes(e.start_time);
+  const endMins = timeToMinutes(e.end_time);
+  return nowMins >= startMins && nowMins < endMins;
+}
+
 export default function Dashboard() {
   const UPCOMING_PAGE_SIZE = 3;
   const navigate = useNavigate();
@@ -294,10 +302,12 @@ export default function Dashboard() {
                   <button type="button" className="dashboard-upcoming-item" onClick={() => setSelectedEvent(e.id)}>
                     {(() => {
                       const status = String(e.status || 'active').toLowerCase();
-                      const statusLabel = status === 'cancelled' ? 'Cancelled' : 'Active';
+                      const ongoing = status !== 'cancelled' && isEventOngoing(e, today, nowMins);
+                      const statusLabel = status === 'cancelled' ? 'Cancelled' : ongoing ? 'Ongoing' : 'Active';
+                      const statusClass = ongoing ? 'ongoing' : status;
                       return (
                         <span className="dashboard-upcoming-status-line">
-                          <span className={`dashboard-status-pill dashboard-status-${status}`}>
+                          <span className={`dashboard-status-pill dashboard-status-${statusClass}`}>
                             {statusLabel}
                           </span>
                         </span>
