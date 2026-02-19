@@ -436,3 +436,41 @@
   color: var(--accent);
   font-weight: 500;
 }
+
+/* Container para sa input at button */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 45px; /* Space para sa icon */
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    padding: 8px; /* Mas malaking clickable area */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b; /* Modern slate gray */
+    transition: color 0.2s ease, transform 0.1s active;
+    border-radius: 50%; /* Round hover effect */
+}
+
+.password-toggle-icon:hover {
+    color: #1d4ed8; /* Blue branding pag na-hover */
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle gray circle on hover */
+}
+
+.password-toggle-icon svg {
+    display: block;
+    pointer-events: none; /* Para hindi ma-block ang click ng icon */
+}

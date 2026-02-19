@@ -2,7 +2,7 @@
  * API client - uses proxy in dev (/api -> backend:3001)
  */
 const BASE = '/api';
-
+// const BASE = 'http://localhost:3001/api';
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -27,6 +27,8 @@ export const auth = {
   register: (name, email, password) =>
     api('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
   me: () => api('/auth/me'),
+  verifyEmail: (token) => api(`/auth/verify-email?token=${token}`),
+  resendVerification: () => api('/auth/resend-verification', { method: 'POST' }),
 };
 
 export const events = {
@@ -62,4 +64,24 @@ export const users = {
   list: () => api('/users'),
   legend: () => api('/users/legend'),
   legendClusters: () => api('/users/legend/clusters'),
+};
+
+
+// ... existing exports (auth, events, users, etc.) ...
+
+export const profiles = {
+  // Para sa profile ng kasalukuyang user
+  getMe: () => api('/profile/me'),
+  
+  // Para sa profile ng ibang user (kung kailangan)
+  getById: (userId) => api(`/profile/${userId}`),
+  
+  // Para sa pag-save/update na may kasamang image upload
+  save: (formData) => api('/profile/save', {
+    method: 'POST',
+    body: formData, // FormData ito dahil may image file
+  }),
+  
+  // Pag-delete ng profile
+  remove: () => api('/profile/remove', { method: 'DELETE' }),
 };

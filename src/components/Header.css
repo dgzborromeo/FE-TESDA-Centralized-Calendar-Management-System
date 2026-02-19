@@ -354,3 +354,20 @@
     padding: 0.35rem 0.6rem;
   }
 }
+
+.disabled-link {
+  opacity: 0.4; /* Mas malabo para halatang disabled */
+  cursor: not-allowed !important;
+  filter: grayscale(1); /* Optional: gagawing black and white para mas halata */
+  /* pointer-events: none;  <-- TANGGALIN ITO para gumana ang alert() */
+}
+
+/* Para sa Dropdown items na disabled */
+.header-dropdown-item.disabled-link:hover {
+  background: none !important;
+  color: inherit !important;
+}
+.header-link-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

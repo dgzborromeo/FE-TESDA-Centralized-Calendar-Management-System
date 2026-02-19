@@ -6,7 +6,17 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+const refreshUser = async () => {
+    try {
+      // TAMA: authApi.me() dahil 'import { auth as authApi }' ang nasa taas mo
+      const data = await authApi.me(); 
+      setUser(data);
+      return data;
+    } catch (err) {
+      console.error("Refresh Error:", err);
+      return null;
+    }
+  };
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -19,10 +29,22 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = (userData, token) => {
+  // const login = (userData, token) => {
+  //   localStorage.setItem('token', token);
+  //   setUser(userData);
+  // };
+
+  // AuthContext.jsx
+const login = async (userData, token) => {
+    setLoading(true);
     localStorage.setItem('token', token);
-    setUser(userData);
-  };
+    try {
+        const freshUser = await refreshUser(); 
+        return freshUser; // IBABALIK ANG FRESH DATA
+    } finally {
+        setLoading(false);
+    }
+};
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -30,7 +52,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, refreshUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

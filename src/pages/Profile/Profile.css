@@ -218,3 +218,66 @@
 .img-edit {
   filter: brightness(0.8);
 }
+
+/* Container para magkatabi ang email at badge */
+.email-row-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap; /* Para hindi masira sa mobile */
+}
+
+.static-email-text {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Branding ng Verification Badge */
+.verification-badge-inline {
+    display: flex;
+    align-items: center;
+    background-color: #fff3cd; /* Light Warning Yellow */
+    border: 1px solid #ffeeba;
+    padding: 4px 10px;
+    border-radius: 20px;
+    gap: 8px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.badge-text {
+    font-size: 0.8rem;
+    color: #856404; /* Darker Yellow/Gold for text */
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Resend Link na magmumulang Button pero malinis */
+.resend-inline-link {
+    background: #856404;
+    border: none;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.resend-inline-link:hover:not(:disabled) {
+    background: #533f03;
+    transform: translateY(-1px);
+}
+
+.resend-inline-link:disabled {
+    background: #d1c195;
+    cursor: not-allowed;
+}
+
+.warning-icon {
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}

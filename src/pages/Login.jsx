@@ -14,22 +14,44 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const { user: userData, token } = await authApi.login(email, password, remember);
-      login(userData, token);
-      navigate('/dashboard');
-    } catch (err) {
-      const msg = err.message || 'Login failed.';
-      setError(msg === 'Failed to fetch' ? 'Cannot reach server. Run START-SERVERS.bat and try again.' : msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+  //   try {
+  //     const { user: userData, token } = await authApi.login(email, password, remember);
+  //     await login(userData, token);
+  //     navigate('/dashboard');
+  //   } catch (err) {
+  //     const msg = err.message || 'Login failed.';
+  //     setError(msg === 'Failed to fetch' ? 'Cannot reach server. Run START-SERVERS.bat and try again.' : msg);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+// Login.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+  try {
+    const { user: userData, token } = await authApi.login(email, password, remember);
+    
+    // Antayin matapos ang refreshUser sa loob ng login bago mag-navigate
+    const freshUser = await login(userData, token); 
 
+    // TINGNAN KUNG SAAN DAPAT PUMUNTA
+    if (freshUser && freshUser.isProfileComplete) {
+      navigate('/dashboard');
+    } else {
+      navigate('/profile'); // Para sa mga bagong user
+    }
+  } catch (err) {
+    setError(err.message || 'Login failed.');
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="auth-page auth-page-split">
       <div className="auth-split">

@@ -20,11 +20,22 @@ import FAQ from './pages/FAQ';
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import Profile from './pages/Profile/Profile';
+import VerifyEmail from './pages/Profile/VerifyEmail';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  
   if (loading) return <div className="loading-screen">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  const isOnProfilePage = window.location.pathname === '/profile';
+
+  // KAHIT WALA PANG DATA (null/false), itatapon siya sa /profile
+  if (!user.isProfileComplete && !isOnProfilePage) {
+    return <Navigate to="/profile" replace />;
+  }
+
   return children;
 }
 
@@ -41,6 +52,7 @@ function AppRoutes() {
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
@@ -59,6 +71,7 @@ function AppRoutes() {
         <Route path="events/new" element={<EventForm />} />
         <Route path="events/:id/edit" element={<EventForm />} />
         <Route path="events/:id/details" element={<EventDetails />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
