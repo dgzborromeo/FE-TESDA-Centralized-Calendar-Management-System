@@ -47,6 +47,13 @@ function getDayColors(events, ymd) {
   return Array.from(set).slice(0, 3);
 }
 
+function isWeekendYMD(ymd) {
+  if (!ymd || String(ymd).length < 10) return false;
+  const d = new Date(`${String(ymd).slice(0, 10)}T12:00:00`);
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
+
 function formatDateRange(e) {
   const endDate = e.end_date || e.date;
   if (!endDate || endDate === e.date) return formatDate(e.date);
@@ -364,32 +371,49 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          <button
-            type="button"
-            className="dashboard-mini-calendar-btn"
-            onClick={() => navigate(`/calendar?date=${monthInfo.focusDate}`)}
-            title="Open full calendar"
-          >
+          <div className="dashboard-mini-calendar-grid-wrap">
             <div className="dashboard-mini-grid">
               {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
                 <span key={w} className="dashboard-mini-weekday">{w}</span>
               ))}
-              {monthInfo.cells.map((cell, idx) => (
-                <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : ''}`}>
-                  {cell ? (
-                    <>
-                      <span className="dashboard-mini-day">{cell.day}</span>
-                      <div className="dashboard-mini-colors">
-                        {cell.colors.map((c, cIdx) => (
-                          <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
-                        ))}
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              ))}
+              {monthInfo.cells.map((cell, idx) => {
+                const weekend = cell && isWeekendYMD(cell.ymd);
+                return (
+                  <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}>
+                    {cell ? (
+                      weekend ? (
+                        <div className="dashboard-mini-cell-btn dashboard-mini-cell-weekend" title="Weekend (locked)">
+                          <span className="dashboard-mini-day">{cell.day}</span>
+                          <div className="dashboard-mini-colors">
+                            {cell.colors.map((c, cIdx) => (
+                              <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="dashboard-mini-cell-btn"
+                          onClick={() => navigate(`/calendar/day/${cell.ymd}`)}
+                          title={`View ${cell.ymd}`}
+                        >
+                          <span className="dashboard-mini-day">{cell.day}</span>
+                          <div className="dashboard-mini-colors">
+                            {cell.colors.map((c, cIdx) => (
+                              <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
+                            ))}
+                          </div>
+                        </button>
+                      )
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
-          </button>
+            <Link to={`/calendar?date=${monthInfo.focusDate}`} className="dashboard-mini-full-calendar-link">
+              Open full calendar →
+            </Link>
+          </div>
         </section>
       </div>
 

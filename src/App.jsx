@@ -13,6 +13,7 @@ import Invitations from './pages/Invitations';
 import Upcoming from './pages/Upcoming';
 import Recent from './pages/Recent';
 import YearEvents from './pages/YearEvents';
+import DayView from './pages/DayView';
 import About from './pages/About';
 import HelpGuide from './pages/HelpGuide';
 import FAQ from './pages/FAQ';
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="calendar" element={<Calendar />} />
+        <Route path="calendar/day/:date" element={<DayView />} />
         <Route path="invitations" element={<Invitations />} />
         <Route path="upcoming" element={<Upcoming />} />
         <Route path="year-events" element={<YearEvents />} />
