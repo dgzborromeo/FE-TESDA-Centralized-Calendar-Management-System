@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import EventModal from '../components/EventModal';
+import { useAppDialog } from '../components/AppDialogProvider';
 import { useAuth } from '../context/AuthContext';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import FullCalendar from '@fullcalendar/react';
@@ -191,6 +192,7 @@ export default function Calendar() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const dialog = useAppDialog();
   const isRomo = (user?.email || '').toLowerCase() === 'romo@tesda.gov.ph';
   const isPo = (user?.email || '').toLowerCase() === 'po@tesda.gov.ph';
   const isSmo = (user?.email || '').toLowerCase() === 'smo@tesda.gov.ph';
@@ -292,7 +294,7 @@ export default function Calendar() {
     const el = containerRef.current;
     if (!el) return;
 
-    const onClickCapture = (e) => {
+    const onClickCapture = async (e) => {
       // Prevent "click-to-create" from firing after a drag-drop (mouseup can trigger click)
       if (isDraggingRef.current) return;
       if (Date.now() - lastDropAtRef.current < 400) return;
@@ -305,11 +307,11 @@ export default function Calendar() {
       const d = getDateFromRects(el, e.clientX, e.clientY) || getDateFromPoint(e.clientX, e.clientY);
       if (!d) return;
       if (isWeekendYMD(d)) {
-        alert('Weekends are locked. Please select a weekday.');
+        await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
         return;
       }
       if (d < toLocalDateString(new Date())) {
-        alert('This date is already done. It is view-only.');
+        await dialog.alert('This date is already done. It is view-only.', { title: 'View-only Date' });
         return;
       }
       e.preventDefault();
@@ -319,7 +321,7 @@ export default function Calendar() {
 
     el.addEventListener('click', onClickCapture, true);
     return () => el.removeEventListener('click', onClickCapture, true);
-  }, [navigate]);
+  }, [navigate, dialog]);
 
   const dateParam = searchParams.get('date');
   const queryParam = searchParams.get('q') || '';
@@ -407,7 +409,7 @@ export default function Calendar() {
       await refreshData();
       cancelPendingMove();
     } catch (e) {
-      alert(e.message || 'Failed to reschedule.');
+      await dialog.alert(e.message || 'Failed to reschedule.', { title: 'Action Failed' });
       setMoveSubmitting(false);
     }
   };
@@ -481,6 +483,36 @@ export default function Calendar() {
       .filter((g) => g.items.length > 0);
   }, [clusterLegend, users]);
 
+  const hostClusterOptionMap = useMemo(() => {
+    const out = new Map();
+    for (const group of hostOptions) {
+      const clusterKey = `${group.clusterId}-cluster`;
+      const clusterOpt = group.items.find((i) => i.key === clusterKey) || null;
+      if (clusterOpt) out.set(group.clusterId, clusterOpt);
+    }
+    return out;
+  }, [hostOptions]);
+
+  const hostOfficeOptionMap = useMemo(() => {
+    const out = new Map();
+    for (const group of hostOptions) {
+      const clusterKey = `${group.clusterId}-cluster`;
+      for (const item of group.items) {
+        if (item.key === clusterKey) continue;
+        out.set(`${group.clusterId}::${item.label}`, item);
+      }
+    }
+    return out;
+  }, [hostOptions]);
+
+  const openHostEventsTarget = async (target) => {
+    if (!target || !Number.isFinite(Number(target.accountId))) {
+      await dialog.alert('No host account found for this selection.', { title: 'Unavailable' });
+      return;
+    }
+    setHostModalTarget(target);
+  };
+
   function isEventDone(e) {
     const date = normalizeDateValue(e?.date);
     const endDate = normalizeDateValue(e?.end_date) || date;
@@ -507,9 +539,12 @@ export default function Calendar() {
         const backgroundColor = e.color || EVENT_COLORS[e.type] || '#3b82f6';
         const host = e.creator_name || 'Unknown';
         const done = isEventDone(e);
+        const cancelled = String(e.status || 'active').toLowerCase() === 'cancelled';
+        const postDocCount = Number(e.post_document_count || 0);
+        const hostNeedsPostDoc = done && !cancelled && Number(e.created_by) === Number(user?.id) && postDocCount === 0;
         const dateRangeText = isMultiDay ? `${date} to ${endDate}` : date;
         const hasAttachment = Number(e.attachment_count || 0) > 0;
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}`;
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -522,14 +557,20 @@ export default function Calendar() {
           borderColor: backgroundColor,
           textColor: '#fff',
           allDay: isMultiDay,
-          startEditable: canEditThis && !isMultiDay && !done,
-          durationEditable: canEditThis && !isMultiDay && !done,
-          classNames: done ? ['fc-event-done'] : [],
+          startEditable: canEditThis && !isMultiDay && !done && !cancelled,
+          durationEditable: canEditThis && !isMultiDay && !done && !cancelled,
+          classNames: [
+            ...(done ? ['fc-event-done'] : []),
+            ...(cancelled ? ['fc-event-cancelled'] : []),
+          ],
           extendedProps: {
             conflict_count: e.conflict_count || 0,
             type: e.type,
             tooltip,
             done,
+            cancelled,
+            post_document_count: postDocCount,
+            host_needs_postdoc: hostNeedsPostDoc,
             has_attachment: hasAttachment,
             is_tentative: tentativeMeta.isTentative,
             tentative_note: tentativeMeta.note || '',
@@ -642,13 +683,13 @@ export default function Calendar() {
                                 onClick={(e) => {
                                   stopEvent(e);
                                   setHostFilterOpen(false);
-                                  setHostModalTarget(opt);
+                                  void openHostEventsTarget(opt);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key !== 'Enter' && e.key !== ' ') return;
                                   stopEvent(e);
                                   setHostFilterOpen(false);
-                                  setHostModalTarget(opt);
+                                  void openHostEventsTarget(opt);
                                 }}
                               >
                                 <span className="calendar-legend-swatch" style={{ backgroundColor: opt.color }} />
@@ -697,6 +738,8 @@ export default function Calendar() {
                           }}
                           onClick={() => toggleLegendCluster(cluster.id)}
                           aria-expanded={openLegendClusterId === cluster.id}
+                          aria-label={`Toggle offices under ${cluster.name}`}
+                          title={`Show offices under ${cluster.name}`}
                         >
                           <span className="calendar-cluster-summary-main">
                             <span className="calendar-cluster-name-short" title={cluster.name}>
@@ -707,17 +750,54 @@ export default function Calendar() {
                         </button>
                         {openLegendClusterId === cluster.id && (
                           <div className="calendar-cluster-dropdown">
-                            <div className="calendar-cluster-dropdown-title">
-                              <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
-                              <span>{cluster.name}</span>
-                            </div>
+                            {(() => {
+                              const clusterOpt = hostClusterOptionMap.get(cluster.id) || null;
+                              if (!clusterOpt) {
+                                return (
+                                  <div className="calendar-cluster-dropdown-title">
+                                    <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
+                                    <span>{cluster.name}</span>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  className="calendar-cluster-dropdown-title calendar-cluster-dropdown-title-btn"
+                                  onClick={() => { void openHostEventsTarget(clusterOpt); }}
+                                  title={`View hosted events: ${cluster.name}`}
+                                >
+                                  <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
+                                  <span>{cluster.name}</span>
+                                  <span className="calendar-host-link-badge calendar-host-link-badge-office">Host</span>
+                                </button>
+                              );
+                            })()}
                             <ul className="calendar-cluster-offices">
                               {(cluster.offices || []).map((office) => (
                                 <li key={office.name} className="calendar-cluster-office-item">
-                                  <div className="calendar-legend-item">
-                                    <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
-                                    <span className="calendar-legend-name">{office.name}</span>
-                                  </div>
+                                  {(() => {
+                                    const officeOpt = hostOfficeOptionMap.get(`${cluster.id}::${office.name}`) || null;
+                                    if (!officeOpt) {
+                                      return (
+                                        <div className="calendar-legend-item">
+                                          <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
+                                          <span className="calendar-legend-name">{office.name}</span>
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <button
+                                        type="button"
+                                        className="calendar-legend-item calendar-legend-item-btn"
+                                        onClick={() => { void openHostEventsTarget(officeOpt); }}
+                                        title={`View hosted events: ${office.name}`}
+                                      >
+                                        <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
+                                        <span className="calendar-legend-name">{office.name}</span>
+                                      </button>
+                                    );
+                                  })()}
                                   {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
                                     <ul className="calendar-cluster-divisions">
                                       {office.divisions.map((division) => (
@@ -786,10 +866,10 @@ export default function Calendar() {
             }}
             // handled by container click-capture (more accurate on some Windows setups)
             dateClick={() => {}}
-            eventClick={(info) => {
+            eventClick={async (info) => {
               info.jsEvent.preventDefault();
               if (info.event.extendedProps?.isHoliday) {
-                alert(info.event.title);
+                await dialog.alert(info.event.title, { title: 'Holiday' });
                 return;
               }
               setSelectedEvent(info.event.id);
@@ -820,8 +900,14 @@ export default function Calendar() {
                   return;
                 }
                 const done = Boolean(info.event.extendedProps?.done);
+                const cancelled = Boolean(info.event.extendedProps?.cancelled);
                 if (done) {
-                  alert('This event is already done and is view-only.');
+                  await dialog.alert('This event is already done and is view-only.', { title: 'View-only Event' });
+                  info.revert();
+                  return;
+                }
+                if (cancelled) {
+                  await dialog.alert('This event is already cancelled and is view-only.', { title: 'View-only Event' });
                   info.revert();
                   return;
                 }
@@ -837,7 +923,7 @@ export default function Calendar() {
                 const fcDate = toLocalDateString(start);
                 const date = intendedDate || fcDate;
                 if (isWeekendYMD(date)) {
-                  alert('Weekends are locked. Please drop on a weekday.');
+                  await dialog.alert('Weekends are locked. Please drop on a weekday.', { title: 'Date Not Allowed' });
                   info.revert();
                   return;
                 }
@@ -869,7 +955,7 @@ export default function Calendar() {
                 await eventsApi.update(info.event.id, { date, start_time, end_time });
                 await refreshData();
               } catch (e) {
-                alert(e.message || 'Failed to reschedule.');
+                await dialog.alert(e.message || 'Failed to reschedule.', { title: 'Action Failed' });
                 info.revert();
               }
             }}
@@ -886,8 +972,14 @@ export default function Calendar() {
                   return;
                 }
                 const done = Boolean(info.event.extendedProps?.done);
+                const cancelled = Boolean(info.event.extendedProps?.cancelled);
                 if (done) {
-                  alert('This event is already done and is view-only.');
+                  await dialog.alert('This event is already done and is view-only.', { title: 'View-only Event' });
+                  info.revert();
+                  return;
+                }
+                if (cancelled) {
+                  await dialog.alert('This event is already cancelled and is view-only.', { title: 'View-only Event' });
                   info.revert();
                   return;
                 }
@@ -895,7 +987,7 @@ export default function Calendar() {
                 const end = info.event.end || start;
                 const date = toLocalDateString(start);
                 if (isWeekendYMD(date)) {
-                  alert('Weekends are locked. Please use a weekday.');
+                  await dialog.alert('Weekends are locked. Please use a weekday.', { title: 'Date Not Allowed' });
                   info.revert();
                   return;
                 }
@@ -904,7 +996,7 @@ export default function Calendar() {
                 await eventsApi.update(info.event.id, { date, start_time, end_time });
                 await refreshData();
               } catch (e) {
-                alert(e.message || 'Failed to resize.');
+                await dialog.alert(e.message || 'Failed to resize.', { title: 'Action Failed' });
                 info.revert();
               }
             }}
@@ -912,6 +1004,8 @@ export default function Calendar() {
               const conflict = (arg.event.extendedProps?.conflict_count || 0) > 0;
               const tooltip = arg.event.extendedProps?.tooltip || arg.event.title;
               const done = Boolean(arg.event.extendedProps?.done);
+              const cancelled = Boolean(arg.event.extendedProps?.cancelled);
+              const hostNeedsPostDoc = Boolean(arg.event.extendedProps?.host_needs_postdoc);
               const hasAttachment = Boolean(arg.event.extendedProps?.has_attachment);
               const isTentative = Boolean(arg.event.extendedProps?.is_tentative);
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
@@ -919,6 +1013,8 @@ export default function Calendar() {
                 <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`} title={tooltip}>
                   {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
                   {done && <span className="fc-event-done-badge">Done</span>}
+                  {hostNeedsPostDoc && <span className="fc-event-postdoc-required">REQ</span>}
+                  {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
                   {isTentative && <span className="fc-event-tentative-badge">T</span>}
                   {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}

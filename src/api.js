@@ -43,6 +43,12 @@ export const events = {
   update: (id, body) => api(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (id) => api(`/events/${id}`, { method: 'DELETE' }),
   rsvp: (id, body) => api(`/events/${id}/rsvp`, { method: 'POST', body: JSON.stringify(body) }),
+  cancel: (id, body) => api(`/events/${id}/cancel`, { method: 'POST', body: JSON.stringify(body) }),
+  uploadPostDocument: (id, file) => {
+    const form = new FormData();
+    form.append('attachment', file);
+    return api(`/events/${id}/post-document`, { method: 'POST', body: form });
+  },
   conflicts: () => api('/events/conflicts'),
   conflictsList: () => api('/events/conflicts/list'),
   checkConflict: (body) => api('/events/check-conflict', { method: 'POST', body: JSON.stringify(body) }),
@@ -56,24 +62,4 @@ export const users = {
   list: () => api('/users'),
   legend: () => api('/users/legend'),
   legendClusters: () => api('/users/legend/clusters'),
-};
-
-
-// ... existing exports (auth, events, users, etc.) ...
-
-export const profiles = {
-  // Para sa profile ng kasalukuyang user
-  getMe: () => api('/profile/me'),
-  
-  // Para sa profile ng ibang user (kung kailangan)
-  getById: (userId) => api(`/profile/${userId}`),
-  
-  // Para sa pag-save/update na may kasamang image upload
-  save: (formData) => api('/profile/save', {
-    method: 'POST',
-    body: formData, // FormData ito dahil may image file
-  }),
-  
-  // Pag-delete ng profile
-  remove: () => api('/profile/remove', { method: 'DELETE' }),
 };

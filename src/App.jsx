@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AppDialogProvider } from './components/AppDialogProvider';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -7,6 +8,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import EventForm from './pages/EventForm';
+import EventDetails from './pages/EventDetails';
 import Invitations from './pages/Invitations';
 import Upcoming from './pages/Upcoming';
 import Recent from './pages/Recent';
@@ -17,7 +19,6 @@ import FAQ from './pages/FAQ';
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
-import Profile from './pages/Profile/Profile';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -55,7 +56,7 @@ function AppRoutes() {
         <Route path="privacy" element={<Privacy />} />
         <Route path="events/new" element={<EventForm />} />
         <Route path="events/:id/edit" element={<EventForm />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="events/:id/details" element={<EventDetails />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -65,7 +66,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <AppDialogProvider>
+        <AppRoutes />
+      </AppDialogProvider>
     </AuthProvider>
   );
 }

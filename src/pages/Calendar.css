@@ -495,6 +495,17 @@
   background: rgba(37, 99, 235, 0.06);
 }
 
+.calendar-cluster-dropdown-title-btn {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  cursor: pointer;
+}
+
+.calendar-cluster-dropdown-title-btn:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
 .calendar-cluster-item.dropdown-right .calendar-cluster-dropdown {
   left: auto;
   right: 0;
@@ -535,6 +546,34 @@
 
 .calendar-legend-item:hover {
   background: rgba(37, 99, 235, 0.08);
+}
+
+.calendar-legend-item-btn {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.calendar-host-link-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.08rem 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  flex: 0 0 auto;
+}
+
+.calendar-host-link-badge-office {
+  margin-left: auto;
 }
 
 .calendar-legend-swatch {
@@ -689,6 +728,34 @@
   flex: 0 0 auto;
 }
 
+.fc-event-postdoc-required {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.33rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  background: rgba(220, 38, 38, 0.92);
+  border: 1px solid rgba(254, 202, 202, 0.45);
+  color: #fff1f2;
+  flex: 0 0 auto;
+}
+
+.fc-event-cancelled-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  background: rgba(127, 29, 29, 0.9);
+  border: 1px solid rgba(254, 202, 202, 0.4);
+  color: #fee2e2;
+  flex: 0 0 auto;
+}
+
 .fc-event-holiday-badge {
   display: inline-flex;
   align-items: center;
@@ -750,6 +817,17 @@
 .fc .fc-event.fc-event-done:hover {
   opacity: 0.9;
   filter: grayscale(0.15) saturate(0.8);
+}
+
+.fc .fc-event.fc-event-cancelled {
+  opacity: 0.88;
+  background: rgba(127, 29, 29, 0.9) !important;
+  border-color: rgba(127, 29, 29, 0.98) !important;
+  text-decoration: line-through;
+}
+
+.fc .fc-event.fc-event-cancelled:hover {
+  opacity: 0.98;
 }
 
 .fc-event-conflict-dot {

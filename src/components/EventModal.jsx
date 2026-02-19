@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useAppDialog } from './AppDialogProvider';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './EventModal.css';
 
@@ -34,6 +35,7 @@ function normalizeTime(t) {
 export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const dialog = useAppDialog();
   const isRomo = (user?.email || '').toLowerCase() === 'romo@tesda.gov.ph';
   const isPo = (user?.email || '').toLowerCase() === 'po@tesda.gov.ph';
   const isSmo = (user?.email || '').toLowerCase() === 'smo@tesda.gov.ph';
@@ -53,6 +55,13 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const [repName, setRepName] = useState('');
   const [declineReason, setDeclineReason] = useState('');
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const [cancelMode, setCancelMode] = useState('cancel');
+  const [cancelReason, setCancelReason] = useState('');
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleEndDate, setRescheduleEndDate] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [postDocFile, setPostDocFile] = useState(null);
+  const [postDocUploading, setPostDocUploading] = useState(false);
 
   useEffect(() => {
     if (!eventId) return;
@@ -63,10 +72,18 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
         // Reset inputs each time we open a modal
         setRepName('');
         setDeclineReason('');
+        setCancelMode('cancel');
+        setCancelReason('');
+        setRescheduleDate('');
+        setRescheduleEndDate('');
+        setPostDocFile(null);
       })
       .catch(() => onClose())
       .finally(() => setLoading(false));
-  }, [eventId, onClose]);
+    // Intentionally only refetch when the selected event changes.
+    // Including onClose here can cause repeated refetches when parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   const refreshEvent = async () => {
     const e = await eventsApi.get(eventId);
@@ -84,21 +101,27 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
       });
       await refreshEvent();
     } catch (e) {
-      alert(e.message);
+      await dialog.alert(e.message);
     } finally {
       setRsvpSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Delete this event?')) return;
+    const ok = await dialog.confirm('Delete this event?', {
+      title: 'Confirm Delete',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      tone: 'danger',
+    });
+    if (!ok) return;
     setDeleting(true);
     try {
       await eventsApi.delete(eventId);
       onDelete?.();
       onClose();
     } catch (e) {
-      alert(e.message);
+      await dialog.alert(e.message);
     } finally {
       setDeleting(false);
     }
@@ -108,6 +131,60 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     onClose();
     navigate(`/events/${eventId}/edit`);
     onEdit?.();
+  };
+
+  const handleCancelOrReschedule = async () => {
+    if (!isAdmin) return;
+    const mode = cancelMode === 'reschedule' ? 'reschedule' : 'cancel';
+    if (mode === 'reschedule' && !rescheduleDate) {
+      await dialog.alert('Please select a new date for reschedule.', { title: 'Incomplete Form' });
+      return;
+    }
+    const confirmMsg = mode === 'reschedule'
+      ? 'Cancel this event and create a rescheduled linked event?'
+      : 'Cancel this event?';
+    const ok = await dialog.confirm(confirmMsg, {
+      title: mode === 'reschedule' ? 'Confirm Cancel + Reschedule' : 'Confirm Cancel',
+      confirmText: mode === 'reschedule' ? 'Proceed' : 'Cancel Event',
+      cancelText: 'Back',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    try {
+      setCancelSubmitting(true);
+      await eventsApi.cancel(eventId, {
+        mode,
+        reason: cancelReason.trim() || undefined,
+        new_date: mode === 'reschedule' ? rescheduleDate : undefined,
+        new_end_date: mode === 'reschedule' ? (rescheduleEndDate || undefined) : undefined,
+      });
+      await refreshEvent();
+      onDelete?.();
+      if (mode === 'reschedule') {
+        await dialog.alert('Event cancelled and rescheduled successfully.', { title: 'Success' });
+      } else {
+        await dialog.alert('Event cancelled successfully.', { title: 'Success' });
+      }
+    } catch (e) {
+      await dialog.alert(e.message, { title: 'Action Failed' });
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
+
+  const handleUploadPostDocument = async () => {
+    if (!postDocFile) return;
+    try {
+      setPostDocUploading(true);
+      await eventsApi.uploadPostDocument(eventId, postDocFile);
+      setPostDocFile(null);
+      await refreshEvent();
+      onDelete?.();
+    } catch (e) {
+      await dialog.alert(e.message || 'Failed to upload document.', { title: 'Upload Failed' });
+    } finally {
+      setPostDocUploading(false);
+    }
   };
 
   if (loading || !event) {
@@ -125,7 +202,16 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const eventEndDate = String(event.end_date || event.date || '').slice(0, 10);
   const endAt = new Date(`${eventEndDate}T${normalizeTime(event.end_time)}`);
   const isDone = Number.isFinite(endAt.getTime()) ? new Date() >= endAt : false;
-  const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone;
+  const isCancelled = String(event.status || 'active').toLowerCase() === 'cancelled';
+  const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone && !isCancelled;
+  const canAdminCancel = isAdmin && !isCancelled;
+  const requiredPostDocLabel = event.required_post_document || (event.type === 'event' ? 'After Activity Report (AAR)' : 'Minutes of the Meeting');
+  const postDocs = Array.isArray(event.attachments) ? event.attachments.filter((a) => Boolean(a.is_post_document)) : [];
+  const regularAttachments = Array.isArray(event.attachments) ? event.attachments.filter((a) => !a.is_post_document) : [];
+  const postDocRequired = Boolean(event.post_document_required || isDone);
+  const isHost = Number(event.created_by) === Number(user?.id);
+  const needsPostDoc = !isCancelled && postDocRequired;
+  const missingPostDoc = needsPostDoc && postDocs.length === 0;
   const myRsvp = event.rsvps?.find((r) => Number(r.office_user_id) === Number(user?.id)) || null;
   const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
@@ -137,7 +223,18 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
       <div className="modal modal-event" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{event.title}</h2>
-          <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <div className="modal-header-actions">
+            <button
+              type="button"
+              className="modal-open-tab"
+              onClick={() => window.open(`/events/${eventId}/details`, '_blank', 'noopener,noreferrer')}
+              title="Open full event details in new tab"
+              aria-label="Open full event details in new tab"
+            >
+              ↗
+            </button>
+            <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          </div>
         </div>
         <div className="modal-body">
           {event.description ? (
@@ -156,10 +253,44 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
             </div>
           </div>
-          <div className="modal-row">
-            <span className="modal-label">Host</span>
-            <span>{event.creator_name || 'Unknown'}</span>
+          <div className="modal-inline-grid modal-inline-grid-three">
+            <div className="modal-row">
+              <span className="modal-label">Host</span>
+              <span>{event.creator_name || 'Unknown'}</span>
+            </div>
+            <div className="modal-row">
+              <span className="modal-label">Status</span>
+              <span className={`modal-status-pill ${isCancelled ? 'modal-status-cancelled' : 'modal-status-active'}`}>
+                {isCancelled ? 'Cancelled' : 'Active'}
+              </span>
+            </div>
+            <div className="modal-row">
+              <span className="modal-label">Type</span>
+              <span className="modal-type">{event.type}</span>
+            </div>
           </div>
+          {isCancelled && event.cancel_reason ? (
+            <div className="modal-row">
+              <span className="modal-label">Cancel Reason</span>
+              <span>{event.cancel_reason}</span>
+            </div>
+          ) : null}
+          {event.rescheduled_to_event ? (
+            <div className="modal-row">
+              <span className="modal-label">Rescheduled To</span>
+              <span>
+                {event.rescheduled_to_event.title} ({formatDateRange(event.rescheduled_to_event.date, event.rescheduled_to_event.end_date || event.rescheduled_to_event.date)})
+              </span>
+            </div>
+          ) : null}
+          {event.rescheduled_from_event ? (
+            <div className="modal-row">
+              <span className="modal-label">Rescheduled From</span>
+              <span>
+                {event.rescheduled_from_event.title} ({formatDateRange(event.rescheduled_from_event.date, event.rescheduled_from_event.end_date || event.rescheduled_from_event.date)})
+              </span>
+            </div>
+          ) : null}
           {tentativeMeta.isTentative && (
             <div className="modal-row">
               <span className="modal-label">Schedule</span>
@@ -168,10 +299,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               </span>
             </div>
           )}
-          <div className="modal-row">
-            <span className="modal-label">Type</span>
-            <span className="modal-type">{event.type}</span>
-          </div>
           {event.location && (
             <div className="modal-row">
               <span className="modal-label">Location</span>
@@ -264,11 +391,11 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
           )}
 
-          {Array.isArray(event.attachments) && event.attachments.length > 0 && (
+          {regularAttachments.length > 0 && (
             <div className="modal-row modal-attachments">
               <span className="modal-label">Attachment</span>
               <ul className="modal-attachments-list">
-                {event.attachments.map((a) => (
+                {regularAttachments.map((a) => (
                   <li key={a.id} className="modal-attachment-item">
                     <a href={a.url} target="_blank" rel="noreferrer" className="modal-attachment-link">
                       {a.original_name}
@@ -276,6 +403,46 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {needsPostDoc && (
+            <div className="modal-row modal-attachments">
+              <span className="modal-label">{requiredPostDocLabel}</span>
+              {postDocs.length === 0 ? (
+                <p className="modal-postdoc-empty">
+                  {isHost
+                    ? `Required after this ${event.type || 'event'} is done. Please upload ${requiredPostDocLabel}.`
+                    : `Pending host submission: ${requiredPostDocLabel}.`}
+                </p>
+              ) : (
+                <ul className="modal-attachments-list">
+                  {postDocs.map((a) => (
+                    <li key={a.id} className="modal-attachment-item">
+                      <a href={a.url} target="_blank" rel="noreferrer" className="modal-attachment-link">
+                        {a.original_name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {isHost && isDone && (
+                <div className="modal-postdoc-upload">
+                  <input
+                    type="file"
+                    onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
+                    disabled={postDocUploading}
+                  />
+                  <button
+                    type="button"
+                    className="modal-btn modal-btn-edit"
+                    onClick={handleUploadPostDocument}
+                    disabled={postDocUploading || !postDocFile}
+                    title={missingPostDoc ? 'Upload required post-event document.' : 'Upload another file/version.'}
+                  >
+                    {postDocUploading ? 'Uploading...' : `Upload ${requiredPostDocLabel}`}
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {event.conflicts?.length > 0 && (
@@ -286,6 +453,83 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                   <li key={c.id}>{c.title} ({formatTime(c.start_time)} – {formatTime(c.end_time)})</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {canAdminCancel && (
+            <div className="modal-row modal-cancel-admin">
+              <span className="modal-label">Admin Action</span>
+              <div className="modal-cancel-body">
+                <div className="modal-cancel-mode">
+                  <label className="modal-cancel-option">
+                    <input
+                      type="radio"
+                      name="cancelMode"
+                      value="cancel"
+                      checked={cancelMode === 'cancel'}
+                      onChange={(e) => setCancelMode(e.target.value)}
+                      disabled={cancelSubmitting}
+                    />
+                    Cancel only
+                  </label>
+                  <label className="modal-cancel-option">
+                    <input
+                      type="radio"
+                      name="cancelMode"
+                      value="reschedule"
+                      checked={cancelMode === 'reschedule'}
+                      onChange={(e) => setCancelMode(e.target.value)}
+                      disabled={cancelSubmitting}
+                    />
+                    Cancel and reschedule
+                  </label>
+                </div>
+                <label className="modal-cancel-field">
+                  Reason (optional)
+                  <textarea
+                    rows={2}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className="modal-textarea"
+                    disabled={cancelSubmitting}
+                    placeholder="Why this event is cancelled/rescheduled"
+                  />
+                </label>
+                {cancelMode === 'reschedule' ? (
+                  <div className="modal-cancel-date-grid">
+                    <label className="modal-cancel-field">
+                      New start date <span className="required">*</span>
+                      <input
+                        type="date"
+                        value={rescheduleDate}
+                        onChange={(e) => setRescheduleDate(e.target.value)}
+                        className="modal-input"
+                        disabled={cancelSubmitting}
+                      />
+                    </label>
+                    <label className="modal-cancel-field">
+                      New end date (optional)
+                      <input
+                        type="date"
+                        value={rescheduleEndDate}
+                        min={rescheduleDate || undefined}
+                        onChange={(e) => setRescheduleEndDate(e.target.value)}
+                        className="modal-input"
+                        disabled={cancelSubmitting}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  className="modal-btn modal-btn-delete"
+                  onClick={handleCancelOrReschedule}
+                  disabled={cancelSubmitting}
+                >
+                  {cancelSubmitting
+                    ? 'Saving...'
+                    : (cancelMode === 'reschedule' ? 'Cancel + Reschedule' : 'Cancel Event')}
+                </button>
+              </div>
             </div>
           )}
         </div>

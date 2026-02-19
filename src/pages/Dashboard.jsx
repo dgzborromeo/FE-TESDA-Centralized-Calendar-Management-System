@@ -53,6 +53,14 @@ function formatDateRange(e) {
   return `${formatDate(e.date)} - ${formatDate(endDate)}`;
 }
 
+function formatRescheduledDateRange(e) {
+  const start = e.rescheduled_to_date || '';
+  const end = e.rescheduled_to_end_date || start;
+  if (!start) return '';
+  if (!end || end === start) return formatDate(start);
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
 function acronymFromParticipantName(rawName) {
   const name = String(rawName || '').trim();
   if (!name) return '';
@@ -82,6 +90,7 @@ function formatParticipantsAcronymList(summary) {
 }
 
 export default function Dashboard() {
+  const UPCOMING_PAGE_SIZE = 3;
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [miniMonthEvents, setMiniMonthEvents] = useState([]);
@@ -90,6 +99,7 @@ export default function Dashboard() {
   const [monthCount, setMonthCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [upcomingPage, setUpcomingPage] = useState(0);
   const [miniMonthDate, setMiniMonthDate] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
@@ -183,7 +193,16 @@ export default function Dashboard() {
       return startsWithinNext7 && (isStillToday || isFutureDate);
     })
     .sort((a, b) => (a.date + (a.start_time || '')).localeCompare(b.date + (b.start_time || '')))
-    .slice(0, 5);
+    ;
+  const upcomingPageCount = Math.max(1, Math.ceil(upcomingEvents.length / UPCOMING_PAGE_SIZE));
+  const pagedUpcomingEvents = upcomingEvents.slice(
+    upcomingPage * UPCOMING_PAGE_SIZE,
+    (upcomingPage + 1) * UPCOMING_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setUpcomingPage((prev) => Math.min(prev, Math.max(0, upcomingPageCount - 1)));
+  }, [upcomingPageCount]);
 
   const monthInfo = useMemo(() => {
     const year = miniMonthDate.getFullYear();
@@ -242,17 +261,57 @@ export default function Dashboard() {
 
       <div className="dashboard-panels">
         <section className="dashboard-panel dashboard-panel-upcoming">
-          <h2>Upcoming Events/Meetings (Next 7 Days)</h2>
+          <div className="dashboard-section-head">
+            <h2>Upcoming Events/Meetings (Next 7 Days)</h2>
+            <div className="dashboard-upcoming-pager">
+              <button
+                type="button"
+                className="dashboard-upcoming-page-btn"
+                onClick={() => setUpcomingPage((p) => Math.max(0, p - 1))}
+                disabled={upcomingEvents.length === 0 || upcomingPage === 0}
+              >
+                Prev
+              </button>
+              <span className="dashboard-upcoming-page-label">
+                {upcomingEvents.length === 0 ? '0 / 0' : `${upcomingPage + 1} / ${upcomingPageCount}`}
+              </span>
+              <button
+                type="button"
+                className="dashboard-upcoming-page-btn"
+                onClick={() => setUpcomingPage((p) => Math.min(upcomingPageCount - 1, p + 1))}
+                disabled={upcomingEvents.length === 0 || upcomingPage >= upcomingPageCount - 1}
+              >
+                Next
+              </button>
+            </div>
+          </div>
           {upcomingEvents.length === 0 ? (
             <p className="dashboard-empty">No upcoming events.</p>
           ) : (
             <ul className="dashboard-upcoming-list">
-              {upcomingEvents.map((e) => (
+              {pagedUpcomingEvents.map((e) => (
                 <li key={e.id}>
                   <button type="button" className="dashboard-upcoming-item" onClick={() => setSelectedEvent(e.id)}>
+                    {(() => {
+                      const status = String(e.status || 'active').toLowerCase();
+                      const statusLabel = status === 'cancelled' ? 'Cancelled' : 'Active';
+                      return (
+                        <span className="dashboard-upcoming-status-line">
+                          <span className={`dashboard-status-pill dashboard-status-${status}`}>
+                            {statusLabel}
+                          </span>
+                        </span>
+                      );
+                    })()}
                     <span className="dashboard-upcoming-date">{formatDateRange(e)}</span>
                     <span className="dashboard-upcoming-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
                     <span className="dashboard-upcoming-title">{e.title}</span>
+                    {String(e.status || 'active').toLowerCase() === 'cancelled' && Number(e.rescheduled_to_event_id) > 0 ? (
+                      <span className="dashboard-upcoming-meta dashboard-upcoming-meta-status">
+                        <span className="dashboard-status-pill dashboard-status-rescheduled">Rescheduled</span>{' '}
+                        Rescheduled to: {formatRescheduledDateRange(e) || 'Date pending'}
+                      </span>
+                    ) : null}
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
                       Participants: {formatParticipantsAcronymList(e.participants_summary)}

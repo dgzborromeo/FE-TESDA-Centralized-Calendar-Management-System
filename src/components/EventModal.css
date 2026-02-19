@@ -62,6 +62,29 @@
   color: var(--text);
 }
 
+.modal-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.modal-open-tab {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.modal-open-tab:hover {
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.08);
+}
+
 .modal-body {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
@@ -85,6 +108,10 @@
 
 .modal-inline-grid .modal-row {
   margin-bottom: 0;
+}
+
+.modal-inline-grid-three {
+  grid-template-columns: 1.2fr 0.8fr 0.8fr;
 }
 
 .modal-label {
@@ -319,6 +346,88 @@
   resize: vertical;
 }
 
+.modal-postdoc-empty {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.modal-postdoc-upload {
+  margin-top: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.modal-postdoc-upload input[type='file'] {
+  font-size: 0.86rem;
+}
+
+.modal-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #86efac;
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0.18rem 0.6rem;
+}
+
+.modal-status-active {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.modal-status-cancelled {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.modal-cancel-admin {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.modal-cancel-body {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.modal-cancel-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.modal-cancel-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.modal-cancel-field {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.modal-cancel-date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
 @media (max-width: 520px) {
   .modal {
     max-width: 100%;
@@ -357,5 +466,13 @@
   .modal-inline-grid {
     grid-template-columns: 1fr;
     gap: 0.6rem;
+  }
+
+  .modal-inline-grid-three {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-cancel-date-grid {
+    grid-template-columns: 1fr;
   }
 }
