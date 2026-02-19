@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// import { profiles as profilesApi } from '../../api'; 
+import { profiles as profilesApi } from '../../api'; 
 import './Profile.css';
 
 export default function Profile() {
