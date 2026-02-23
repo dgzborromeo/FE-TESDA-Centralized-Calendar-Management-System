@@ -318,13 +318,10 @@
   gap: 0.5rem;
 }
 
-.dashboard-mini-grid-link {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
+.dashboard-mini-calendar-grid-link {
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
 }
 
 .dashboard-panel-mini-calendar {
@@ -403,11 +400,22 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s;
+}
+
+.dashboard-mini-cell.is-day:hover {
+  transform: none;
+  box-shadow: none;
+  z-index: auto;
 }
 
 .dashboard-mini-cell.is-weekend {
   background: rgba(241, 245, 249, 0.85);
-  cursor: default;
+  cursor: not-allowed;
+}
+
+.dashboard-mini-cell.is-weekend:hover {
+  transform: none;
 }
 
 .dashboard-mini-cell-weekend {
@@ -427,11 +435,15 @@
   background: transparent;
   padding: 0.14rem 0.24rem;
   text-align: left;
-  cursor: pointer;
+  cursor: inherit;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-radius: 6px;
+}
+
+.dashboard-mini-cell-btn:hover {
+  background: transparent;
 }
 
 .dashboard-mini-day {

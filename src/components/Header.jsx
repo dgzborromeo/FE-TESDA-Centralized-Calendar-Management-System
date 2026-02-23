@@ -14,12 +14,11 @@ export default function Header() {
   const accountRef = useRef(null);
   const helpRef = useRef(null);
   const isCalendarPage = location.pathname.startsWith('/calendar');
- const isProfileIncomplete = !user?.isProfileComplete || !user?.email_verified_at;
-  
+
   const officeShort = (() => {
     const email = (user?.email || '').trim().toLowerCase();
     const name = String(user?.name || '').trim();
-    
+
     // For cluster accounts, prefer the suffix inside the last parentheses,
     // e.g. "Cluster - ... (ODDG-TESDO)" -> "ODDG-TESDO".
     if (email.startsWith('cluster.')) {
@@ -44,12 +43,7 @@ export default function Header() {
     }
     return 'USER';
   })();
-const handleLinkClick = (e) => {
-    if (isProfileIncomplete) {
-      e.preventDefault();
-      alert("Please complete your profile first to access other features.");
-    }
-  };
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
@@ -81,18 +75,13 @@ const handleLinkClick = (e) => {
   const handleLogout = () => {
     logout();
     navigate('/login');
-    // setOpen(false);
   };
 
   return (
     <header className="header">
       <div className="header-inner">
         <div className="header-left">
-          <Link 
-            to={isProfileIncomplete ? "/profile" : "/dashboard"} 
-            className="header-logo"
-            onClick={isProfileIncomplete ? null : undefined} 
-          >
+          <Link to="/dashboard" className="header-logo">
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
             <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
           </Link>
@@ -108,14 +97,10 @@ const handleLinkClick = (e) => {
         </div>
         <nav className="header-nav">
           <div className="header-nav-scroll">
-            <Link to="/dashboard" className={`header-link ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={handleLinkClick}>Dashboard</Link>
-            <Link to="/calendar" className={`header-link ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={handleLinkClick}>Calendar</Link>
-            <Link to="/upcoming" className={`header-link ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={handleLinkClick}>Upcoming</Link>
-            <Link to="/year-events" className={`header-link ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={handleLinkClick}>Year Events</Link>
+            <Link to="/dashboard" className="header-link">Dashboard</Link>
+            <Link to="/calendar" className="header-link">Calendar</Link>
+            <Link to="/upcoming" className="header-link">Upcoming</Link>
+            <Link to="/year-events" className="header-link">Year Events</Link>
           </div>
 
           <div className="header-help" ref={helpRef}>
@@ -133,73 +118,58 @@ const handleLinkClick = (e) => {
             </button>
             {helpOpen && (
               <div className="header-dropdown header-dropdown-left">
-                <Link to="/help" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >Help / User Guide</Link>
-                <Link to="/faq" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >FAQ</Link>
-                <Link to="/support" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >Contact / Support</Link>
-                <Link to="/about" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >About</Link>
+                <Link to="/help" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Help / User Guide</Link>
+                <Link to="/faq" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>FAQ</Link>
+                <Link to="/support" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Contact / Support</Link>
+                <Link to="/about" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>About</Link>
                 <div className="header-dropdown-sep" />
-                <Link to="/terms" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >Terms of Use</Link>
-                <Link to="/privacy" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setHelpOpen(false); handleLinkClick(e); }}
-  >Privacy Policy</Link>
+                <Link to="/terms" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Terms of Use</Link>
+                <Link to="/privacy" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Privacy Policy</Link>
               </div>
             )}
           </div>
         </nav>
         <div className="header-user" ref={accountRef}>
-          <button
-            type="button"
-            className="header-profile-btn"
-            onClick={() => {
-              setAccountOpen((v) => !v);
-              setHelpOpen(false);
-            }}
-            aria-expanded={accountOpen}
-            aria-haspopup="true"
-          >
-            <span className="header-avatar">{user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
-            <span className="header-office-short" title={user?.name || ''}>
-              ({officeShort})
-            </span>
-            <span className="header-chevron">▼</span>
-          </button>
-          {accountOpen && (
-            <div className="header-dropdown">
-              <div className="header-dropdown-user">
-                <strong>{user?.name}</strong>
-                <span>{user?.email}</span>
-                <span>{user?.role === 'admin' ? 'Admin' : 'User'}</span>
-              </div>
-              <Link to="/profile" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Profile</Link>
-              <Link to="/dashboard" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setAccountOpen(false); handleLinkClick(e); }}
-  >Dashboard</Link>
-              <Link to="/calendar" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setAccountOpen(false); handleLinkClick(e); }}
-  >Calendar</Link>
-              <Link to="/invitations" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setAccountOpen(false); handleLinkClick(e); }}
-  >Invitations</Link>
-              <Link to="/upcoming" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setAccountOpen(false); handleLinkClick(e); }}
-  >Upcoming</Link>
-              <Link to="/recent" className={`header-dropdown-item ${isProfileIncomplete ? 'disabled-link' : ''}`} 
-    onClick={(e) => { setAccountOpen(false); handleLinkClick(e); }}
-  >Recent</Link>
-              <button type="button" className="header-dropdown-item header-dropdown-logout" onClick={handleLogout}>
-                Logout
+          {user ? (
+            <>
+              <button
+                type="button"
+                className="header-profile-btn"
+                onClick={() => {
+                  setAccountOpen((v) => !v);
+                  setHelpOpen(false);
+                }}
+                aria-expanded={accountOpen}
+                aria-haspopup="true"
+              >
+                <span className="header-avatar">{user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                <span className="header-office-short" title={user?.name || ''}>
+                  ({officeShort})
+                </span>
+                <span className="header-chevron">▼</span>
               </button>
-            </div>
+              {accountOpen && (
+                <div className="header-dropdown">
+                  <div className="header-dropdown-user">
+                    <strong>{user?.name}</strong>
+                    <span>{user?.email}</span>
+                    <span>{user?.role === 'admin' ? 'Admin' : user?.role === 'viewer' ? 'Viewer' : 'User'}</span>
+                  </div>
+                  <Link to="/dashboard" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Dashboard</Link>
+                  <Link to="/calendar" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Calendar</Link>
+                  <Link to="/invitations" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Invitations</Link>
+                  <Link to="/upcoming" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Upcoming</Link>
+                  <Link to="/recent" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Recent</Link>
+                  <button type="button" className="header-dropdown-item header-dropdown-logout" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <Link to="/login" className="header-link header-login-link">
+              Login
+            </Link>
           )}
         </div>
       </div>

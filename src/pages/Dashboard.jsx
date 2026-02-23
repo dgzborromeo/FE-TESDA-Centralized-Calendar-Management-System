@@ -106,9 +106,9 @@ function isEventOngoing(e, todayYmd, nowMins) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const UPCOMING_PAGE_SIZE = 3;
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [miniMonthEvents, setMiniMonthEvents] = useState([]);
   const [todayCount, setTodayCount] = useState(0);
@@ -269,7 +269,9 @@ export default function Dashboard() {
               <span className="dashboard-overview-chip">{overviewDateLabel}</span>
             </div>
             <div className="dashboard-actions">
-              {user?.role !== 'viewer' && <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>}
+              {user && user.role !== 'viewer' && (
+                <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
+              )}
               <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
             </div>
           </div>
@@ -373,32 +375,38 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          <div className="dashboard-mini-calendar-grid-wrap">
-            <Link to={`/calendar?date=${monthInfo.focusDate}`} className="dashboard-mini-grid-link">
-              <div className="dashboard-mini-grid">
-                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
-                  <span key={w} className="dashboard-mini-weekday">{w}</span>
-                ))}
-                {monthInfo.cells.map((cell, idx) => {
-                  const weekend = cell && isWeekendYMD(cell.ymd);
-                  return (
-                    <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}>
-                      {cell ? (
-                        <div className={`dashboard-mini-cell-btn ${weekend ? 'dashboard-mini-cell-weekend' : ''}`} title={weekend ? 'Weekend (locked)' : 'Open calendar'}>
-                          <span className="dashboard-mini-day">{cell.day}</span>
-                          <div className="dashboard-mini-colors">
-                            {cell.colors.map((c, cIdx) => (
-                              <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
-                            ))}
-                          </div>
+          <Link
+            to={`/calendar?date=${monthInfo.focusDate}`}
+            className="dashboard-mini-calendar-grid-wrap dashboard-mini-calendar-grid-link"
+            aria-label="Open full calendar"
+            title="Open full calendar"
+          >
+            <div className="dashboard-mini-grid">
+              {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
+                <span key={w} className="dashboard-mini-weekday">{w}</span>
+              ))}
+              {monthInfo.cells.map((cell, idx) => {
+                const weekend = cell && isWeekendYMD(cell.ymd);
+                return (
+                  <div
+                    key={`${cell?.ymd || 'blank'}-${idx}`}
+                    className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}
+                  >
+                    {cell ? (
+                      <div className={`dashboard-mini-cell-btn ${weekend ? 'dashboard-mini-cell-weekend' : ''}`}>
+                        <span className="dashboard-mini-day">{cell.day}</span>
+                        <div className="dashboard-mini-colors">
+                          {cell.colors.map((c, cIdx) => (
+                            <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
+                          ))}
                         </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </Link>
-          </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </Link>
         </section>
       </div>
 

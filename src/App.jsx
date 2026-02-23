@@ -20,22 +20,11 @@ import FAQ from './pages/FAQ';
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
-import Profile from './pages/Profile/Profile';
-import VerifyEmail from './pages/Profile/VerifyEmail';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  
   if (loading) return <div className="loading-screen">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
-
-  const isOnProfilePage = window.location.pathname === '/profile';
-
-  // KAHIT WALA PANG DATA (null/false), itatapon siya sa /profile
-  if (!user.isProfileComplete && !isOnProfilePage) {
-    return <Navigate to="/profile" replace />;
-  }
-
   return children;
 }
 
@@ -52,13 +41,13 @@ function AppRoutes() {
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Layout />}>
+        {/* Public landing: show dashboard even without login */}
+        <Route index element={<Dashboard />} />
+        {/* Public view-only pages */}
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="calendar/day/:date" element={<DayView />} />
-        <Route path="invitations" element={<Invitations />} />
         <Route path="upcoming" element={<Upcoming />} />
         <Route path="year-events" element={<YearEvents />} />
         <Route path="recent" element={<Recent />} />
@@ -68,10 +57,11 @@ function AppRoutes() {
         <Route path="support" element={<Support />} />
         <Route path="terms" element={<Terms />} />
         <Route path="privacy" element={<Privacy />} />
-        <Route path="events/new" element={<EventForm />} />
-        <Route path="events/:id/edit" element={<EventForm />} />
-        <Route path="events/:id/details" element={<EventDetails />} />
-        <Route path="profile" element={<Profile />} />
+        {/* Auth-only pages (require login) */}
+        <Route path="invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>} />
+        <Route path="events/new" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
+        <Route path="events/:id/edit" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
+        <Route path="events/:id/details" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

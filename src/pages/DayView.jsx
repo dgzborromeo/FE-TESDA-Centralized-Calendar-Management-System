@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
+import { useAuth } from '../context/AuthContext';
 import './DayView.css';
 
 function toLocalYMD(d) {
@@ -35,11 +36,13 @@ function isWithinDay(ymd, eventDate, eventEndDate) {
 
 export default function DayView() {
   const { date: dateParam } = useParams();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const dateYmd = dateParam && dateParam.length >= 10 ? dateParam.slice(0, 10) : toLocalYMD(new Date());
+  const isViewerLike = !user || user.role === 'viewer';
 
   useEffect(() => {
     const start = dateYmd;
@@ -79,7 +82,9 @@ export default function DayView() {
       ) : events.length === 0 ? (
         <div className="day-view-empty">
           <p>No events scheduled for this day.</p>
-          <Link to={`/events/new?date=${dateYmd}`} className="day-view-btn">Create event</Link>
+          {!isViewerLike && (
+            <Link to={`/events/new?date=${dateYmd}`} className="day-view-btn">Create event</Link>
+          )}
         </div>
       ) : (
         <ul className="day-view-list">

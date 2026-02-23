@@ -206,7 +206,10 @@ export default function Calendar() {
   const isClgeo = (user?.email || '').toLowerCase() === 'clgeo@tesda.gov.ph';
   const isEbeto = (user?.email || '').toLowerCase() === 'ebeto@tesda.gov.ph';
   const isAdmin = user?.role === 'admin';
-  const isReadOnlyOffice = isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto;
+  const isReadOnlyOffice =
+    isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto;
+  // Treat not-logged-in users and explicit viewer role as view-only
+  const isViewerLike = !user || user.role === 'viewer';
   const calendarRef = useRef(null);
   const containerRef = useRef(null);
   const lastPointerRef = useRef({ x: 0, y: 0 });
@@ -698,7 +701,9 @@ export default function Calendar() {
                     </>
                   )}
                 </div>
-                <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
+                {!isViewerLike && (
+                  <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
+                )}
                 <button
                   type="button"
                   className="calendar-legend-toggle"
@@ -838,8 +843,8 @@ export default function Calendar() {
             // so events only appear in their actual month when you navigate.
             showNonCurrentDates={false}
             height="auto"
-            editable={!isReadOnlyOffice}
-            selectable
+            editable={!isReadOnlyOffice && !isViewerLike}
+            selectable={!isViewerLike}
             dayMaxEventRows={5}
             eventDisplay="block"
             displayEventTime={false}
@@ -860,8 +865,12 @@ export default function Calendar() {
                 setLoading(false);
               }
             }}
-            // handled by container click-capture (more accurate on some Windows setups)
-            dateClick={() => {}}
+            // Clicking a day shows all events for that day (DayView), no create.
+            dateClick={(info) => {
+              const ymd = String(info.dateStr || '').slice(0, 10);
+              if (!ymd) return;
+              navigate(`/calendar/day/${ymd}`);
+            }}
             eventClick={async (info) => {
               info.jsEvent.preventDefault();
               if (info.event.extendedProps?.isHoliday) {
