@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
 
 function toLocalYMD(d) {
@@ -135,29 +136,31 @@ export default function Dashboard() {
     ])
       .then(([list]) => {
         setEvents(list);
-        setTodayCount(list.filter((e) => isWithinRange(today, e.date, e.end_date || e.date)).length);
 
+        // Recompute summary counts
         const next7 = new Date(now);
         next7.setDate(next7.getDate() + 7);
         const next7YMD = toLocalYMD(next7);
-        setWeekCount(
-          list.filter((e) => {
-            const start = e.date;
-            const end = e.end_date || e.date;
-            return end >= today && start <= next7YMD;
-          }).length
-        );
 
         const next30 = new Date(now);
         next30.setDate(next30.getDate() + 30);
         const next30YMD = toLocalYMD(next30);
-        setMonthCount(
-          list.filter((e) => {
-            const start = e.date;
-            const end = e.end_date || e.date;
-            return end >= today && start <= next30YMD;
-          }).length
-        );
+
+        const isInToday = (e) => isWithinRange(today, e.date, e.end_date || e.date);
+        const isInWeek = (e) => {
+          const start = e.date;
+          const end = e.end_date || e.date;
+          return end >= today && start <= next7YMD;
+        };
+        const isInMonth = (e) => {
+          const start = e.date;
+          const end = e.end_date || e.date;
+          return end >= today && start <= next30YMD;
+        };
+
+        setTodayCount(list.filter(isInToday).length);
+        setWeekCount(list.filter(isInWeek).length);
+        setMonthCount(list.filter(isInMonth).length);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -183,12 +186,84 @@ export default function Dashboard() {
     rangeEnd.setDate(rangeEnd.getDate() + 30);
     eventsApi
       .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
-      .then(setEvents)
+      .then((list) => {
+        setEvents(list);
+
+        // Also refresh summary counts
+        const todayYMD = toLocalYMD(now);
+        const next7 = new Date(now);
+        next7.setDate(next7.getDate() + 7);
+        const next7YMD = toLocalYMD(next7);
+
+        const next30 = new Date(now);
+        next30.setDate(next30.getDate() + 30);
+        const next30YMD = toLocalYMD(next30);
+
+        const isInToday = (e) => isWithinRange(todayYMD, e.date, e.end_date || e.date);
+        const isInWeek = (e) => {
+          const start = e.date;
+          const end = e.end_date || e.date;
+          return end >= todayYMD && start <= next7YMD;
+        };
+        const isInMonth = (e) => {
+          const start = e.date;
+          const end = e.end_date || e.date;
+          return end >= todayYMD && start <= next30YMD;
+        };
+
+        setTodayCount(list.filter(isInToday).length);
+        setWeekCount(list.filter(isInWeek).length);
+        setMonthCount(list.filter(isInMonth).length);
+      })
       .finally(() => setLoading(false));
   };
 
+  // Current reference time for summary + upcoming sections
   const now = new Date();
   const today = toLocalYMD(now);
+  const next7 = new Date(now);
+  next7.setDate(next7.getDate() + 7);
+  const next7Ymd = toLocalYMD(next7);
+
+  const next30 = new Date(now);
+  next30.setDate(next30.getDate() + 30);
+  const next30Ymd = toLocalYMD(next30);
+
+  const classifyStatus = (e) => {
+    const status = String(e.status || 'active').toLowerCase();
+    const { isTentative } = parseTentativeDescription(e.description);
+    const isCancelled = status === 'cancelled';
+    const isRescheduled = isCancelled && Number(e.rescheduled_to_event_id) > 0;
+    if (isRescheduled) return 'rescheduled';
+    if (isCancelled) return 'cancelled';
+    if (isTentative) return 'tentative';
+    return 'final';
+  };
+
+  const weekBreakdown = useMemo(() => {
+    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0 };
+    events.forEach((e) => {
+      const end = e.end_date || e.date;
+      const inRange = end >= today && e.date <= next7Ymd;
+      if (!inRange) return;
+      const key = classifyStatus(e);
+      counts[key] += 1;
+    });
+    return counts;
+  }, [events, today, next7Ymd]);
+
+  const monthBreakdown = useMemo(() => {
+    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0 };
+    events.forEach((e) => {
+      const end = e.end_date || e.date;
+      const inRange = end >= today && e.date <= next30Ymd;
+      if (!inRange) return;
+      const key = classifyStatus(e);
+      counts[key] += 1;
+    });
+    return counts;
+  }, [events, today, next30Ymd]);
+
   const nowMins = now.getHours() * 60 + now.getMinutes();
   const overviewDateLabel = now.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -196,9 +271,6 @@ export default function Dashboard() {
     day: 'numeric',
     year: 'numeric',
   });
-  const next7 = new Date(now);
-  next7.setDate(next7.getDate() + 7);
-  const next7Ymd = toLocalYMD(next7);
 
   const upcomingEvents = events
     .filter((e) => {
@@ -419,12 +491,16 @@ export default function Dashboard() {
         <div className="dashboard-card">
           <span className="dashboard-card-label">This week</span>
           <span className="dashboard-card-value">{weekCount}</span>
-          <span className="dashboard-card-sublabel">Events/Meetings</span>
+          <span className="dashboard-card-sublabel">
+            Events/Meetings · Tentative: {weekBreakdown.tentative} · Final: {weekBreakdown.final} · Cancelled: {weekBreakdown.cancelled} · Rescheduled: {weekBreakdown.rescheduled}
+          </span>
         </div>
         <div className="dashboard-card">
           <span className="dashboard-card-label">This month</span>
           <span className="dashboard-card-value">{monthCount}</span>
-          <span className="dashboard-card-sublabel">Events/Meetings</span>
+          <span className="dashboard-card-sublabel">
+            Events/Meetings · Tentative: {monthBreakdown.tentative} · Final: {monthBreakdown.final} · Cancelled: {monthBreakdown.cancelled} · Rescheduled: {monthBreakdown.rescheduled}
+          </span>
         </div>
       </div>
 

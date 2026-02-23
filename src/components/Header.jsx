@@ -74,7 +74,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/'); // back to public dashboard view
   };
 
   return (
