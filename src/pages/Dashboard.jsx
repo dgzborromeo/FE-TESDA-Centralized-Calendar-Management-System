@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
 import './Dashboard.css';
@@ -105,6 +106,7 @@ function isEventOngoing(e, todayYmd, nowMins) {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const UPCOMING_PAGE_SIZE = 3;
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
@@ -267,7 +269,7 @@ export default function Dashboard() {
               <span className="dashboard-overview-chip">{overviewDateLabel}</span>
             </div>
             <div className="dashboard-actions">
-              <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
+              {user?.role !== 'viewer' && <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>}
               <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
             </div>
           </div>
@@ -372,17 +374,17 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="dashboard-mini-calendar-grid-wrap">
-            <div className="dashboard-mini-grid">
-              {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
-                <span key={w} className="dashboard-mini-weekday">{w}</span>
-              ))}
-              {monthInfo.cells.map((cell, idx) => {
-                const weekend = cell && isWeekendYMD(cell.ymd);
-                return (
-                  <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}>
-                    {cell ? (
-                      weekend ? (
-                        <div className="dashboard-mini-cell-btn dashboard-mini-cell-weekend" title="Weekend (locked)">
+            <Link to={`/calendar?date=${monthInfo.focusDate}`} className="dashboard-mini-grid-link">
+              <div className="dashboard-mini-grid">
+                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((w) => (
+                  <span key={w} className="dashboard-mini-weekday">{w}</span>
+                ))}
+                {monthInfo.cells.map((cell, idx) => {
+                  const weekend = cell && isWeekendYMD(cell.ymd);
+                  return (
+                    <div key={`${cell?.ymd || 'blank'}-${idx}`} className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}>
+                      {cell ? (
+                        <div className={`dashboard-mini-cell-btn ${weekend ? 'dashboard-mini-cell-weekend' : ''}`} title={weekend ? 'Weekend (locked)' : 'Open calendar'}>
                           <span className="dashboard-mini-day">{cell.day}</span>
                           <div className="dashboard-mini-colors">
                             {cell.colors.map((c, cIdx) => (
@@ -390,28 +392,11 @@ export default function Dashboard() {
                             ))}
                           </div>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          className="dashboard-mini-cell-btn"
-                          onClick={() => navigate(`/calendar/day/${cell.ymd}`)}
-                          title={`View ${cell.ymd}`}
-                        >
-                          <span className="dashboard-mini-day">{cell.day}</span>
-                          <div className="dashboard-mini-colors">
-                            {cell.colors.map((c, cIdx) => (
-                              <span key={`${cell.ymd}-${cIdx}`} className="dashboard-mini-color" style={{ backgroundColor: c }} />
-                            ))}
-                          </div>
-                        </button>
-                      )
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-            <Link to={`/calendar?date=${monthInfo.focusDate}`} className="dashboard-mini-full-calendar-link">
-              Open full calendar →
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </Link>
           </div>
         </section>
