@@ -764,6 +764,21 @@
   flex: 0 0 auto;
 }
 
+.fc-event-final-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.25rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #22c55e;
+  color: #ffffff;
+  flex: 0 0 auto;
+}
+
 .fc-event-postdoc-required {
   display: inline-flex;
   align-items: center;
@@ -815,9 +830,10 @@
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  background: rgba(156, 163, 175, 0.4);
-  border: 1px solid rgba(107, 114, 128, 0.5);
-  color: #4b5563;
+  /* Make [TENTATIVE] text more readable on colored event backgrounds */
+  background: #f3f4f6;
+  border: 1px solid #9ca3af;
+  color: #111827;
   flex: 0 0 auto;
 }
 
@@ -882,16 +898,8 @@
   opacity: 0.98;
 }
 
-.fc .fc-event.fc-event-tentative {
-  background: #38383a3b !important;
-  border-color: #9ca3af !important;
-  color: #374151;
-}
-
-.fc .fc-event.fc-event-tentative:hover {
-  background: #d1d5db !important;
-  border-color: #6b7280 !important;
-}
+/* Tentative events use the normal office/host color for the event;
+   only the [TENTATIVE] badge itself is gray via .fc-event-tentative-badge. */
 
 .fc-event-conflict-dot {
   font-size: 0.65rem;

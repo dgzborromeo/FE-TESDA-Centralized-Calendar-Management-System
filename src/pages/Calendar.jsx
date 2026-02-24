@@ -528,8 +528,10 @@ export default function Calendar() {
         const start = isMultiDay ? date : `${date}T${normalizeTime(e.start_time)}`;
         const end = isMultiDay ? addDaysYMD(endDate, 1) : `${date}T${normalizeTime(e.end_time)}`;
         const baseColor = e.color || EVENT_COLORS[e.type] || '#3b82f6';
-        const backgroundColor = tentativeMeta.isTentative ? '#e5e7eb' : baseColor;
-        const borderColor = tentativeMeta.isTentative ? '#9ca3af' : baseColor;
+        // Even for tentative events, keep the background based on the host/office color;
+        // only the [TENTATIVE] badge itself is gray.
+        const backgroundColor = baseColor;
+        const borderColor = baseColor;
         const host = e.creator_name || 'Unknown';
         const done = isEventDone(e);
         const cancelled = String(e.status || 'active').toLowerCase() === 'cancelled';
@@ -548,7 +550,7 @@ export default function Calendar() {
           end,
           backgroundColor,
           borderColor,
-          textColor: tentativeMeta.isTentative ? '#374151' : '#fff',
+          textColor: '#fff',
           allDay: isMultiDay,
           startEditable: canEditThis && !isMultiDay && !done && !cancelled,
           durationEditable: canEditThis && !isMultiDay && !done && !cancelled,
@@ -947,6 +949,8 @@ export default function Calendar() {
               const hasOsecParticipant = Boolean(arg.event.extendedProps?.has_osec_participant);
               const isTentative = Boolean(arg.event.extendedProps?.is_tentative);
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
+              // Final icon only for active, non-tentative, non-done events
+              const isFinal = !isTentative && !cancelled && !done;
               return (
                 <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`} title={tooltip}>
                   {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
@@ -964,6 +968,7 @@ export default function Calendar() {
                   )}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>
+                  {isFinal && <span className="fc-event-final-icon" title="Final schedule">✓</span>}
                 </div>
               );
             }}
