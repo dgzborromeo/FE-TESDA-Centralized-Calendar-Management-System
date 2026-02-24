@@ -167,7 +167,6 @@ export default function EventForm() {
   const [openClusters, setOpenClusters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [conflictWarning, setConflictWarning] = useState(null);
 
   useEffect(() => {
     if (!isEdit) setColor(assignedAccountColor);
@@ -224,34 +223,6 @@ export default function EventForm() {
     }).catch(() => navigate('/dashboard'));
   }, [id, isEdit, navigate]);
 
-  const checkConflict = async () => {
-    if (!date || !startTime || !endTime) return null;
-    try {
-      const { conflicts } = await eventsApi.checkConflict({
-        date,
-        end_date: !isEdit ? endDate : undefined,
-        start_time: startTime.length === 5 ? startTime + ':00' : startTime,
-        end_time: endTime.length === 5 ? endTime + ':00' : endTime,
-        attendee_ids: attendeeIds,
-        exclude_event_id: isEdit ? id : undefined,
-      });
-      return conflicts;
-    } catch (e) {
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    if (!date || !startTime || !endTime) return;
-    const t = setTimeout(() => {
-      checkConflict().then((c) => {
-        if (c && c.length > 0) setConflictWarning(c);
-        else setConflictWarning(null);
-      });
-    }, 500);
-    return () => clearTimeout(t);
-  }, [date, endDate, startTime, endTime, attendeeIds, id, isEdit]);
-
   const validate = () => {
     const todayYmd = toLocalDateString(new Date());
     if (!title.trim()) {
@@ -271,7 +242,12 @@ export default function EventForm() {
         setError('End date must be the same as or after start date.');
         return false;
       }
-      if (date < todayYmd) {
+      const inFebruaryThisYear = (() => {
+        const [y, m] = (date || '').split('-').map(Number);
+        const year = new Date().getFullYear();
+        return m === 2 && y === year;
+      })();
+      if (date < todayYmd && !inFebruaryThisYear) {
         setError('Past dates are view-only. Please select today or a future date.');
         return false;
       }
@@ -297,10 +273,6 @@ export default function EventForm() {
     const end = new Date(`1970-01-01T${endTime}`);
     if (end <= start) {
       setError('End time must be after start time.');
-      return false;
-    }
-    if (conflictWarning?.length > 0) {
-      setError('Participant conflict detected. You or one of the selected participants is already scheduled at this date/time.');
       return false;
     }
     setError('');
@@ -342,10 +314,6 @@ export default function EventForm() {
       }
     } catch (err) {
       setError(err.message || 'Failed to save event.');
-      // If backend rejected due to conflicts, try to refresh the conflict list for the user.
-      checkConflict().then((c) => {
-        if (c && c.length > 0) setConflictWarning(c);
-      });
     } finally {
       setLoading(false);
     }
@@ -433,54 +401,6 @@ export default function EventForm() {
       <form onSubmit={handleSubmit} className="event-form">
         {error && <div className="event-form-error">{error}</div>}
 
-        {conflictWarning?.length > 0 && (
-          <div className="event-form-conflict-warning">
-            <strong>⚠ Participant conflict detected</strong>
-            <div>
-              Your selected time: <strong>{formatTimeShort(startTime)} – {formatTimeShort(endTime)}</strong>
-            </div>
-            <div>
-              You or one of the selected participants is already included in another event for this schedule.
-            </div>
-            <ul className="event-form-conflict-list">
-              {conflictWarning.map((c) => {
-                const cStart = normalizeTimeHHMM(c.start_time);
-                const cEnd = normalizeTimeHHMM(c.end_time);
-                const overlapStartM = Math.max(timeToMinutes(startTime), timeToMinutes(cStart));
-                const overlapEndM = Math.min(timeToMinutes(endTime), timeToMinutes(cEnd));
-                const hasOverlap = overlapStartM < overlapEndM;
-                const overlapStart = `${String(Math.floor(overlapStartM / 60)).padStart(2, '0')}:${String(overlapStartM % 60).padStart(2, '0')}`;
-                const overlapEnd = `${String(Math.floor(overlapEndM / 60)).padStart(2, '0')}:${String(overlapEndM % 60).padStart(2, '0')}`;
-
-                return (
-                  <li key={c.id || c.title} className="event-form-conflict-item">
-                    <span className="event-form-conflict-title">{c.title}</span>
-                    {c.date ? (
-                      <span className="event-form-conflict-time">
-                        {String(c.date).slice(0, 10)}
-                      </span>
-                    ) : null}
-                    <span className="event-form-conflict-time">
-                      {formatTimeShort(cStart)} – {formatTimeShort(cEnd)}
-                    </span>
-                    {c.overlapping_participants ? (
-                      <span className="event-form-conflict-time">
-                        Participants: {c.overlapping_participants}
-                      </span>
-                    ) : null}
-                    {hasOverlap ? (
-                      <span className="event-form-conflict-overlap">
-                        Overlap: {formatTimeShort(overlapStart)} – {formatTimeShort(overlapEnd)}
-                      </span>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-            <div>To continue, change the participants or choose a different schedule.</div>
-          </div>
-        )}
-
         <label>
           Title <span className="required">*</span>
           <input
@@ -543,7 +463,14 @@ export default function EventForm() {
             <input
               type="date"
               value={date}
-              min={!isEdit ? toLocalDateString(new Date()) : undefined}
+              min={!isEdit ? (() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                // Allow selecting any day in February of the current year, even later in February.
+                if (month >= 2) return `${year}-02-01`;
+                return toLocalDateString(now);
+              })() : undefined}
               onChange={(e) => {
                 const nextStart = e.target.value;
                 setDate(nextStart);
@@ -712,8 +639,7 @@ export default function EventForm() {
           <button
             type="submit"
             className="event-form-submit"
-            disabled={loading || (conflictWarning?.length > 0)}
-            title={conflictWarning?.length > 0 ? 'Cannot save while selected participants are conflicting.' : undefined}
+            disabled={loading}
           >
             {loading ? 'Saving...' : isEdit ? 'Update Event' : 'Create Event'}
           </button>

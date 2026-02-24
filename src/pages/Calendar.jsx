@@ -208,8 +208,8 @@ export default function Calendar() {
   const isAdmin = user?.role === 'admin';
   const isReadOnlyOffice =
     isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto;
-  // Treat not-logged-in users and explicit viewer role as view-only
-  const isViewerLike = !user || user.role === 'viewer';
+  // Treat only not-logged-in users as view-only; any signed-in account can create events.
+  const isViewerLike = !user;
   const calendarRef = useRef(null);
   const containerRef = useRef(null);
   const lastPointerRef = useRef({ x: 0, y: 0 });
@@ -296,6 +296,9 @@ export default function Calendar() {
     if (!el) return;
 
     const onClickCapture = async (e) => {
+      // Public / viewer-like accounts are view-only: do not open create-event form on day click.
+      if (isViewerLike) return;
+
       // Prevent "click-to-create" from firing after a drag-drop (mouseup can trigger click)
       if (isDraggingRef.current) return;
       if (Date.now() - lastDropAtRef.current < 400) return;
@@ -311,10 +314,6 @@ export default function Calendar() {
         await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
         return;
       }
-      if (d < toLocalDateString(new Date())) {
-        await dialog.alert('This date is already done. It is view-only.', { title: 'View-only Date' });
-        return;
-      }
       e.preventDefault();
       e.stopPropagation();
       navigate(`/events/new?date=${d}`);
@@ -322,7 +321,7 @@ export default function Calendar() {
 
     el.addEventListener('click', onClickCapture, true);
     return () => el.removeEventListener('click', onClickCapture, true);
-  }, [navigate, dialog]);
+  }, [navigate, dialog, isViewerLike]);
 
   const dateParam = searchParams.get('date');
   const queryParam = searchParams.get('q') || '';
@@ -738,7 +737,7 @@ export default function Calendar() {
                       <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
                     </svg>
                   </span>
-                  <span>Red bookmark = participant is Sec Francisco B. Benitez (OSEC).</span>
+                  <span>Sec. Francisco B. Benitez (OSEC) is a participant.</span>
                 </p>
               </>
             )}
@@ -788,10 +787,20 @@ export default function Calendar() {
                 setLoading(false);
               }
             }}
-            // Clicking a day shows all events for that day (DayView), no create.
-            dateClick={(info) => {
+            // Clicking a day:
+            // - signed-in users: go to create event for that day
+            // - public (not signed-in): view-only DayView
+            dateClick={async (info) => {
               const ymd = String(info.dateStr || '').slice(0, 10);
               if (!ymd) return;
+              if (isWeekendYMD(ymd)) {
+                await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
+                return;
+              }
+              if (!isViewerLike) {
+                navigate(`/events/new?date=${ymd}`);
+                return;
+              }
               navigate(`/calendar/day/${ymd}`);
             }}
             eventClick={async (info) => {
