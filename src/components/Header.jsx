@@ -166,11 +166,7 @@ export default function Header() {
                 </div>
               )}
             </>
-          ) : (
-            <Link to="/login" className="header-link header-login-link">
-              Login
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

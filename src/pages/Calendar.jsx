@@ -528,7 +528,9 @@ export default function Calendar() {
         const isMultiDay = Boolean(endDate && date && endDate > date);
         const start = isMultiDay ? date : `${date}T${normalizeTime(e.start_time)}`;
         const end = isMultiDay ? addDaysYMD(endDate, 1) : `${date}T${normalizeTime(e.end_time)}`;
-        const backgroundColor = e.color || EVENT_COLORS[e.type] || '#3b82f6';
+        const baseColor = e.color || EVENT_COLORS[e.type] || '#3b82f6';
+        const backgroundColor = tentativeMeta.isTentative ? '#e5e7eb' : baseColor;
+        const borderColor = tentativeMeta.isTentative ? '#9ca3af' : baseColor;
         const host = e.creator_name || 'Unknown';
         const done = isEventDone(e);
         const cancelled = String(e.status || 'active').toLowerCase() === 'cancelled';
@@ -546,14 +548,15 @@ export default function Calendar() {
           start,
           end,
           backgroundColor,
-          borderColor: backgroundColor,
-          textColor: '#fff',
+          borderColor,
+          textColor: tentativeMeta.isTentative ? '#374151' : '#fff',
           allDay: isMultiDay,
           startEditable: canEditThis && !isMultiDay && !done && !cancelled,
           durationEditable: canEditThis && !isMultiDay && !done && !cancelled,
           classNames: [
             ...(done ? ['fc-event-done'] : []),
             ...(cancelled ? ['fc-event-cancelled'] : []),
+            ...(tentativeMeta.isTentative ? ['fc-event-tentative'] : []),
           ],
           extendedProps: {
             conflict_count: e.conflict_count || 0,
@@ -931,7 +934,7 @@ export default function Calendar() {
                   {done && <span className="fc-event-done-badge">Done</span>}
                   {hostNeedsPostDoc && <span className="fc-event-postdoc-required">REQ</span>}
                   {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
-                  {isTentative && <span className="fc-event-tentative-badge">T</span>}
+                  {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
                   {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>

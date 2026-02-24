@@ -774,14 +774,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  font-size: 0.64rem;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  background: rgba(250, 204, 21, 0.95);
-  border: 1px solid rgba(146, 64, 14, 0.55);
-  color: #78350f;
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(156, 163, 175, 0.4);
+  border: 1px solid rgba(107, 114, 128, 0.5);
+  color: #4b5563;
   flex: 0 0 auto;
 }
 
@@ -828,6 +828,17 @@
 
 .fc .fc-event.fc-event-cancelled:hover {
   opacity: 0.98;
+}
+
+.fc .fc-event.fc-event-tentative {
+  background: #e5e7eb !important;
+  border-color: #9ca3af !important;
+  color: #374151;
+}
+
+.fc .fc-event.fc-event-tentative:hover {
+  background: #d1d5db !important;
+  border-color: #6b7280 !important;
 }
 
 .fc-event-conflict-dot {
