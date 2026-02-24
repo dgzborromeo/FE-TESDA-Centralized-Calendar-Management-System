@@ -404,9 +404,9 @@
 }
 
 .dashboard-mini-cell.is-day:hover {
-  transform: none;
-  box-shadow: none;
-  z-index: auto;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+  z-index: 1;
 }
 
 .dashboard-mini-cell.is-weekend {
