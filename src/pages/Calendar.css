@@ -352,6 +352,29 @@
   margin: 0;
 }
 
+.calendar-legend-osec-note {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.calendar-legend-osec-note .calendar-legend-osec-bookmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+.calendar-legend-osec-note .calendar-legend-osec-bookmark svg {
+  display: block;
+}
+
 .calendar-legend-list {
   list-style: none;
   margin: 0;
@@ -799,6 +822,19 @@
   color: transparent;
   flex: 0 0 auto;
   transform: translateY(0.5px);
+}
+
+.fc-event-osec-bookmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #ef4444;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+}
+
+.fc-event-osec-bookmark svg {
+  display: block;
 }
 
 .fc .fc-event.fc-event-holiday {

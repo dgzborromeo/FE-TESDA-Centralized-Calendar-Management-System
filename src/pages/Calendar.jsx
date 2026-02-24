@@ -538,7 +538,7 @@ export default function Calendar() {
         const hostNeedsPostDoc = done && !cancelled && Number(e.created_by) === Number(user?.id) && postDocCount === 0;
         const dateRangeText = isMultiDay ? `${date} to ${endDate}` : date;
         const hasAttachment = Number(e.attachment_count || 0) > 0;
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${e.has_osec_participant ? '\nParticipant: OSEC' : ''}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -567,6 +567,7 @@ export default function Calendar() {
             post_document_count: postDocCount,
             host_needs_postdoc: hostNeedsPostDoc,
             has_attachment: hasAttachment,
+            has_osec_participant: Boolean(e.has_osec_participant),
             is_tentative: tentativeMeta.isTentative,
             tentative_note: tentativeMeta.note || '',
             is_multi_day: isMultiDay,
@@ -731,6 +732,14 @@ export default function Calendar() {
                     ))}
                   </div>
                 )}
+                <p className="calendar-legend-osec-note" aria-hidden="true">
+                  <span className="calendar-legend-osec-bookmark">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
+                      <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                  </span>
+                  <span>Red bookmark = participant is Sec Francisco B. Benitez (OSEC).</span>
+                </p>
               </>
             )}
           </section>
@@ -926,6 +935,7 @@ export default function Calendar() {
               const cancelled = Boolean(arg.event.extendedProps?.cancelled);
               const hostNeedsPostDoc = Boolean(arg.event.extendedProps?.host_needs_postdoc);
               const hasAttachment = Boolean(arg.event.extendedProps?.has_attachment);
+              const hasOsecParticipant = Boolean(arg.event.extendedProps?.has_osec_participant);
               const isTentative = Boolean(arg.event.extendedProps?.is_tentative);
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
               return (
@@ -936,6 +946,13 @@ export default function Calendar() {
                   {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
                   {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
                   {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
+                  {hasOsecParticipant && (
+                    <span className="fc-event-osec-bookmark" title="OSEC participant">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12" aria-hidden="true">
+                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                      </svg>
+                    </span>
+                  )}
                   {conflict && <span className="fc-event-conflict-dot">● </span>}
                   <span className="fc-event-title-text">{arg.event.title}</span>
                 </div>
