@@ -1,8 +1,8 @@
 /**
  * API client - uses proxy in dev (/api -> backend:3001)
  */
-const BASE = 'http://localhost:3002/api';
-// const BASE = 'http://localhost:3001/api';
+// const BASE = 'http://localhost:3002/api';
+const BASE = 'http://localhost:3001/api';
 function getToken() {
   return localStorage.getItem('token');
 }

@@ -82,56 +82,62 @@ export default function DayView() {
 
           {/* Mismong Grid ng Events */}
           <div className="events-grid">
-            {/* Background horizontal lines */}
-            {HOURS.map(hour => (
-              <div key={`line-${hour}`} className="grid-hour-row"></div>
-            ))}
+            {/* LAYER 1: Background horizontal lines - Naka-absolute para hindi umagaw ng column space */}
+            <div className="grid-background">
+              {HOURS.map(hour => (
+                <div key={`line-${hour}`} className="grid-hour-line"></div>
+              ))}
+            </div>
 
-            {/* Render ng mga Events */}
-            {events.map(e => {
-              const startH = parseInt(e.start_time?.split(':')[0]);
-              const endH = parseInt(e.end_time?.split(':')[0]);
-              
-              // CSS Grid row logic: Start sa (oras - 6 + 1) dahil 6AM ang index 1
-              const rowStart = startH - 6 + 1;
-              const rowEnd = endH - 6 + 1;
-              
-              // Siguraduhin na valid ang numbers
-              if (isNaN(rowStart) || isNaN(rowEnd)) return null;
+            {/* LAYER 2: Actual Events - Dito lang dapat ang grid-auto-flow: column */}
+            <div className="events-layer">
+              {events.map(e => {
+                const startH = parseInt(e.start_time?.split(':')[0]);
+                const endH = parseInt(e.end_time?.split(':')[0]);
+                const rowStart = startH - 6 + 1;
+                const rowEnd = endH - 6 + 1;
 
-              const style = getOfficeStyle(e.creator_name || e.office);
-              const duration = endH - startH;
+                if (isNaN(rowStart) || isNaN(rowEnd)) return null;
 
-              return (
-                <button 
-                  key={e.id} 
-                  className={`event-card-span ${String(e.status).toLowerCase() === 'cancelled' ? 'cancelled' : ''}`}
-                  onClick={() => setSelectedEvent(e.id)}
-                  style={{ 
-                    gridRow: `${rowStart} / ${rowEnd}`,
-                    borderLeftColor: style.text,
-                    backgroundColor: '#fff' // Maintain clean white background
-                  }}
-                >
-                  <div className="card-header">
-                    <span className="office-tag" style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}>
-                      {e.creator_name || e.office || 'TESDA'}
-                    </span>
-                    {duration > 1 && <span className="duration-pill">{duration} hrs</span>}
-                  </div>
+                const style = getOfficeStyle(e.creator_name || e.office);
+                const duration = endH - startH;
+
+                return (
+              <button 
+                key={e.id} 
+                className={`event-card-span ${String(e.status).toLowerCase() === 'cancelled' ? 'cancelled' : ''}`}
+                onClick={() => setSelectedEvent(e.id)}
+                style={{ 
+                  gridRow: `${rowStart} / ${rowEnd}`,
+                  borderLeftColor: style.text,
+                }}
+              >
+                <div className="card-header">
+                  <span className="office-tag" style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}>
+                    {e.creator_name || e.office || 'TESDA'}
+                  </span>
+                  {duration > 1 && <span className="duration-pill">{duration} hrs</span>}
+                </div>
+
+                <div className="card-body">
+                  <h3 className="event-title">{e.title}</h3>
                   
-                  <div className="card-body">
-                    <h3 className="event-title">{e.title}</h3>
-                    <div className="event-detail-item">
-                      <span className="detail-label">Participants:</span>
-                      <span className="detail-value">{e.participants || 'To Follow'}</span>
+                  {/* Nilipat ang Location dito sa taas ng Participants */}
+                  {e.location && (
+                    <div className="event-loc-inline">
+                      📍 {e.location}
                     </div>
-                  </div>
+                  )}
 
-                  {e.location && <div className="event-loc">📍 {e.location}</div>}
-                </button>
-              );
-            })}
+                  <div className="event-detail-item">
+                    <span className="detail-label">Participants:</span>
+                    <span className="detail-value">{e.participants || 'To Follow'}</span>
+                  </div>
+                </div>
+              </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
