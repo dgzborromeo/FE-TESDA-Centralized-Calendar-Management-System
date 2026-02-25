@@ -459,10 +459,11 @@ export default function Dashboard() {
               ))}
               {monthInfo.cells.map((cell, idx) => {
                 const weekend = cell && isWeekendYMD(cell.ymd);
+                const isToday = cell && cell.ymd === today;
                 return (
                   <div
                     key={`${cell?.ymd || 'blank'}-${idx}`}
-                    className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'}`}
+                    className={`dashboard-mini-cell ${!cell ? 'is-empty' : weekend ? 'is-weekend' : 'is-day'} ${isToday ? 'is-today' : ''}`}
                   >
                     {cell ? (
                       <div className={`dashboard-mini-cell-btn ${weekend ? 'dashboard-mini-cell-weekend' : ''}`}>

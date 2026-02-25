@@ -2,10 +2,7 @@
   max-width: min(96vw, 1860px);
   width: 100%;
   margin-inline: auto;
-  padding-inline: clamp(0.35rem, 1.2vw, 0.95rem);
-}
-
-.dashboard {
+  padding: 0.5rem clamp(0.5rem, 1.5vw, 1.25rem) 2rem;
   --dash-border-grad: var(--border-grad-blue);
 }
 
@@ -15,17 +12,19 @@
   color: var(--text-muted);
 }
 
- .dashboard-title {
-  font-size: clamp(1.5rem, 1.05rem + 1.2vw, 2.2rem);
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--text);
-}  
+.dashboard-title {
+  font-size: clamp(1.6rem, 1.1rem + 1.2vw, 2.35rem);
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
 
 .dashboard-subtitle {
-  color: var(--text-muted);
-  font-size: clamp(0.94rem, 0.84rem + 0.35vw, 1.08rem);
+  color: #64748b;
+  font-size: clamp(0.95rem, 0.86rem + 0.35vw, 1.1rem);
   margin-bottom: 0;
+  line-height: 1.4;
 }
 
 .dashboard-topbar {
@@ -33,16 +32,16 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.25rem;
-  padding: 1.1rem 1.25rem;
-  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: 16px;
   border: 1px solid transparent;
   background:
-    radial-gradient(760px 220px at 15% 0%, rgba(37, 99, 235, 0.16), transparent 60%) padding-box,
-    radial-gradient(560px 220px at 95% 20%, rgba(14, 165, 233, 0.10), transparent 55%) padding-box,
-    linear-gradient(180deg, #ffffff 0%, #eef6ff 100%) padding-box,
+    radial-gradient(760px 220px at 15% 0%, rgba(37, 99, 235, 0.10), transparent 60%) padding-box,
+    radial-gradient(560px 220px at 95% 20%, rgba(14, 165, 233, 0.06), transparent 55%) padding-box,
+    linear-gradient(180deg, #fafbff 0%, #f0f4ff 100%) padding-box,
     var(--dash-border-grad) border-box;
-  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.06);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .dashboard-topbar-left {
@@ -60,16 +59,16 @@
   position: relative;
   overflow: hidden;
   border: 1px solid transparent;
-  border-radius: var(--radius);
-  padding: clamp(0.95rem, 1.8vw, 1.35rem);
+  border-radius: 16px;
+  padding: clamp(1rem, 1.8vw, 1.45rem);
   background:
-    radial-gradient(700px 220px at 10% 0%, rgba(37, 99, 235, 0.14), transparent 60%) padding-box,
-    radial-gradient(520px 200px at 90% 15%, rgba(14, 165, 233, 0.10), transparent 55%) padding-box,
-    linear-gradient(180deg, #ffffff 0%, #eaf3ff 100%) padding-box,
+    radial-gradient(700px 220px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 60%) padding-box,
+    radial-gradient(520px 200px at 90% 15%, rgba(14, 165, 233, 0.06), transparent 55%) padding-box,
+    linear-gradient(180deg, #ffffff 0%, #f8faff 100%) padding-box,
     var(--dash-border-grad) border-box;
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   min-height: clamp(230px, 30vh, 315px);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dashboard-panel::after {
@@ -80,13 +79,13 @@
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%);
   pointer-events: none;
 }
 
 .dashboard-panel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
 }
 
 .dashboard-panel-overview .dashboard-title {
@@ -129,20 +128,24 @@
 }
 
 .dashboard-overview-chip {
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border-radius: 999px;
-  padding: 0.2rem 0.62rem;
-  font-size: clamp(0.72rem, 0.67rem + 0.2vw, 0.82rem);
-  font-weight: 600;
+  padding: 0.28rem 0.75rem;
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.85rem);
+  font-weight: 700;
   color: #1d4ed8;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .dashboard-panel-upcoming h2,
 .dashboard-panel-mini-calendar h2 {
-  font-size: clamp(1.02rem, 0.96rem + 0.4vw, 1.22rem);
-  margin: 0 0 0.55rem;
-  color: var(--text);
+  font-size: clamp(1.08rem, 1rem + 0.4vw, 1.28rem);
+  font-weight: 800;
+  margin: 0 0 0.65rem;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .dashboard-panel-upcoming,
@@ -181,18 +184,26 @@
 }
 
 .dashboard-upcoming-page-btn {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   background: #fff;
-  color: var(--text);
-  border-radius: 7px;
+  color: #334155;
+  border-radius: 10px;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.76rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
   font-weight: 700;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-upcoming-page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: rgba(37, 99, 235, 0.35);
+  color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .dashboard-upcoming-page-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -206,22 +217,25 @@
 
 .dashboard-upcoming-item {
   width: 100%;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: clamp(0.58rem, 1.1vw, 0.75rem) clamp(0.62rem, 1.1vw, 0.8rem);
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-left: 4px solid #2563eb;
+  border-radius: 10px;
+  padding: clamp(0.65rem, 1.1vw, 0.85rem) clamp(0.75rem, 1.2vw, 0.95rem);
   text-align: left;
   cursor: pointer;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.2rem 0.5rem;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  gap: 0.25rem 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
 .dashboard-upcoming-item:hover {
-  background: rgba(37, 99, 235, 0.09);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(2, 6, 23, 0.08);
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.06) 0%, #fff 12%);
+  border-color: rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(37, 99, 235, 0.06);
 }
 
 .dashboard-upcoming-date {
@@ -244,9 +258,10 @@
 
 .dashboard-upcoming-title {
   grid-column: 1 / -1;
-  color: var(--text);
-  font-weight: 600;
-  font-size: 1rem;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: 0.01em;
 }
 
 .dashboard-upcoming-meta {
@@ -270,13 +285,15 @@
   justify-content: center;
   border-radius: 999px;
   border: 1px solid #93c5fd;
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   color: #1d4ed8;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   line-height: 1;
-  padding: 0.18rem 0.56rem;
+  padding: 0.22rem 0.6rem;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
 }
 
 .dashboard-status-active {
@@ -338,8 +355,10 @@
 }
 
 .dashboard-mini-calendar-head span {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .dashboard-mini-calendar-controls {
@@ -352,29 +371,44 @@
 
 .dashboard-mini-month-btn,
 .dashboard-mini-today-btn {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   background: #fff;
-  color: var(--text);
-  border-radius: 7px;
+  color: #334155;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .dashboard-mini-month-btn {
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2rem;
+  height: 2rem;
   font-size: 1.1rem;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-mini-month-btn:hover {
+  background: #f1f5f9;
+  border-color: rgba(37, 99, 235, 0.35);
+  color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .dashboard-mini-today-btn {
-  padding: 0.22rem 0.5rem;
-  font-size: 0.78rem;
-  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: transparent;
+  color: #fff;
 }
 
-.dashboard-mini-month-btn:hover,
 .dashboard-mini-today-btn:hover {
-  background: rgba(37, 99, 235, 0.09);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .dashboard-mini-grid {
@@ -385,32 +419,45 @@
 
 .dashboard-mini-weekday {
   text-align: center;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .dashboard-mini-cell {
   min-height: clamp(56px, 5.2vw, 74px);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
   background: #fff;
   padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s, border-color 0.2s;
 }
 
 .dashboard-mini-cell.is-day:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(37, 99, 235, 0.08);
   z-index: 1;
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.dashboard-mini-cell.is-today {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0.04) 100%);
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.15);
+}
+
+.dashboard-mini-cell.is-today .dashboard-mini-day {
+  color: #1d4ed8;
+  font-weight: 800;
 }
 
 .dashboard-mini-cell.is-weekend {
-  background: rgba(241, 245, 249, 0.85);
+  background: rgba(248, 250, 252, 0.9);
   cursor: not-allowed;
 }
 
@@ -466,44 +513,48 @@
 
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-  gap: clamp(0.7rem, 1.2vw, 1rem);
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(0.9rem, 1.4vw, 1.25rem);
+  margin-bottom: 1.75rem;
 }
 
 .dashboard-card {
   background:
-    radial-gradient(520px 180px at 10% 0%, rgba(37, 99, 235, 0.14), transparent 60%) padding-box,
-    radial-gradient(420px 160px at 90% 15%, rgba(14, 165, 233, 0.10), transparent 55%) padding-box,
-    linear-gradient(180deg, #ffffff 0%, #eef6ff 100%) padding-box,
+    radial-gradient(520px 180px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 60%) padding-box,
+    radial-gradient(420px 160px at 90% 15%, rgba(14, 165, 233, 0.06), transparent 55%) padding-box,
+    linear-gradient(180deg, #ffffff 0%, #f8faff 100%) padding-box,
     var(--dash-border-grad) border-box;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  padding: clamp(0.92rem, 1.8vw, 1.35rem);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 16px;
+  padding: clamp(1rem, 1.8vw, 1.45rem);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  box-shadow: 0 10px 18px rgba(2, 6, 23, 0.08);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  gap: 0.35rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 26px rgba(2, 6, 23, 0.11);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.2);
 }
 
 .dashboard-card-label {
-  font-size: 0.95rem;
-  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .dashboard-card-value {
-  font-size: clamp(1.55rem, 1.1rem + 1.35vw, 2.2rem);
-  font-weight: 700;
+  font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.5rem);
+  font-weight: 800;
   font-family: var(--font-mono);
-  color: var(--text);
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 @media (min-width: 1900px) {
@@ -548,8 +599,9 @@
 }
 
 .dashboard-card-sublabel {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.35;
 }
 
 .dashboard-card-warning .dashboard-card-value {
@@ -574,36 +626,40 @@
 }
 
 .dashboard-btn {
-  padding: clamp(0.54rem, 0.9vw, 0.68rem) clamp(0.9rem, 1.6vw, 1.28rem);
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 0.95rem;
+  padding: clamp(0.58rem, 0.95vw, 0.72rem) clamp(1rem, 1.6vw, 1.35rem);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
   text-decoration: none;
   display: inline-block;
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #334155;
   background: #fff;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .dashboard-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text);
+  background: #f1f5f9;
+  color: #1d4ed8;
   text-decoration: none;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
 }
 
 .dashboard-btn-primary {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 
 .dashboard-btn-primary:hover {
   background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
   color: #fff;
   border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
 .dashboard-recent h2 {
