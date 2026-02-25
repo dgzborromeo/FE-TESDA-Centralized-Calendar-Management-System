@@ -1,0 +1,136 @@
+.day-view {
+  max-width: min(100%, 720px);
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 1.5rem) 0;
+}
+
+.day-view-header {
+  margin-bottom: 1.5rem;
+}
+
+.day-view-back {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.day-view-link {
+  color: var(--link, #2563eb);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.day-view-link:hover {
+  text-decoration: underline;
+}
+
+.day-view-sep {
+  color: var(--text-muted);
+  margin: 0 0.35rem;
+}
+
+.day-view-title {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.25rem;
+}
+
+.day-view-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.day-view-loading,
+.day-view-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.day-view-empty p {
+  margin: 0 0 1rem;
+}
+
+.day-view-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--primary, #2563eb);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.day-view-btn:hover {
+  opacity: 0.9;
+}
+
+.day-view-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-view-item-wrap {
+  margin: 0;
+}
+
+.day-view-item {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  gap: 0.2rem 0.5rem;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.day-view-item:hover {
+  background: rgba(37, 99, 235, 0.06);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.08);
+  transform: translateY(-1px);
+}
+
+.day-view-item-cancelled {
+  opacity: 0.75;
+}
+
+.day-view-time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary, #2563eb);
+  font-family: var(--font-mono, monospace);
+}
+
+.day-view-item-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.day-view-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.day-view-badge {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.day-view-badge-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+}
