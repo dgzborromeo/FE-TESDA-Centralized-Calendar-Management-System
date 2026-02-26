@@ -58,9 +58,9 @@ export default function DayView() {
     <div className="day-view-container">
       <header className="day-view-header">
         <div className="day-view-back">
-          <Link to="/dashboard" className="day-view-link">← Dashboard</Link>
-          <span className="day-view-sep">·</span>
-          <Link to={`/calendar?date=${dateYmd}`} className="day-view-link">Full calendar</Link>
+          {/* <Link to="/dashboard" className="day-view-link">← Dashboard</Link>
+          <span className="day-view-sep">·</span> */}
+          <Link to={`/calendar?date=${dateYmd}`} className="day-view-link">← Back</Link>
         </div>
         <h1 className="day-view-title">
           {new Date(dateYmd).toLocaleDateString('en-US', { dateStyle: 'full' })}
