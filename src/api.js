@@ -1,9 +1,6 @@
 /**
  * API client - uses proxy in dev (/api -> backend:3001)
  */
-// const BASE = 'https://sienna-jay-693502.hostingersite.com/api';
-// const BASE = 'http://localhost:3002/api';
-//const BASE = 'http://localhost:3001/api';
 const BASE = import.meta.env.VITE_API_BASE_URL;
 function getToken() {
   return localStorage.getItem('token');
@@ -91,6 +88,7 @@ export const profiles = {
 export const config = {
   // Offices
   getOffices: () => api('/get-offices'),
+  getOffice: (id) => api(`/get-office${id}`),
   addOffice: (body) => api('/add-office', { 
     method: 'POST', 
     body: JSON.stringify(body) 
@@ -100,6 +98,21 @@ export const config = {
     body: JSON.stringify(body) 
   }),
   deleteOffice: (id) => api(`/delete-office/${id}`, { 
+    method: 'DELETE' 
+  }),
+
+  // Divisions
+  getDivisions: () => api('/get-divisions'),
+  getDivision: (id) => api(`/get-division/${id}`),
+  addDivision: (body) => api('/add-division', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateDivision: (id, body) => api(`/update-division/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteDivision: (id) => api(`/delete-division/${id}`, { 
     method: 'DELETE' 
   }),
 };

@@ -394,3 +394,26 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+/* Para sa dropdown selection ng Office */
+.input-select-office {
+  flex: 1 1 100%; /* Occupy full width sa mobile or row top */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  background-color: #fff;
+}
+
+/* Sub-label para sa Parent Office sa listahan */
+.parent-label {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* Adjustments para sa list item para malinis tingnan ang may sub-text */
+.config-list-item {
+    align-items: flex-start; /* Align sa top para sa multiline text */
+}

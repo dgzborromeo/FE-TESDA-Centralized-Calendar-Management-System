@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { config as configApi } from '../api'; // Gamit ang iyong custom api wrapper
+import { config as configApi } from '../api'; 
 import './UserConfig.css';
 
 const TABS = [
@@ -14,14 +14,20 @@ const TABS = [
 export default function UserConfig() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('offices');
-  
-  // States
-  const [offices, setOffices] = useState([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', abbr: '' });
-  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // States para sa Offices
+  const [offices, setOffices] = useState([]);
+  
+  // States para sa Divisions
+  const [divisions, setDivisions] = useState([]);
+  
+  // Shared Form States
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '' });
 
+  // Load Offices
   const loadOffices = useCallback(() => {
     setLoading(true);
     configApi.getOffices()
@@ -29,47 +35,87 @@ export default function UserConfig() {
         setOffices(data || []);
         setLoading(false);
       })
-      .catch(err => {
-        console.error("Error:", err);
+      .catch(err => { console.error(err); setLoading(false); });
+  }, []);
+
+  // Load Divisions
+  const loadDivisions = useCallback(() => {
+    setLoading(true);
+    configApi.getDivisions()
+      .then(data => {
+        setDivisions(data || []);
         setLoading(false);
-      });
+      })
+      .catch(err => { console.error(err); setLoading(false); });
   }, []);
 
   useEffect(() => {
     if (activeTab === 'offices') loadOffices();
-  }, [activeTab, loadOffices]);
+    if (activeTab === 'divisions') {
+      loadDivisions();
+      loadOffices(); // Kailangan natin ito para sa dropdown sa Divisions tab
+    }
+    // I-reset ang form state paglipat ng tab
+    setIsFormOpen(false);
+    setEditingId(null);
+    setFormData({ name: '', abbr: '', office_id: '' });
+  }, [activeTab, loadOffices, loadDivisions]);
 
+  // Handle Save (Unified for Office and Division)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const payload = {
+    ...formData,
+    name: formData.name.trim(),
+    abbr: formData.abbr.trim()
+  };
     try {
-      if (editingId) {
-        await configApi.updateOffice(editingId, formData);
+      setLoading(true);
+      if (activeTab === 'offices') {
+        if (editingId) await configApi.updateOffice(editingId, formData);
+        else await configApi.addOffice(formData);
+        loadOffices();
       } else {
-        await configApi.addOffice(formData);
+        if (editingId) await configApi.updateDivision(editingId, formData);
+        else await configApi.addDivision(formData);
+        loadDivisions();
       }
-      setFormData({ name: '', abbr: '' });
-      setIsFormOpen(false);
-      setEditingId(null);
-      loadOffices();
+      resetForm();
     } catch (err) {
-      alert(err.message || "Error saving office");
+      alert(err.message || "Error saving record");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = (office) => {
-    setEditingId(office.id);
-    setFormData({ name: office.name, abbr: office.abbr });
-    setIsFormOpen(true); // Buksan ang form kapag mag-e-edit
+  const resetForm = () => {
+    setFormData({ name: '', abbr: '', office_id: '' });
+    setIsFormOpen(false);
+    setEditingId(null);
+  };
+
+  const handleEdit = (item) => {
+    setEditingId(item.id);
+    setFormData({ 
+        name: item.name, 
+        abbr: item.abbr, 
+        office_id: item.office_id || '' 
+    });
+    setIsFormOpen(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this office?")) {
-      try {
+    if (!window.confirm("Are you sure?")) return;
+    try {
+      if (activeTab === 'offices') {
         await configApi.deleteOffice(id);
         loadOffices();
-      } catch (err) {
-        alert("Failed to delete office");
+      } else {
+        await configApi.deleteDivision(id);
+        loadDivisions();
       }
+    } catch (err) {
+      alert("Delete failed");
     }
   };
 
@@ -77,10 +123,10 @@ export default function UserConfig() {
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
 
   return (
- <div className="user-config-page">
+    <div className="user-config-page">
       <header className="user-config-header">
         <h1 className="user-config-title">User Configuration</h1>
-        <p className="user-config-subtitle">Manage offices and divisions.</p>
+        <p className="user-config-subtitle">Manage system structure and settings.</p>
       </header>
 
       <div className="user-config-tabs">
@@ -96,82 +142,105 @@ export default function UserConfig() {
       </div>
 
       <div className="user-config-content">
+        {/* OFFICES TAB */}
         {activeTab === 'offices' && (
           <section className="user-config-panel">
             <div className="panel-header-inline">
               <h2 className="user-config-panel-title">Offices</h2>
               {!isFormOpen && (
-                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>
-                  + Add Office
-                </button>
+                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Office</button>
               )}
             </div>
 
-            {/* IMPROVED FORM SECTION */}
             {isFormOpen && (
               <form className="inline-config-form" onSubmit={handleSubmit}>
                 <div className="inline-form-inputs">
                   <input 
-                    type="text" 
-                    placeholder="Office Name (e.g. Regional Operations Management Office)"
-                    className="input-name-wide"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    required
+                    type="text" placeholder="Office Name" className="input-name-wide"
+                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required
                   />
                   <input 
-                    type="text" 
-                    placeholder="Abbr (e.g. ROMO)"
-                    className="input-abbr-small"
-                    value={formData.abbr}
-                    onChange={(e) => setFormData({...formData, abbr: e.target.value})}
-                    required
+                    type="text" placeholder="Abbr" className="input-abbr-small"
+                    value={formData.abbr} onChange={(e) => setFormData({...formData, abbr: e.target.value})} required
                   />
                   <div className="inline-form-btns">
-                    <button type="submit" className="btn-inline-save">
-                      {editingId ? 'Update' : 'Save'}
-                    </button>
-                    <button type="button" className="btn-inline-cancel" onClick={() => {
-                      setIsFormOpen(false);
-                      setEditingId(null);
-                      setFormData({name: '', abbr: ''});
-                    }}>
-                      Cancel
-                    </button>
+                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
                   </div>
                 </div>
               </form>
             )}
 
-            {/* LIST SECTION */}
-            <div className="config-list-container">
-              {loading ? (
-                <p className="user-config-empty">Loading offices...</p>
-              ) : offices.length > 0 ? (
-                <ul className="modern-config-list">
-                  {offices.map(office => (
-                    <li key={office.id} className="config-list-item">
-                      <span className="office-display-text">
-                        {office.name} <span className="abbr-text">({office.abbr})</span>
-                      </span>
-                      <div className="item-actions">
-                        <button className="btn-action-edit" onClick={() => handleEdit(office)}>Edit</button>
-                        <button className="btn-action-delete" onClick={() => handleDelete(office.id)}>Delete</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="user-config-empty">No offices found in the database.</p>
-              )}
-            </div>
+            <ul className="modern-config-list">
+              {offices.map(off => (
+                <li key={off.id} className="config-list-item">
+                  <span className="office-display-text">{off.name} <strong>({off.abbr})</strong></span>
+                  <div className="item-actions">
+                    <button className="btn-action-edit" onClick={() => handleEdit(off)}>Edit</button>
+                    <button className="btn-action-delete" onClick={() => handleDelete(off.id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
+        {/* DIVISIONS TAB */}
         {activeTab === 'divisions' && (
           <section className="user-config-panel">
-            <h2 className="user-config-panel-title">Divisions</h2>
-            <p className="user-config-empty">Content will be loaded from the database.</p>
+            <div className="panel-header-inline">
+              <h2 className="user-config-panel-title">Divisions</h2>
+              {!isFormOpen && (
+                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Division</button>
+              )}
+            </div>
+
+            {isFormOpen && (
+              <form className="inline-config-form" onSubmit={handleSubmit}>
+                <div className="inline-form-inputs" style={{ flexWrap: 'wrap' }}>
+                  {/* OFFICE DROPDOWN */}
+                  <select 
+                    className="input-select-office"
+                    value={formData.office_id}
+                    onChange={(e) => setFormData({...formData, office_id: e.target.value})}
+                    required
+                  >
+                    <option value="">-- Select Parent Office --</option>
+                    {offices.map(off => (
+                      <option key={off.id} value={off.id}>{off.name}</option>
+                    ))}
+                  </select>
+
+                  <input 
+                    type="text" placeholder="Division Name" className="input-name-wide"
+                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required
+                  />
+                  <input 
+                    type="text" placeholder="Abbr" className="input-abbr-small"
+                    value={formData.abbr} onChange={(e) => setFormData({...formData, abbr: e.target.value})} required
+                  />
+                  <div className="inline-form-btns">
+                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            <ul className="modern-config-list">
+              {divisions.map(div => (
+                <li key={div.id} className="config-list-item">
+                  <div className="office-display-text">
+                    {div.name} <strong>({div.abbr})</strong>
+                    <div className="parent-label">Under: {div.office?.name || 'Unknown Office'}</div>
+                  </div>
+                  <div className="item-actions">
+                    <button className="btn-action-edit" onClick={() => handleEdit(div)}>Edit</button>
+                    <button className="btn-action-delete" onClick={() => handleDelete(div.id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
         {activeTab === 'users' && (
