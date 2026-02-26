@@ -14,6 +14,8 @@ import Upcoming from './pages/Upcoming';
 import Recent from './pages/Recent';
 import YearEvents from './pages/YearEvents';
 import DayView from './pages/DayView';
+import ListOfActivity from './pages/ListOfActivity';
+import UserConfig from './pages/UserConfig';
 import About from './pages/About';
 import HelpGuide from './pages/HelpGuide';
 import FAQ from './pages/FAQ';
@@ -48,6 +50,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="calendar/day/:date" element={<DayView />} />
+        <Route path="list-of-activity" element={<ListOfActivity />} />
         <Route path="upcoming" element={<Upcoming />} />
         <Route path="year-events" element={<YearEvents />} />
         <Route path="recent" element={<Recent />} />
@@ -58,6 +61,7 @@ function AppRoutes() {
         <Route path="terms" element={<Terms />} />
         <Route path="privacy" element={<Privacy />} />
         {/* Auth-only pages (require login) */}
+        <Route path="user-config" element={<ProtectedRoute><UserConfig /></ProtectedRoute>} />
         <Route path="invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>} />
         <Route path="events/new" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
         <Route path="events/:id/edit" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />

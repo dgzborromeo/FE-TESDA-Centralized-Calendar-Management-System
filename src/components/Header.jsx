@@ -99,8 +99,14 @@ export default function Header() {
           <div className="header-nav-scroll">
             <Link to="/dashboard" className="header-link">Dashboard</Link>
             <Link to="/calendar" className="header-link">Calendar</Link>
+            {user?.role === 'admin' && (
+              <Link to="/list-of-activity" className="header-link">List of Activity</Link>
+            )}
             <Link to="/upcoming" className="header-link">Upcoming</Link>
             <Link to="/year-events" className="header-link">Year Events</Link>
+            {user?.role === 'admin' && (
+              <Link to="/user-config" className="header-link">User Configuration</Link>
+            )}
           </div>
 
           <div className="header-help" ref={helpRef}>
@@ -157,7 +163,13 @@ export default function Header() {
                   </div>
                   <Link to="/dashboard" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Dashboard</Link>
                   <Link to="/calendar" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Calendar</Link>
+                  {user?.role === 'admin' && (
+                    <Link to="/list-of-activity" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>List of Activity</Link>
+                  )}
                   <Link to="/invitations" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Invitations</Link>
+                  {user?.role === 'admin' && (
+                    <Link to="/user-config" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>User Configuration</Link>
+                  )}
                   <Link to="/upcoming" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Upcoming</Link>
                   <Link to="/recent" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Recent</Link>
                   <button type="button" className="header-dropdown-item header-dropdown-logout" onClick={handleLogout}>

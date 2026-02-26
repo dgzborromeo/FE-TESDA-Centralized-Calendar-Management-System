@@ -1,0 +1,181 @@
+.user-config-page {
+  max-width: min(98vw, 1200px);
+  margin-inline: auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.user-config-header {
+  margin-bottom: 1.5rem;
+}
+
+.user-config-title {
+  font-size: clamp(1.5rem, 1rem + 1vw, 2rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem;
+}
+
+.user-config-subtitle {
+  color: #64748b;
+  font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Tab bar */
+.user-config-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.user-config-tab {
+  padding: 0.6rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.user-config-tab:hover {
+  color: #334155;
+}
+
+.user-config-tab.is-active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+}
+
+/* Content panel */
+.user-config-content {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+
+.user-config-panel {
+  padding: 1.5rem 1.5rem 2rem;
+}
+
+.user-config-panel-header {
+  margin-bottom: 1.25rem;
+}
+
+.user-config-panel-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.user-config-empty {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.user-config-panel-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+/* Buttons */
+.user-config-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.user-config-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.user-config-btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+}
+
+.user-config-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.user-config-btn-ghost {
+  background: transparent;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.user-config-btn-ghost:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* List / cards */
+.user-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.user-config-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.user-config-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.user-config-card-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.user-config-card-code {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1d4ed8;
+  min-width: 3.5rem;
+}
+
+.user-config-card-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.user-config-card-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.user-config-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
