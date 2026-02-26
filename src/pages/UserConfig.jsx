@@ -5,9 +5,9 @@ import { config as configApi } from '../api';
 import './UserConfig.css';
 
 const TABS = [
+  { id: 'users', label: 'Users' },
   { id: 'offices', label: 'Offices' },
   { id: 'divisions', label: 'Divisions' },
-  { id: 'users', label: 'Users' },
   { id: 'positions', label: 'Positions' },
 ];
 
@@ -21,7 +21,7 @@ export default function UserConfig() {
   
   // States para sa Divisions
   const [divisions, setDivisions] = useState([]);
-  
+  const [positions, setPositions] = useState([]);
   // Shared Form States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -48,13 +48,17 @@ export default function UserConfig() {
       })
       .catch(err => { console.error(err); setLoading(false); });
   }, []);
-
+const loadPositions = useCallback(() => {
+    setLoading(true);
+    configApi.getPositions().then(data => { setPositions(data || []); setLoading(false); }).catch(console.error);
+  }, []);
   useEffect(() => {
     if (activeTab === 'offices') loadOffices();
     if (activeTab === 'divisions') {
       loadDivisions();
       loadOffices(); // Kailangan natin ito para sa dropdown sa Divisions tab
     }
+    if (activeTab === 'positions') loadPositions();
     // I-reset ang form state paglipat ng tab
     setIsFormOpen(false);
     setEditingId(null);
@@ -62,23 +66,29 @@ export default function UserConfig() {
   }, [activeTab, loadOffices, loadDivisions]);
 
   // Handle Save (Unified for Office and Division)
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
-    ...formData,
-    name: formData.name.trim(),
-    abbr: formData.abbr.trim()
-  };
+      ...formData,
+      name: formData.name.trim(),
+      abbr: formData.abbr ? formData.abbr.trim() : ''
+    };
+
     try {
       setLoading(true);
       if (activeTab === 'offices') {
-        if (editingId) await configApi.updateOffice(editingId, formData);
-        else await configApi.addOffice(formData);
+        if (editingId) await configApi.updateOffice(editingId, payload);
+        else await configApi.addOffice(payload);
         loadOffices();
-      } else {
-        if (editingId) await configApi.updateDivision(editingId, formData);
-        else await configApi.addDivision(formData);
+      } else if (activeTab === 'divisions') {
+        if (editingId) await configApi.updateDivision(editingId, payload);
+        else await configApi.addDivision(payload);
         loadDivisions();
+      } else if (activeTab === 'positions') {
+        // Position Master List logic
+        if (editingId) await configApi.updatePosition(editingId, { name: payload.name });
+        else await configApi.addPosition({ name: payload.name });
+        loadPositions();
       }
       resetForm();
     } catch (err) {
@@ -107,13 +117,9 @@ export default function UserConfig() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      if (activeTab === 'offices') {
-        await configApi.deleteOffice(id);
-        loadOffices();
-      } else {
-        await configApi.deleteDivision(id);
-        loadDivisions();
-      }
+      if (activeTab === 'offices') { await configApi.deleteOffice(id); loadOffices(); }
+      else if (activeTab === 'divisions') { await configApi.deleteDivision(id); loadDivisions(); }
+      else if (activeTab === 'positions') { await configApi.deletePosition(id); loadPositions(); }
     } catch (err) {
       alert("Delete failed");
     }
@@ -243,18 +249,55 @@ export default function UserConfig() {
             </ul>
           </section>
         )}
+        {activeTab === 'positions' && (
+          <section className="user-config-panel">
+            <div className="panel-header-inline">
+              <h2 className="user-config-panel-title">Position Master List</h2>
+              {!isFormOpen && (
+                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Position</button>
+              )}
+            </div>
+
+            {isFormOpen && (
+              <form className="inline-config-form" onSubmit={handleSubmit}>
+                <div className="inline-form-inputs">
+                  <input 
+                    type="text" 
+                    placeholder="Position Name (e.g. Administrative Officer V)" 
+                    className="input-name-wide"
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                    required
+                  />
+                  <div className="inline-form-btns">
+                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            <ul className="modern-config-list">
+              {loading ? <p>Loading...</p> : positions.map(pos => (
+                <li key={pos.id} className="config-list-item">
+                  <span className="office-display-text">{pos.name}</span>
+                  <div className="item-actions">
+                    <button className="btn-action-edit" onClick={() => handleEdit(pos)}>Edit</button>
+                    <button className="btn-action-delete" onClick={() => handleDelete(pos.id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+              {!loading && positions.length === 0 && <p className="user-config-empty">No positions found.</p>}
+            </ul>
+          </section>
+        )}
         {activeTab === 'users' && (
           <section className="user-config-panel">
             <h2 className="user-config-panel-title">Users</h2>
             <p className="user-config-empty">Content will be loaded from the database.</p>
           </section>
         )}
-        {activeTab === 'positions' && (
-          <section className="user-config-panel">
-            <h2 className="user-config-panel-title">Positions</h2>
-            <p className="user-config-empty">Content will be loaded from the database.</p>
-          </section>
-        )}
+
       </div>
     </div>
   );

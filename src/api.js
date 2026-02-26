@@ -115,4 +115,19 @@ export const config = {
   deleteDivision: (id) => api(`/delete-division/${id}`, { 
     method: 'DELETE' 
   }),
+
+  //Positions
+  getPositions: () => api('/get-positions'),
+  getPosition: (id) => api(`/get-position/${id}`),
+  addPosition: (body) => api('/add-position', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updatePosition: (id, body) => api(`/update-position/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deletePosition: (id) => api(`/delete-position/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
