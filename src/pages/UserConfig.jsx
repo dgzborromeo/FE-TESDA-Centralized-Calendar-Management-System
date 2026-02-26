@@ -9,6 +9,7 @@ const TABS = [
   { id: 'offices', label: 'Offices' },
   { id: 'divisions', label: 'Divisions' },
   { id: 'positions', label: 'Positions' },
+  { id: 'pos-setup', label: 'Position Setup' },
 ];
 
 export default function UserConfig() {
@@ -22,10 +23,11 @@ export default function UserConfig() {
   // States para sa Divisions
   const [divisions, setDivisions] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [configPositions, setConfigPositions] = useState([]);
   // Shared Form States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '' });
+  const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
 
   // Load Offices
   const loadOffices = useCallback(() => {
@@ -52,6 +54,11 @@ const loadPositions = useCallback(() => {
     setLoading(true);
     configApi.getPositions().then(data => { setPositions(data || []); setLoading(false); }).catch(console.error);
   }, []);
+  
+const loadConfigPositions = useCallback(() => {
+    setLoading(true);
+    configApi.getConfigPositions().then(data => { setConfigPositions(data || []); setLoading(false); }).catch(console.error);
+  }, []);
   useEffect(() => {
     if (activeTab === 'offices') loadOffices();
     if (activeTab === 'divisions') {
@@ -59,11 +66,17 @@ const loadPositions = useCallback(() => {
       loadOffices(); // Kailangan natin ito para sa dropdown sa Divisions tab
     }
     if (activeTab === 'positions') loadPositions();
+    if (activeTab === 'pos-setup') { 
+        loadConfigPositions(); 
+        loadOffices(); 
+        loadDivisions(); 
+        loadPositions(); 
+    }
     // I-reset ang form state paglipat ng tab
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadDivisions]);
+  }, [activeTab, loadOffices, loadDivisions, loadPositions, loadConfigPositions]);
 
   // Handle Save (Unified for Office and Division)
 const handleSubmit = async (e) => {
@@ -89,6 +102,16 @@ const handleSubmit = async (e) => {
         if (editingId) await configApi.updatePosition(editingId, { name: payload.name });
         else await configApi.addPosition({ name: payload.name });
         loadPositions();
+      } else if (activeTab === 'pos-setup') {
+        // SETUP CONFIG POSITION CRUD
+        const payload = {
+            office_id: formData.office_id,
+            division_id: formData.division_id || null,
+            position_id: formData.position_id
+        };
+        if (editingId) await configApi.updateConfigPosition(editingId, payload);
+        else await configApi.setupPosition(payload);
+        loadConfigPositions();
       }
       resetForm();
     } catch (err) {
@@ -99,27 +122,37 @@ const handleSubmit = async (e) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', abbr: '', office_id: '' });
+    setFormData({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
     setIsFormOpen(false);
     setEditingId(null);
   };
 
   const handleEdit = (item) => {
     setEditingId(item.id);
-    setFormData({ 
-        name: item.name, 
-        abbr: item.abbr, 
-        office_id: item.office_id || '' 
-    });
+    if (activeTab === 'pos-setup') {
+        setFormData({
+            office_id: item.office_id || '',
+            division_id: item.division_id || '',
+            position_id: item.position_id || ''
+        });
+    } else {
+        setFormData({ name: item.name, abbr: item.abbr || '', office_id: item.office_id || '' });
+    }
     setIsFormOpen(true);
   };
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      if (activeTab === 'offices') { await configApi.deleteOffice(id); loadOffices(); }
-      else if (activeTab === 'divisions') { await configApi.deleteDivision(id); loadDivisions(); }
-      else if (activeTab === 'positions') { await configApi.deletePosition(id); loadPositions(); }
+      if (activeTab === 'offices') await configApi.deleteOffice(id);
+      else if (activeTab === 'divisions') await configApi.deleteDivision(id);
+      else if (activeTab === 'positions') await configApi.deletePosition(id);
+      else if (activeTab === 'pos-setup') await configApi.deleteConfigPosition(id);
+      
+      // Refresh current tab
+      if (activeTab === 'offices') loadOffices();
+      if (activeTab === 'divisions') loadDivisions();
+      if (activeTab === 'positions') loadPositions();
+      if (activeTab === 'pos-setup') loadConfigPositions();
     } catch (err) {
       alert("Delete failed");
     }
@@ -252,7 +285,7 @@ const handleSubmit = async (e) => {
         {activeTab === 'positions' && (
           <section className="user-config-panel">
             <div className="panel-header-inline">
-              <h2 className="user-config-panel-title">Position Master List</h2>
+              <h2 className="user-config-panel-title">Positions</h2>
               {!isFormOpen && (
                 <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Position</button>
               )}
@@ -288,6 +321,75 @@ const handleSubmit = async (e) => {
                 </li>
               ))}
               {!loading && positions.length === 0 && <p className="user-config-empty">No positions found.</p>}
+            </ul>
+          </section>
+        )}
+        {activeTab === 'pos-setup' && (
+          <section className="user-config-panel">
+            <div className="panel-header-inline">
+              <h2 className="user-config-panel-title">Position Assignments</h2>
+              {!isFormOpen && (
+                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Setup New Position</button>
+              )}
+            </div>
+
+            {isFormOpen && (
+              <form className="inline-config-form" onSubmit={handleSubmit}>
+                <div className="inline-form-inputs" style={{ flexWrap: 'wrap', gap: '10px' }}>
+                  <select 
+                    value={formData.office_id} 
+                    onChange={(e) => setFormData({...formData, office_id: e.target.value, division_id: ''})} 
+                    required
+                  >
+                    <option value="">-- Select Office --</option>
+                    {offices.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                  </select>
+
+                  <select 
+                    value={formData.division_id} 
+                    onChange={(e) => setFormData({...formData, division_id: e.target.value})}
+                    disabled={!formData.office_id}
+                  >
+                    <option value="">-- No Division (Office Level) --</option>
+                    {divisions
+                        .filter(d => d.office_id === parseInt(formData.office_id))
+                        .map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+
+                  <select 
+                    value={formData.position_id} 
+                    onChange={(e) => setFormData({...formData, position_id: e.target.value})} 
+                    required
+                  >
+                    <option value="">-- Select Position --</option>
+                    {positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+
+                  <div className="inline-form-btns">
+                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save Setup'}</button>
+                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            <ul className="modern-config-list">
+              {configPositions.map(cp => (
+                <li key={cp.id} className="config-list-item">
+                  <div className="office-display-text">
+                    <strong>{cp.position?.name}</strong>
+                    <div className="parent-label">
+                        {cp.division ? `Division: ${cp.division.name}` : `Office: ${cp.office?.name}`}
+                        {cp.division && <small> ({cp.office?.abbr})</small>}
+                    </div>
+                  </div>
+                  <div className="item-actions">
+                    <button className="btn-action-edit" onClick={() => handleEdit(cp)}>Edit</button>
+                    <button className="btn-action-delete" onClick={() => handleDelete(cp.id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+              {configPositions.length === 0 && <p className="user-config-empty">No positions configured yet.</p>}
             </ul>
           </section>
         )}

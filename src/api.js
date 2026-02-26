@@ -130,4 +130,20 @@ export const config = {
   deletePosition: (id) => api(`/delete-position/${id}`, { 
     method: 'DELETE' 
   }),
+
+  //SETUP POSITION
+  // Config Positions (Assignments)
+  getConfigPositions: () => api('/get-config-positions'),
+  getConfigPosition: (id) => api(`/get-config-position/${id}`),
+  setupPosition: (body) => api('/setup-position', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateConfigPosition: (id, body) => api(`/update-config-position/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteConfigPosition: (id) => api(`/delete-config-position/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
