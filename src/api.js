@@ -1,6 +1,7 @@
 /**
  * API client - uses proxy in dev (/api -> backend:3001)
  */
+// const BASE = 'https://sienna-jay-693502.hostingersite.com/api';
 const BASE = 'http://localhost:3002/api';
 // const BASE = 'http://localhost:3001/api';
 function getToken() {
@@ -84,4 +85,20 @@ export const profiles = {
   
   // Pag-delete ng profile
   remove: () => api('/profile/remove', { method: 'DELETE' }),
+};
+
+export const config = {
+  // Offices
+  getOffices: () => api('/get-offices'),
+  addOffice: (body) => api('/add-office', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateOffice: (id, body) => api(`/update-office/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteOffice: (id) => api(`/delete-office/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
