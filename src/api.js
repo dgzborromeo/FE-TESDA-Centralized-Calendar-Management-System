@@ -2,8 +2,9 @@
  * API client - uses proxy in dev (/api -> backend:3001)
  */
 // const BASE = 'https://sienna-jay-693502.hostingersite.com/api';
-const BASE = 'http://localhost:3002/api';
-// const BASE = 'http://localhost:3001/api';
+// const BASE = 'http://localhost:3002/api';
+//const BASE = 'http://localhost:3001/api';
+const BASE = import.meta.env.VITE_API_BASE_URL;
 function getToken() {
   return localStorage.getItem('token');
 }
