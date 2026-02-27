@@ -280,7 +280,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               <p>{tentativeMeta.plainDescription || event.description}</p>
             </div>
           ) : null}
-          <div className="modal-inline-grid">
+          <div className="modal-inline-grid modal-inline-grid-three">
             <div className="modal-row">
               <span className="modal-label">Date</span>
               <span>{formatDateRange(eventDate, eventEndDate)}</span>
@@ -288,6 +288,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             <div className="modal-row">
               <span className="modal-label">Time</span>
               <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+            </div>
+            <div className="modal-row">
+           <span className="modal-label">Location / Room / Zoom</span>
+            <div>{event.location || ''}</div>
             </div>
           </div>
           <div className="modal-inline-grid modal-inline-grid-three">
@@ -342,14 +346,19 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               <span>{event.location}</span>
             </div>
           )}
-          {event.attendees?.length > 0 && (
-            <div className="modal-row">
-              <span className="modal-label">Participants</span>
-              <span>{event.attendees.map((a) => a.name).join(', ')}</span>
-            </div>
-          )}
+      {event.attendees?.length > 0 && (
+  <div className="modal-row">
+    <span className="modal-label">Participants</span>
 
-          {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
+    <div className="modal-participant-list">
+      {event.attendees.map((a, index) => (
+        <div key={index}>{a.name}</div>
+      ))}
+    </div>
+  </div>
+)}
+
+          {/* {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
             <div className="modal-row modal-rsvps">
               <span className="modal-label">Responses</span>
               <ul className="modal-rsvp-list">
@@ -426,7 +435,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
           {regularAttachments.length > 0 && (
             <div className="modal-row modal-attachments">
