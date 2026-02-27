@@ -100,10 +100,35 @@ function formatParticipantsAcronymList(summary) {
 
 /** True if event is today and current time is between start_time and end_time (not yet finished). */
 function isEventOngoing(e, todayYmd, nowMins) {
-  if (!e?.date || e.date !== todayYmd) return false;
-  const startMins = timeToMinutes(e.start_time);
-  const endMins = timeToMinutes(e.end_time);
-  return nowMins >= startMins && nowMins < endMins;
+  if (!e?.date) return false;
+
+  const startDate = e.date;
+  const endDate = e.end_date || e.date;
+
+  // Check if today is within date range
+  const withinDateRange = todayYmd >= startDate && todayYmd <= endDate;
+
+  if (!withinDateRange) return false;
+
+  // If multi-day event and today is NOT the first day,
+  // consider it ongoing for the whole day
+  if (todayYmd > startDate && todayYmd < endDate) {
+    return true;
+  }
+
+  // If today is start day → check time
+  if (todayYmd === startDate) {
+    const startMins = timeToMinutes(e.start_time);
+    return nowMins >= startMins;
+  }
+
+  // If today is end day → check time
+  if (todayYmd === endDate) {
+    const endMins = timeToMinutes(e.end_time);
+    return nowMins < endMins;
+  }
+
+  return false;
 }
 
 export default function Dashboard() {
