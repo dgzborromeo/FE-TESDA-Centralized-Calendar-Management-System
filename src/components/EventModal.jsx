@@ -348,17 +348,17 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               <span>{event.location}</span>
             </div>
           )} */}
-      {event.attendees?.length > 0 && (
-  <div className="modal-row">
-    <span className="modal-label">Participants</span>
+        <div className="modal-row">
+          <span className="modal-label">Participants</span>
 
-    <div className="modal-participant-list">
-      {event.attendees.map((a, index) => (
-        <div key={index}>{a.name}</div>
-      ))}
-    </div>
-  </div>
-)}
+          <div className="modal-participant-list">
+            {(event.attendees || []).length > 0 ? (
+           event.attendees.map((a, index) => <div key={index}>{a.name}</div>)
+            ) : (
+            <div className="modal-empty-text">No participants</div>
+            )}
+          </div>
+        </div>
 
           {/* {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
             <div className="modal-row modal-rsvps">
