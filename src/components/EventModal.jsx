@@ -4,6 +4,7 @@ import { events as eventsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useAppDialog } from './AppDialogProvider';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
+import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import './EventModal.css';
 
 function formatTime(t) {
@@ -254,6 +255,17 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
   const tentativeMeta = parseTentativeDescription(event.description || '');
+  const regionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
+  const hasBackendParticipants = Array.isArray(event.attendees) && event.attendees.length > 0;
+  const participantLines = hasBackendParticipants
+    ? event.attendees.map((a) => a.name)
+    : regionalDirectorParticipants.length
+      ? regionalDirectorParticipants
+      : ['No participants'];
+  const descriptionText =
+    tentativeMeta.plainDescription || event.description || 'No description available';
+  const locationText = event.location || 'TBA';
+  const typeText = event.type || 'N/A';
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -274,14 +286,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           </div>
         </div>
         <div className="modal-body">
-<div className="modal-row modal-description">
-  <span className="modal-label">Description</span>
-  <p>
-    {tentativeMeta.plainDescription ||
-      event.description?.trim() ||
-      "No description available"}
-  </p>
-</div>
+          <div className="modal-row modal-description">
+            <span className="modal-label">Description</span>
+            <p>{descriptionText}</p>
+          </div>
           <div className="modal-inline-grid modal-inline-grid-three">
             <div className="modal-row">
               <span className="modal-label">Date</span>
@@ -292,11 +300,9 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
             </div>
             <div className="modal-row">
-           <span className="modal-label">Location / Room / Zoom</span>
-            <div>{event.location || ''}</div>
+              <span className="modal-label">Location / Room / Zoom</span>
+              <span>{locationText}</span>
             </div>
-          </div>
-          <div className="modal-inline-grid modal-inline-grid-three">
             <div className="modal-row">
               <span className="modal-label">Host</span>
               <span>{event.creator_name || 'Unknown'}</span>
@@ -309,7 +315,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
             <div className="modal-row">
               <span className="modal-label">Type</span>
-              <span className="modal-type">{event.type}</span>
+              <span className="modal-type">{typeText}</span>
             </div>
           </div>
           {isCancelled && event.cancel_reason ? (
@@ -342,23 +348,16 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               </span>
             </div>
           )}
-          {/* {event.location && (
-            <div className="modal-row">
-              <span className="modal-label">Location</span>
-              <span>{event.location}</span>
-            </div>
-          )} */}
-        <div className="modal-row">
-          <span className="modal-label">Participants</span>
-
-          <div className="modal-participant-list">
-            {(event.attendees || []).length > 0 ? (
-           event.attendees.map((a, index) => <div key={index}>{a.name}</div>)
-            ) : (
-            <div className="modal-empty-text">No participants</div>
-            )}
+          <div className="modal-row">
+            <span className="modal-label">Participants</span>
+            <span>
+              {participantLines.map((name, idx) => (
+                <span key={idx} className="modal-participant-line">
+                  {name}
+                </span>
+              ))}
+            </span>
           </div>
-        </div>
 
           {/* {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
             <div className="modal-row modal-rsvps">
@@ -378,7 +377,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                 ))}
               </ul>
             </div>
-          )}
+          )} */}
 
           {myRsvp && (
             <div className="modal-row modal-my-rsvp">
@@ -437,7 +436,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                 )}
               </div>
             </div>
-          )} */}
+          )}
 
           {regularAttachments.length > 0 && (
             <div className="modal-row modal-attachments">

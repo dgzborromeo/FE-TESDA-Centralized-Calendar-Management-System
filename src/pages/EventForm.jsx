@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { buildTentativeDescription, parseTentativeDescription } from '../utils/tentativeSchedule';
+import { saveRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import './EventForm.css';
 
 const TYPES = ['meeting', 'zoom', 'event'];
@@ -29,6 +30,18 @@ const OFFICE_COLOR_PALETTE = [
   '#ec4899',
   '#06b6d4',
   '#14b8a6',
+];
+
+const REGIONAL_DIRECTORS = [
+  { id: 'rd-angelina-m-carreon-ncr', label: 'RD Angelina M. Carreon (NCR)' },
+  { id: 'rd-ramon-evan-t-ruiz-region-i', label: 'RD Ramon Evan T. Ruiz (Region I)' },
+  { id: 'rd-ashary-a-banto-region-ii', label: 'RD Ashary A. Banto (Region II)' },
+  { id: 'rd-balmyrson-m-valdez-region-iii', label: 'RD Balmyrson M. Valdez (Region III)' },
+  { id: 'rd-jovencio-m-ferrer-jr-region-iv-a', label: 'RD Jovencio M. Ferrer, Jr. (Region IV-A)' },
+  { id: 'rd-baron-jose-l-lagran-region-iv-b', label: 'RD Baron Jose L. Lagran (Region IV-B)' },
+  { id: 'rd-archie-a-grande-region-v', label: 'RD Archie A. Grande (Region V)' },
+  { id: 'ard-esther-b-babalo-region-vi', label: 'ARD Esther B. Babalo (Region VI)' },
+  { id: 'rd-gamaliel-b-vicente-jr-region-vii', label: 'RD Gamaliel B. Vicente, Jr. (Region VII)' },
 ];
 
 function colorFromUserId(id) {
@@ -167,6 +180,8 @@ export default function EventForm() {
   const [openClusters, setOpenClusters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [regionalDirectorsOpen, setRegionalDirectorsOpen] = useState(false);
+  const [selectedRegionalDirectors, setSelectedRegionalDirectors] = useState([]);
 
   useEffect(() => {
     if (!isEdit) setColor(assignedAccountColor);
@@ -283,8 +298,16 @@ export default function EventForm() {
     e.preventDefault();
     if (isEdit && isReadOnlyOffice) return;
     if (!validate()) return;
+    const selectedRegionalDirectorLabels = REGIONAL_DIRECTORS
+      .filter((rd) => selectedRegionalDirectors.includes(rd.id))
+      .map((rd) => rd.label);
+    const allRegionalDirectorsSelected =
+      selectedRegionalDirectors.length === REGIONAL_DIRECTORS.length &&
+      REGIONAL_DIRECTORS.length > 0;
+
     setLoading(true);
     setError('');
+
     const payload = {
       title: title.trim(),
       type,
@@ -309,7 +332,15 @@ export default function EventForm() {
           else fd.append(k, String(v));
         });
         if (attachmentFile) fd.append('attachment', attachmentFile);
-        await eventsApi.create(fd);
+        const res = await eventsApi.create(fd);
+        const createdEventId =
+          res?.event?.id || (Array.isArray(res?.events) ? res.events[0]?.id : undefined);
+        if (createdEventId && selectedRegionalDirectorLabels.length) {
+          const labelsToSave = allRegionalDirectorsSelected
+            ? ['All RDs']
+            : selectedRegionalDirectorLabels;
+          saveRegionalDirectorsForEvent(createdEventId, labelsToSave);
+        }
         navigate(`/calendar?date=${endDate || date}`);
       }
     } catch (err) {
@@ -381,6 +412,20 @@ export default function EventForm() {
       }
       return Array.from(set);
     });
+  };
+
+  const allRegionalDirectorsSelected =
+    REGIONAL_DIRECTORS.length > 0 &&
+    selectedRegionalDirectors.length === REGIONAL_DIRECTORS.length;
+
+  const toggleRegionalDirector = (rdId) => {
+    setSelectedRegionalDirectors((prev) =>
+      prev.includes(rdId) ? prev.filter((id) => id !== rdId) : [...prev, rdId]
+    );
+  };
+
+  const setAllRegionalDirectors = (checked) => {
+    setSelectedRegionalDirectors(checked ? REGIONAL_DIRECTORS.map((rd) => rd.id) : []);
   };
 
   const toggleClusterOpen = (clusterId) => {
@@ -525,71 +570,124 @@ export default function EventForm() {
 
         <label>
           Participants
-          <div className="event-form-attendees">
-            {participantData.clusters.map((cluster) => {
-              const clusterIds = cluster.offices.flatMap((o) => (o.users || []).map((u) => u.id));
-              const clusterChecked = clusterIds.length > 0 && clusterIds.every((id) => attendeeIds.includes(id));
-              const isOpen = openClusters.includes(cluster.id);
-              return (
-                <div key={cluster.id} className="event-form-cluster">
-                  <div className="event-form-cluster-head">
-                    <button
-                      type="button"
-                      className="event-form-cluster-toggle"
-                      onClick={() => toggleClusterOpen(cluster.id)}
-                      aria-expanded={isOpen}
-                    >
-                      <span>{cluster.name}</span>
-                      <span className="event-form-cluster-chevron">{isOpen ? '▼' : '▶'}</span>
-                    </button>
-                    <label className="event-form-attendee event-form-cluster-label">
-                      <input
-                        type="checkbox"
-                        checked={clusterChecked}
-                        onChange={(e) => applySelectionForIds(clusterIds, e.target.checked)}
-                        disabled={clusterIds.length === 0}
-                      />
-                      Select all
-                    </label>
-                  </div>
-                  {isOpen && (
-                    <div className="event-form-cluster-offices">
-                      {cluster.offices.map((office) => {
-                        const officeIds = (office.users || []).map((u) => u.id);
-                        const officeChecked = officeIds.length > 0 && officeIds.every((id) => attendeeIds.includes(id));
-                        return (
-                          <label key={`${cluster.id}-${office.name}`} className="event-form-attendee event-form-office-label">
-                            <input
-                              type="checkbox"
-                              checked={officeChecked}
-                              onChange={(e) => applySelectionForIds(officeIds, e.target.checked)}
-                              disabled={officeIds.length === 0}
-                            />
-                            {office.name}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {participantData.otherUsers.length > 0 && (
+          {!isEdit ? (
+            <div className="event-form-attendees">
               <div className="event-form-cluster">
-                <div className="event-form-other-title">Other offices/accounts</div>
-                {participantData.otherUsers.map((u) => (
-                  <label key={u.id} className="event-form-attendee event-form-office-label">
+                <div className="event-form-cluster-head">
+                  <button
+                    type="button"
+                    className="event-form-cluster-toggle"
+                    onClick={() => setRegionalDirectorsOpen((prev) => !prev)}
+                    aria-expanded={regionalDirectorsOpen}
+                  >
+                    <span>Regional Directors</span>
+                    <span className="event-form-cluster-chevron">
+                      {regionalDirectorsOpen ? '▼' : '▶'}
+                    </span>
+                  </button>
+                  <label className="event-form-attendee event-form-cluster-label">
                     <input
                       type="checkbox"
-                      checked={attendeeIds.includes(u.id)}
-                      onChange={() => toggleAttendee(u.id)}
+                      checked={allRegionalDirectorsSelected}
+                      onChange={(e) => setAllRegionalDirectors(e.target.checked)}
                     />
-                    {u.name} ({u.email})
+                    Select all
                   </label>
-                ))}
+                </div>
+                {regionalDirectorsOpen && (
+                  <div className="event-form-cluster-offices">
+                    {REGIONAL_DIRECTORS.map((rd) => (
+                      <label
+                        key={rd.id}
+                        className="event-form-attendee event-form-office-label"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRegionalDirectors.includes(rd.id)}
+                          onChange={() => toggleRegionalDirector(rd.id)}
+                        />
+                        {rd.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="event-form-attendees">
+              {participantData.clusters.map((cluster) => {
+                const clusterIds = cluster.offices.flatMap((o) => (o.users || []).map((u) => u.id));
+                const clusterChecked =
+                  clusterIds.length > 0 && clusterIds.every((id) => attendeeIds.includes(id));
+                const isOpen = openClusters.includes(cluster.id);
+                return (
+                  <div key={cluster.id} className="event-form-cluster">
+                    <div className="event-form-cluster-head">
+                      <button
+                        type="button"
+                        className="event-form-cluster-toggle"
+                        onClick={() => toggleClusterOpen(cluster.id)}
+                        aria-expanded={isOpen}
+                      >
+                        <span>{cluster.name}</span>
+                        <span className="event-form-cluster-chevron">
+                          {isOpen ? '▼' : '▶'}
+                        </span>
+                      </button>
+                      <label className="event-form-attendee event-form-cluster-label">
+                        <input
+                          type="checkbox"
+                          checked={clusterChecked}
+                          onChange={(e) => applySelectionForIds(clusterIds, e.target.checked)}
+                          disabled={clusterIds.length === 0}
+                        />
+                        Select all
+                      </label>
+                    </div>
+                    {isOpen && (
+                      <div className="event-form-cluster-offices">
+                        {cluster.offices.map((office) => {
+                          const officeIds = (office.users || []).map((u) => u.id);
+                          const officeChecked =
+                            officeIds.length > 0 &&
+                            officeIds.every((id) => attendeeIds.includes(id));
+                          return (
+                            <label
+                              key={`${cluster.id}-${office.name}`}
+                              className="event-form-attendee event-form-office-label"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={officeChecked}
+                                onChange={(e) => applySelectionForIds(officeIds, e.target.checked)}
+                                disabled={officeIds.length === 0}
+                              />
+                              {office.name}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {participantData.otherUsers.length > 0 && (
+                <div className="event-form-cluster">
+                  <div className="event-form-other-title">Other offices/accounts</div>
+                  {participantData.otherUsers.map((u) => (
+                    <label key={u.id} className="event-form-attendee event-form-office-label">
+                      <input
+                        type="checkbox"
+                        checked={attendeeIds.includes(u.id)}
+                        onChange={() => toggleAttendee(u.id)}
+                      />
+                      {u.name} ({u.email})
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </label>
 
         <label>

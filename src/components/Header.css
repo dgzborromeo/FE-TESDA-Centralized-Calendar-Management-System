@@ -38,7 +38,7 @@
 }
 
 .header-calendar-search {
-  width: clamp(170px, 17vw, 300px);
+  width: clamp(140px, 12vw, 220px);
   min-width: 140px;
   padding: 0.45rem 0.65rem;
   border: 1px solid rgba(255, 255, 255, 0.3);

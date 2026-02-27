@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { events as eventsApi } from '../api';
+import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
@@ -43,10 +44,20 @@ function acronymFromParticipantName(fullName) {
 }
 
 function formatParticipantsAcronymList(summaryStr) {
-  if (!summaryStr || String(summaryStr).trim() === '') return 'TBA';
+  if (!summaryStr || String(summaryStr).trim() === '') return '';
   const names = String(summaryStr).split(',').map((n) => n.trim()).filter(Boolean);
-  if (names.length === 0) return 'TBA';
+  if (names.length === 0) return '';
   return names.map(acronymFromParticipantName).join(', ');
+}
+
+function getYearEventsParticipantsLabel(e) {
+  const fromSummary = formatParticipantsAcronymList(e.participants_summary);
+  if (fromSummary) return fromSummary;
+  const rdNames = getRegionalDirectorsForEvent(e.id) || [];
+  if (rdNames.length === 1 && String(rdNames[0]).toLowerCase() === 'all rds') return 'All RDs';
+  if (!rdNames.length) return 'TBA';
+  const acronyms = rdNames.map(acronymFromParticipantName).filter(Boolean);
+  return acronyms.length ? acronyms.join(', ') : 'TBA';
 }
 
 function currentYear() {
@@ -158,7 +169,7 @@ export default function YearEvents() {
                   </span>
                   <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                   <span className="dashboard-upcoming-meta">
-                    Participants: {formatParticipantsAcronymList(e.participants_summary)}
+                    Participants: {getYearEventsParticipantsLabel(e)}
                   </span>
                   <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   {tentative.isTentative ? (

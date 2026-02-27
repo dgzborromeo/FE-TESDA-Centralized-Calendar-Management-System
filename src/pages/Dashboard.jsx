@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { events as eventsApi } from '../api';
+import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
@@ -89,46 +90,31 @@ function acronymFromParticipantName(rawName) {
 }
 
 function formatParticipantsAcronymList(summary) {
-  if (!summary || !String(summary).trim()) return 'None';
+  if (!summary || !String(summary).trim()) return '';
   const acronyms = String(summary)
     .split(',')
     .map((s) => acronymFromParticipantName(s))
     .filter(Boolean);
-  if (!acronyms.length) return 'None';
+  if (!acronyms.length) return '';
   return Array.from(new Set(acronyms)).join(', ');
+}
+
+function getDashboardParticipantsLabel(e) {
+  const fromSummary = formatParticipantsAcronymList(e.participants_summary);
+  if (fromSummary) return fromSummary;
+  const rdNames = getRegionalDirectorsForEvent(e.id) || [];
+  if (rdNames.length === 1 && String(rdNames[0]).toLowerCase() === 'all rds') return 'All RDs';
+  if (!rdNames.length) return 'None';
+  const acronyms = rdNames.map(acronymFromParticipantName).filter(Boolean);
+  return acronyms.length ? Array.from(new Set(acronyms)).join(', ') : 'None';
 }
 
 /** True if event is today and current time is between start_time and end_time (not yet finished). */
 function isEventOngoing(e, todayYmd, nowMins) {
-  if (!e?.date) return false;
-
-  const startDate = e.date;
-  const endDate = e.end_date || e.date;
-
-  // Check if today is within date range
-  const withinDateRange = todayYmd >= startDate && todayYmd <= endDate;
-
-  if (!withinDateRange) return false;
-
-  // If multi-day event and today is NOT the first day,
-  // consider it ongoing for the whole day
-  if (todayYmd > startDate && todayYmd < endDate) {
-    return true;
-  }
-
-  // If today is start day → check time
-  if (todayYmd === startDate) {
-    const startMins = timeToMinutes(e.start_time);
-    return nowMins >= startMins;
-  }
-
-  // If today is end day → check time
-  if (todayYmd === endDate) {
-    const endMins = timeToMinutes(e.end_time);
-    return nowMins < endMins;
-  }
-
-  return false;
+  if (!e?.date || e.date !== todayYmd) return false;
+  const startMins = timeToMinutes(e.start_time);
+  const endMins = timeToMinutes(e.end_time);
+  return nowMins >= startMins && nowMins < endMins;
 }
 
 export default function Dashboard() {
@@ -432,7 +418,7 @@ export default function Dashboard() {
                     ) : null}
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
-                      Participants: {formatParticipantsAcronymList(e.participants_summary)}
+                      Participants: {getDashboardParticipantsLabel(e)}
                     </span>
                     <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>
