@@ -274,12 +274,14 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           </div>
         </div>
         <div className="modal-body">
-          {event.description ? (
-            <div className="modal-row modal-description">
-              <span className="modal-label">Description</span>
-              <p>{tentativeMeta.plainDescription || event.description}</p>
-            </div>
-          ) : null}
+<div className="modal-row modal-description">
+  <span className="modal-label">Description</span>
+  <p>
+    {tentativeMeta.plainDescription ||
+      event.description?.trim() ||
+      "No description available"}
+  </p>
+</div>
           <div className="modal-inline-grid modal-inline-grid-three">
             <div className="modal-row">
               <span className="modal-label">Date</span>
@@ -340,12 +342,12 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               </span>
             </div>
           )}
-          {event.location && (
+          {/* {event.location && (
             <div className="modal-row">
               <span className="modal-label">Location</span>
               <span>{event.location}</span>
             </div>
-          )}
+          )} */}
       {event.attendees?.length > 0 && (
   <div className="modal-row">
     <span className="modal-label">Participants</span>
