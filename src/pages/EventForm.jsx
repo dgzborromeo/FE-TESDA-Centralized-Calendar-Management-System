@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { buildTentativeDescription, parseTentativeDescription } from '../utils/tentativeSchedule';
-import { saveRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
+import { clearRegionalDirectorsForEvent, saveRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import './EventForm.css';
 
 const TYPES = ['meeting', 'zoom', 'event'];
@@ -317,6 +317,11 @@ export default function EventForm() {
       end_time: endTime.length === 5 ? endTime + ':00' : endTime,
       location: location.trim() || undefined,
       description: buildTentativeDescription(isTentative, tentativeNote, description),
+      regional_directors_label: selectedRegionalDirectorLabels.length
+        ? allRegionalDirectorsSelected
+          ? 'All RDs'
+          : selectedRegionalDirectorLabels.join(', ')
+        : undefined,
       color: (isEdit ? color : assignedAccountColor) || undefined,
       attendee_ids: attendeeIds.length ? attendeeIds : undefined,
     };
@@ -335,11 +340,15 @@ export default function EventForm() {
         const res = await eventsApi.create(fd);
         const createdEventId =
           res?.event?.id || (Array.isArray(res?.events) ? res.events[0]?.id : undefined);
-        if (createdEventId && selectedRegionalDirectorLabels.length) {
-          const labelsToSave = allRegionalDirectorsSelected
-            ? ['All RDs']
-            : selectedRegionalDirectorLabels;
-          saveRegionalDirectorsForEvent(createdEventId, labelsToSave);
+        if (createdEventId) {
+          // Prefer DB storage via regional_directors_label; localStorage is only a fallback.
+          clearRegionalDirectorsForEvent(createdEventId);
+          if (selectedRegionalDirectorLabels.length) {
+            const labelsToSave = allRegionalDirectorsSelected
+              ? ['All RDs']
+              : selectedRegionalDirectorLabels;
+            saveRegionalDirectorsForEvent(createdEventId, labelsToSave);
+          }
         }
         navigate(`/calendar?date=${endDate || date}`);
       }

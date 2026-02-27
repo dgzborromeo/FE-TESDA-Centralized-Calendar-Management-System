@@ -40,3 +40,18 @@ export function getRegionalDirectorsForEvent(eventId) {
   }
 }
 
+export function clearRegionalDirectorsForEvent(eventId) {
+  const idNum = Number(eventId);
+  if (!Number.isFinite(idNum)) return;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = safelyParse(raw);
+    if (!data || typeof data !== 'object') return;
+    delete data[idNum];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore
+  }
+}
+
