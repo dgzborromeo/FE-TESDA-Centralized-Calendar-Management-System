@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
+import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
+import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import './EventDetails.css';
 
 function formatDate(d) {
@@ -59,6 +61,14 @@ export default function EventDetails() {
   const acceptedAttendance = Array.isArray(event?.rsvps)
     ? event.rsvps.filter((r) => String(r.status || '').toLowerCase() === 'accepted')
     : [];
+  const hasBackendParticipants = Array.isArray(event?.attendees) && event.attendees.length > 0;
+  const participantLines = hasBackendParticipants
+    ? event.attendees.map((a) => a.name)
+    : parseRegionalDirectorsLabel(event?.regional_directors_label).length
+      ? parseRegionalDirectorsLabel(event?.regional_directors_label)
+      : (getRegionalDirectorsForEvent(event?.id) || []).length
+        ? (getRegionalDirectorsForEvent(event?.id) || [])
+      : ['No participants'];
 
   const historyItems = useMemo(() => {
     const out = [];
@@ -98,10 +108,11 @@ export default function EventDetails() {
 
       <section className="event-details-card">
         <h2>Event Information</h2>
-        <p className="event-details-description">{meta.plainDescription || event.description || 'No description.'}</p>
+        <p className="event-details-description">{meta.plainDescription || event.description || 'No description available.'}</p>
         <div className="event-details-grid">
           <div><span>Date</span><strong>{formatDateRange(event.date, event.end_date || event.date)}</strong></div>
           <div><span>Time</span><strong>{formatTime(event.start_time)} - {formatTime(event.end_time)}</strong></div>
+          <div><span>Location / Room / Zoom</span><strong>{event.location || 'TBA'}</strong></div>
           <div><span>Host</span><strong>{event.creator_name || 'Unknown'}</strong></div>
           <div>
             <span>Status</span>
@@ -112,7 +123,18 @@ export default function EventDetails() {
             </strong>
           </div>
           <div><span>Type</span><strong>{event.type || 'N/A'}</strong></div>
-          <div><span>Location</span><strong>{event.location || 'TBA'}</strong></div>
+        </div>
+        <div className="event-details-rows">
+          <div className="event-details-row">
+            <span>Participants</span>
+            <strong>
+              {participantLines.map((name, idx) => (
+                <span key={idx} className="event-details-participant-line">
+                  {name}
+                </span>
+              ))}
+            </strong>
+          </div>
         </div>
       </section>
 

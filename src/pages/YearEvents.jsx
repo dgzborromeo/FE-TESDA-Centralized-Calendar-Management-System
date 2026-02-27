@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
+import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './Dashboard.css';
@@ -53,7 +54,8 @@ function formatParticipantsAcronymList(summaryStr) {
 function getYearEventsParticipantsLabel(e) {
   const fromSummary = formatParticipantsAcronymList(e.participants_summary);
   if (fromSummary) return fromSummary;
-  const rdNames = getRegionalDirectorsForEvent(e.id) || [];
+  const dbNames = parseRegionalDirectorsLabel(e.regional_directors_label);
+  const rdNames = dbNames.length ? dbNames : (getRegionalDirectorsForEvent(e.id) || []);
   if (rdNames.length === 1 && String(rdNames[0]).toLowerCase() === 'all rds') return 'All RDs';
   if (!rdNames.length) return 'TBA';
   const acronyms = rdNames.map(acronymFromParticipantName).filter(Boolean);

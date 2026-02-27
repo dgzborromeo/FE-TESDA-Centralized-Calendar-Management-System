@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppDialog } from './AppDialogProvider';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
+import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import './EventModal.css';
 
 function formatTime(t) {
@@ -255,12 +256,15 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
   const tentativeMeta = parseTentativeDescription(event.description || '');
-  const regionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
   const hasBackendParticipants = Array.isArray(event.attendees) && event.attendees.length > 0;
+  const dbRegionalDirectorParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
+  const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
   const participantLines = hasBackendParticipants
     ? event.attendees.map((a) => a.name)
-    : regionalDirectorParticipants.length
-      ? regionalDirectorParticipants
+    : dbRegionalDirectorParticipants.length
+      ? dbRegionalDirectorParticipants
+      : localRegionalDirectorParticipants.length
+        ? localRegionalDirectorParticipants
       : ['No participants'];
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
@@ -359,7 +363,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </span>
           </div>
 
-          {/* {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
+          {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
             <div className="modal-row modal-rsvps">
               <span className="modal-label">Responses</span>
               <ul className="modal-rsvp-list">
@@ -377,7 +381,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                 ))}
               </ul>
             </div>
-          )} */}
+          )}
 
           {myRsvp && (
             <div className="modal-row modal-my-rsvp">
