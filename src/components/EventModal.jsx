@@ -257,12 +257,15 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
   const tentativeMeta = parseTentativeDescription(event.description || '');
   const hasBackendParticipants = Array.isArray(event.attendees) && event.attendees.length > 0;
-  const dbRegionalDirectorParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
+  const dbRdParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
+  const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
+  const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
+  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
   const participantLines = hasBackendParticipants
     ? event.attendees.map((a) => a.name)
-    : dbRegionalDirectorParticipants.length
-      ? dbRegionalDirectorParticipants
+    : dbParticipantLines.length
+      ? dbParticipantLines
       : localRegionalDirectorParticipants.length
         ? localRegionalDirectorParticipants
       : ['No participants'];

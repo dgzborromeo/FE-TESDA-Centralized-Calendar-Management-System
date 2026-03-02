@@ -103,12 +103,21 @@ function formatParticipantsAcronymList(summary) {
 function getDashboardParticipantsLabel(e) {
   const fromSummary = formatParticipantsAcronymList(e.participants_summary);
   if (fromSummary) return fromSummary;
-  const dbNames = parseRegionalDirectorsLabel(e.regional_directors_label);
-  const rdNames = dbNames.length ? dbNames : (getRegionalDirectorsForEvent(e.id) || []);
-  if (rdNames.length === 1 && String(rdNames[0]).toLowerCase() === 'all rds') return 'All RDs';
-  if (!rdNames.length) return 'None';
-  const acronyms = rdNames.map(acronymFromParticipantName).filter(Boolean);
-  return acronyms.length ? Array.from(new Set(acronyms)).join(', ') : 'None';
+  const rdNames = parseRegionalDirectorsLabel(e.regional_directors_label);
+  const pdNames = parseRegionalDirectorsLabel(e.provincial_directors_label);
+  const edNames = parseRegionalDirectorsLabel(e.executive_directors_label);
+  const rdFallback = rdNames.length ? rdNames : (getRegionalDirectorsForEvent(e.id) || []);
+  const allNames = [...rdFallback, ...pdNames, ...edNames];
+  if (!allNames.length) return 'None';
+  const allLabels = [];
+  if (rdFallback.some((n) => String(n).toLowerCase() === 'all rds')) allLabels.push('All RDs');
+  else rdFallback.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+  if (pdNames.some((n) => String(n).toLowerCase() === 'all pds')) allLabels.push('All PDs');
+  else pdNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+  if (edNames.some((n) => String(n).toLowerCase() === 'all eds')) allLabels.push('All EDs');
+  else edNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+  const filtered = allLabels.filter(Boolean);
+  return filtered.length ? Array.from(new Set(filtered)).join(', ') : 'None';
 }
 
 /** True if event is today and current time is between start_time and end_time (not yet finished). */

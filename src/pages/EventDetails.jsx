@@ -62,12 +62,15 @@ export default function EventDetails() {
     ? event.rsvps.filter((r) => String(r.status || '').toLowerCase() === 'accepted')
     : [];
   const hasBackendParticipants = Array.isArray(event?.attendees) && event.attendees.length > 0;
-  const dbRegionalDirectorParticipants = parseRegionalDirectorsLabel(event?.regional_directors_label);
+  const dbRdParticipants = parseRegionalDirectorsLabel(event?.regional_directors_label);
+  const dbPdParticipants = parseRegionalDirectorsLabel(event?.provincial_directors_label);
+  const dbEdParticipants = parseRegionalDirectorsLabel(event?.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event?.id) || [];
+  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
   const participantLines = hasBackendParticipants
     ? event.attendees.map((a) => a.name)
-    : dbRegionalDirectorParticipants.length
-      ? dbRegionalDirectorParticipants
+    : dbParticipantLines.length
+      ? dbParticipantLines
       : localRegionalDirectorParticipants.length
         ? localRegionalDirectorParticipants
         : ['No participants'];
