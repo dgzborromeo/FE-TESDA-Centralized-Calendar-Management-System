@@ -122,10 +122,22 @@ function getDashboardParticipantsLabel(e) {
 
 /** True if event is today and current time is between start_time and end_time (not yet finished). */
 function isEventOngoing(e, todayYmd, nowMins) {
-  if (!e?.date || e.date !== todayYmd) return false;
-  const startMins = timeToMinutes(e.start_time);
+  if (!e?.date) return false;
+
+  const start = e.date;
+  const end = e.end_date || e.date;
+
+  // If today is within the event date range
+  const withinDateRange = todayYmd >= start && todayYmd <= end;
+
+  if (!withinDateRange) return false;
+
+  // If multi-day event (today is not last day), automatic ongoing
+  if (todayYmd !== end) return true;
+
+  // If last day, check time
   const endMins = timeToMinutes(e.end_time);
-  return nowMins >= startMins && nowMins < endMins;
+  return nowMins < endMins;
 }
 
 export default function Dashboard() {
