@@ -261,14 +261,44 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
   const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
-  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
-  const participantLines = hasBackendParticipants
-    ? event.attendees.map((a) => a.name)
-    : dbParticipantLines.length
-      ? dbParticipantLines
-      : localRegionalDirectorParticipants.length
-        ? localRegionalDirectorParticipants
-      : ['No participants'];
+// ... sa itaas ng descriptionText definition
+const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
+
+// PALITAN ANG PANGALAN DITO: Gawing participantLines
+let participantLines = hasBackendParticipants ? event.attendees.map(a => a.name) : [];
+
+if (participantLines.length === 0 && event.participants) {
+  try {
+    const parsed = typeof event.participants === 'string' 
+      ? JSON.parse(event.participants) 
+      : event.participants;
+
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const categoriesWithChildren = new Set();
+      parsed.forEach(p => {
+        if (p.source === 'focal') {
+          categoriesWithChildren.add('Focals');
+        }
+      });
+
+      participantLines = parsed
+        .filter(p => {
+          if (p.source === 'category') {
+            return !categoriesWithChildren.has(p.name);
+          }
+          return true;
+        })
+        .map(p => p.name);
+    }
+  } catch (e) {
+    console.error("Parse error:", e);
+  }
+}
+
+// Siguraduhin din na kung may laman ang dbParticipantLines (mga Directors), isasama mo sila:
+if (dbParticipantLines.length > 0) {
+    participantLines = [...participantLines, ...dbParticipantLines];
+}
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';

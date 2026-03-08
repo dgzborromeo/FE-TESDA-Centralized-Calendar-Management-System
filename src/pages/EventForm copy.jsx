@@ -1,6 +1,6 @@
   import { useRef, useState, useEffect, useMemo } from 'react';
   import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-  import { events as eventsApi, users as usersApi, config as configApi } from '../api';
+  import { events as eventsApi, users as usersApi } from '../api';
   import { useAuth } from '../context/AuthContext';
   import { buildTentativeDescription, parseTentativeDescription } from '../utils/tentativeSchedule';
   import { clearRegionalDirectorsForEvent, saveRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
@@ -204,11 +204,6 @@
     const [selectedProvincialDirectors, setSelectedProvincialDirectors] = useState([]);
     const [executiveDirectorsOpen, setExecutiveDirectorsOpen] = useState(false);
     const [selectedExecutiveDirectors, setSelectedExecutiveDirectors] = useState([]);
-      // Palitan ang mga dati mong selected states
-const [categories, setCategories] = useState([]);
-const [openCategoryIds, setOpenCategoryIds] = useState([]);
-const [selectedFocalLabels, setSelectedFocalLabels] = useState([]); // Labels ang ise-save natin base sa existing logic mo
-const [selectedParticipants, setSelectedParticipants] = useState([]);
 
     useEffect(() => {
       if (!isEdit) setColor(assignedAccountColor);
@@ -232,31 +227,17 @@ const [selectedParticipants, setSelectedParticipants] = useState([]);
       }
     }, [dateParam]);
 
-useEffect(() => {
-  const loadParticipants = async () => {
-    try {
-      const [allUsers, clusters, catData, focalData] = await Promise.all([
+    useEffect(() => {
+      Promise.all([
         usersApi.list(),
         usersApi.legendClusters().catch(() => []),
-        configApi.getCategories(), // API mo
-        configApi.getFocals(),      // API mo
-      ]);
-
-      setUsers(Array.isArray(allUsers) ? allUsers : []);
-      setClusterLegend(Array.isArray(clusters) ? clusters : []);
-
-      // I-combine ang Focals sa loob ng kanilang Categories
-      const combined = catData.map(cat => ({
-        ...cat,
-        focals: focalData.filter(f => f.category_id === cat.id)
-      }));
-      setCategories(combined);
-    } catch (err) {
-      console.error("Error loading data:", err);
-    }
-  };
-  loadParticipants();
-}, []);
+      ])
+        .then(([allUsers, clusters]) => {
+          setUsers(Array.isArray(allUsers) ? allUsers : []);
+          setClusterLegend(Array.isArray(clusters) ? clusters : []);
+        })
+        .catch(console.error);
+    }, []);
 
     useEffect(() => {
       if (!isEdit || !id) return;
@@ -296,22 +277,6 @@ useEffect(() => {
           setSelectedExecutiveDirectors(
             isAll ? EXECUTIVE_DIRECTORS_CO.map((x) => x.id) : EXECUTIVE_DIRECTORS_CO.filter((x) => edLabels.some((l) => l === x.label)).map((x) => x.id)
           );
-        }
-        // --- HETO ANG BAGONG LOGIC PARA SA RUMBLE PARTICIPANTS ---
-        if (e.participants) {
-          try {
-            // I-parse ang JSON string galing DB pabalik sa Array of Objects
-            const parsedParticipants = typeof e.participants === 'string' 
-              ? JSON.parse(e.participants) 
-              : e.participants;
-              
-            setSelectedParticipants(Array.isArray(parsedParticipants) ? parsedParticipants : []);
-          } catch (err) {
-            console.error("Error parsing participants JSON:", err);
-            setSelectedParticipants([]);
-          }
-        } else {
-          setSelectedParticipants([]);
         }
       }).catch(() => navigate('/dashboard'));
     }, [id, isEdit, navigate]);
@@ -376,7 +341,6 @@ useEffect(() => {
       e.preventDefault();
       if (isEdit && isReadOnlyOffice) return;
       if (!validate()) return;
-      const focalParticipantsJSON = JSON.stringify(selectedFocalLabels);
       const selectedRegionalDirectorLabels = REGIONAL_DIRECTORS
         .filter((rd) => selectedRegionalDirectors.includes(rd.id))
         .map((rd) => rd.label);
@@ -407,7 +371,6 @@ useEffect(() => {
         start_time: startTime.length === 5 ? startTime + ':00' : startTime,
         end_time: endTime.length === 5 ? endTime + ':00' : endTime,
         location: location.trim() || undefined,
-        participants: selectedParticipants.length > 0 ? JSON.stringify(selectedParticipants) : null,
         description: buildTentativeDescription(isTentative, tentativeNote, description),
         regional_directors_label: selectedRegionalDirectorLabels.length
           ? allRegionalDirectorsSelected
@@ -460,47 +423,6 @@ useEffect(() => {
         setLoading(false);
       }
     };
-
-const handleCheckboxChange = (e, item, children = [], parentId = null) => {
-  const isChecked = e.target.checked;
-
-  if (isChecked) {
-    // 1. Kunin ang parent item
-    const newItems = [{
-      ...item,
-      parent_id: parentId // Magiging null kung category, may ID kung focal
-    }];
-
-    // 2. Kung may children (mga anak), idagdag din sila
-    if (children && children.length > 0) {
-      children.forEach(child => {
-        // Siguraduhin na hindi duplicate ang id+source combo
-        newItems.push({ 
-          parent_id: item.id,
-          id: child.id, 
-          name: child.type, 
-          source: 'focal' 
-        });
-      });
-    }
-
-    // I-set ang state gamit ang Set para iwas duplicates
-    setSelectedParticipants(prev => {
-      const combined = [...prev, ...newItems];
-      // Filter para sa unique objects base sa id at source
-      return combined.filter((v, i, a) => 
-        a.findIndex(t => t.id === v.id && t.source === v.source) === i
-      );
-    });
-
-  } else {
-    // Kapag in-uncheck ang parent, alisin din ang lahat ng anak
-    const idsToRemove = [item.id, ...children.map(c => c.id)];
-    setSelectedParticipants(prev => 
-      prev.filter(p => !idsToRemove.includes(p.id))
-    );
-  }
-};
 
     const toggleAttendee = (uid) => {
       setAttendeeIds((prev) =>
@@ -744,88 +666,133 @@ const handleCheckboxChange = (e, item, children = [], parentId = null) => {
             />
           </label>
 
-<label>
-  Participants
-
-<div className="event-form-attendees">
-  {categories.map((cat) => {
-    const isOpen = openCategoryIds.includes(cat.id);
-    
-    // Check kung ang mismong category ay nasa napili na
-    const isCategoryChecked = selectedParticipants.some(
-      (p) => p.id === cat.id && p.source === 'category'
-    );
-
-return (
-  <div key={cat.id} className="event-form-cluster">
-<div className="event-form-cluster-head" style={{ 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'space-between', // Itutulak nito ang label sa left at button sa right
-  width: '100%' 
-}}>
-  <label className="event-form-attendee event-form-cluster-label" style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-    <input
-      type="checkbox"
-      checked={selectedParticipants.some(p => p.id === cat.id && p.source === 'category')}
-      onChange={(e) => handleCheckboxChange(e, { 
-        id: cat.id, 
-        name: cat.category_name, 
-        source: 'category' 
-      }, cat.focals || [], null)}
-    />
-    <span style={{ marginLeft: '10px' }}>{cat.category_name}</span>
-  </label>
-
-  {cat.focals && cat.focals.length > 0 && (
-    <button
-      type="button"
-      className="event-form-cluster-toggle"
-      onClick={() => setOpenCategoryIds(prev => 
-        prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-      )}
-      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-    >
-      {/* Pwede mo nang alisin yung empty span kung naka justify-content: space-between ang head */}
-      <span></span>
-      <span className="event-form-cluster-chevron">
-        {isOpen ? '▼' : '▶'}
-      </span>
-    </button>
-  )}
-</div>
-
-    {/* FOCALS LIST - LALABAS LANG KUNG OPEN AT MAY LAMAN TALAGA */}
-    {isOpen && cat.focals && cat.focals.length > 0 && (
-      <div className="event-form-cluster-offices">
-        {cat.focals.map((focal) => {
-          const isFocalChecked = selectedParticipants.some(
-            (p) => p.id === focal.id && p.source === 'focal'
-          );
-
-          return (
-            <label key={focal.id} className="event-form-attendee event-form-office-label">
-              <input
-                type="checkbox"
-                checked={isFocalChecked}
-                onChange={(e) => handleCheckboxChange(e, { 
-                  id: focal.id, 
-                  name: focal.type, 
-                  source: 'focal' 
-                }, [], cat.id)}
-              />
-              {focal.type}
-            </label>
-          );
-        })}
-      </div>
-    )}
-  </div>
-);
-  })}
-</div>
- 
-              {/* <div className="event-form-attendees">
+          <label>
+            Participants
+            {!isEdit ? (
+              <div className="event-form-attendees">
+                  <div className="event-form-cluster">
+                  <div className="event-form-cluster-head">
+                    <button
+                      type="button"
+                      className="event-form-cluster-toggle"
+                      onClick={() => setExecutiveDirectorsOpen((prev) => !prev)}
+                      aria-expanded={executiveDirectorsOpen}
+                    >
+                      <span>Executive Directors</span>
+                      <span className="event-form-cluster-chevron">
+                        {executiveDirectorsOpen ? '▼' : '▶'}
+                      </span>
+                    </button>
+                    <label className="event-form-attendee event-form-cluster-label">
+                      <input
+                        type="checkbox"
+                        checked={allExecutiveDirectorsSelected}
+                        onChange={(e) => setAllExecutiveDirectors(e.target.checked)}
+                      />
+                      Select all
+                    </label>
+                  </div>
+                  {executiveDirectorsOpen && (
+                    <div className="event-form-cluster-offices">
+                      {EXECUTIVE_DIRECTORS_CO.map((ed) => (
+                        <label
+                          key={ed.id}
+                          className="event-form-attendee event-form-office-label"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedExecutiveDirectors.includes(ed.id)}
+                            onChange={() => toggleExecutiveDirector(ed.id)}
+                          />
+                          {ed.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="event-form-cluster">
+                  <div className="event-form-cluster-head">
+                    <button
+                      type="button"
+                      className="event-form-cluster-toggle"
+                      onClick={() => setRegionalDirectorsOpen((prev) => !prev)}
+                      aria-expanded={regionalDirectorsOpen}
+                    >
+                      <span>Regional Directors</span>
+                      <span className="event-form-cluster-chevron">
+                        {regionalDirectorsOpen ? '▼' : '▶'}
+                      </span>
+                    </button>
+                    <label className="event-form-attendee event-form-cluster-label">
+                      <input
+                        type="checkbox"
+                        checked={allRegionalDirectorsSelected}
+                        onChange={(e) => setAllRegionalDirectors(e.target.checked)}
+                      />
+                      Select all
+                    </label>
+                  </div>
+                  {regionalDirectorsOpen && (
+                    <div className="event-form-cluster-offices">
+                      {REGIONAL_DIRECTORS.map((rd) => (
+                        <label
+                          key={rd.id}
+                          className="event-form-attendee event-form-office-label"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRegionalDirectors.includes(rd.id)}
+                            onChange={() => toggleRegionalDirector(rd.id)}
+                          />
+                          {rd.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="event-form-cluster">
+                  <div className="event-form-cluster-head">
+                    <button
+                      type="button"
+                      className="event-form-cluster-toggle"
+                      onClick={() => setProvincialDirectorsOpen((prev) => !prev)}
+                      aria-expanded={provincialDirectorsOpen}
+                    >
+                      <span>Provincial Directors</span>
+                      <span className="event-form-cluster-chevron">
+                        {provincialDirectorsOpen ? '▼' : '▶'}
+                      </span>
+                    </button>
+                    <label className="event-form-attendee event-form-cluster-label">
+                      <input
+                        type="checkbox"
+                        checked={allProvincialDirectorsSelected}
+                        onChange={(e) => setAllProvincialDirectors(e.target.checked)}
+                      />
+                      Select all
+                    </label>
+                  </div>
+                  {provincialDirectorsOpen && (
+                    <div className="event-form-cluster-offices">
+                      {PROVINCIAL_DIRECTORS.map((pd) => (
+                        <label
+                          key={pd.id}
+                          className="event-form-attendee event-form-office-label"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedProvincialDirectors.includes(pd.id)}
+                            onChange={() => toggleProvincialDirector(pd.id)}
+                          />
+                          {pd.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="event-form-attendees">
                 {participantData.clusters.map((cluster) => {
                   const clusterIds = cluster.offices.flatMap((o) => (o.users || []).map((u) => u.id));
                   const clusterChecked =
@@ -897,8 +864,8 @@ return (
                     ))}
                   </div>
                 )}
-              </div> */}
-      
+              </div>
+            )}
           </label>
 
           <label>

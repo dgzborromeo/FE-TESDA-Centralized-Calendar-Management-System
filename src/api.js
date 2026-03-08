@@ -146,4 +146,32 @@ export const config = {
   deleteConfigPosition: (id) => api(`/delete-config-position/${id}`, { 
     method: 'DELETE' 
   }),
+
+  getCategories: () => api('/categories'),
+  getCategory: (id) => api(`/category/${id}`),
+  addCategory: (body) => api('/category', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateCategory: (id, body) => api(`/category/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteCategory: (id) => api(`/category/${id}`, { 
+    method: 'DELETE' 
+  }),
+
+    getFocals: () => api('/focals'),
+  getFocal: (id) => api(`/focal/${id}`),
+  addFocal: (body) => api('/focal', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateFocal: (id, body) => api(`/focal/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteFocal: (id) => api(`/focal/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
