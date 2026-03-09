@@ -456,7 +456,7 @@ export default function Dashboard() {
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
                       Participants: {getEventParticipants(e)}
-                    </span>
+                  </span>
                     <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>
                 </li>

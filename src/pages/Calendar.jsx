@@ -165,6 +165,27 @@ function textColorForBackground(hexColor) {
   return yiq >= 150 ? '#0f172a' : '#ffffff';
 }
 
+const PARTICIPANT_LEGEND_ITEMS = [
+  // OSEC red
+  { key: 'osec', label: 'OSEC', color: '#ef4444' },
+  // DDGs pink
+  { key: 'ddgs', label: 'DDGs', color: '#ec4899' },
+  // EDs cyan
+  { key: 'eds', label: 'EDs', color: '#06b6d4' },
+  // RDs orange
+  { key: 'rds', label: 'RDs', color: '#f97316' },
+  // PDs/DDs purple
+  { key: 'pds_dds', label: 'PDs/DDs', color: '#a855f7' },
+  // AEDs light blue
+  { key: 'aeds', label: 'AEDs', color: '#93c5fd' },
+  // ADMIN green
+  { key: 'admin', label: 'ADMIN', color: '#22c55e' },
+  // CHIEF blue
+  { key: 'chief', label: 'CHIEF', color: '#3b82f6' },
+  // Focals yellow
+  { key: 'focals', label: 'Focals', color: '#eab308' },
+];
+
 function stopEvent(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -226,6 +247,8 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterType, setFilterType] = useState('');
   const [hostModalTarget, setHostModalTarget] = useState(null);
+  const [activeTab, setActiveTab] = useState('offices');
+  const [activeParticipantKey, setActiveParticipantKey] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [legendCollapsed, setLegendCollapsed] = useState(false);
   const [openLegendClusterId, setOpenLegendClusterId] = useState(null);
@@ -659,6 +682,26 @@ return parsedEvents
           ref={containerRef}
           className="calendar-main calendar-main-fullcalendar"
         >
+          <div className="calendar-tabs" role="tablist" aria-label="Calendar view mode">
+            <button
+              type="button"
+              role="tab"
+              className={`calendar-tab ${activeTab === 'offices' ? 'is-active' : ''}`}
+              aria-selected={activeTab === 'offices'}
+              onClick={() => setActiveTab('offices')}
+            >
+              Offices
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className={`calendar-tab ${activeTab === 'participants' ? 'is-active' : ''}`}
+              aria-selected={activeTab === 'participants'}
+              onClick={() => setActiveTab('participants')}
+            >
+              Participants
+            </button>
+          </div>
           <section className="calendar-legend calendar-legend-top">
             <div className="calendar-legend-top-head">
               <h3>Legend</h3>
@@ -731,7 +774,29 @@ return parsedEvents
             </div>
             {!legendCollapsed && (
               <>
-                {legendLoading ? (
+                {activeTab === 'participants' ? (
+                  <div className="calendar-participant-legend">
+                    {PARTICIPANT_LEGEND_ITEMS.map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className={`calendar-legend-item calendar-legend-item-btn ${
+                          activeParticipantKey === item.key ? 'is-active' : ''
+                        }`}
+                        style={{
+                          backgroundColor: item.color,
+                          color: textColorForBackground(item.color),
+                        }}
+                        onClick={() =>
+                          setActiveParticipantKey((prev) => (prev === item.key ? '' : item.key))
+                        }
+                        title={item.label}
+                      >
+                        <span className="calendar-legend-name">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : legendLoading ? (
                   <p className="calendar-legend-empty">Loading…</p>
                 ) : clusterLegend.length === 0 ? (
                   <p className="calendar-legend-empty">No clusters found</p>

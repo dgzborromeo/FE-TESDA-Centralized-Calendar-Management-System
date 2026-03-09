@@ -105,6 +105,41 @@
   align-items: stretch;
 }
 
+.calendar-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  margin-bottom: 0.75rem;
+}
+
+.calendar-tab {
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.calendar-tab.is-active {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.calendar-tab:not(.is-active):hover {
+  color: var(--accent);
+}
+
 .calendar-legend {
   width: 230px;
   flex-shrink: 0;
@@ -124,6 +159,16 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.calendar-participant-legend {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
 }
 
 .calendar-legend-top {
@@ -566,6 +611,10 @@
   gap: 0.5rem;
   padding: 0.45rem 0.5rem;
   border-radius: var(--radius-sm);
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
 }
 
 .calendar-legend-item:hover {
@@ -578,6 +627,12 @@
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.calendar-legend-item-btn:hover,
+.calendar-legend-item-btn.is-active {
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
 }
 
 .calendar-host-link-badge {
