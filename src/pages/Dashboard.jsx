@@ -139,6 +139,20 @@ function isEventOngoing(e, todayYmd, nowMins) {
   const endMins = timeToMinutes(e.end_time);
   return nowMins < endMins;
 }
+// Ilagay bago ang `export default function Dashboard() {`
+function getEventParticipants(e) {
+  if (!e.participants) return 'None';
+
+  try {
+    const parsed = typeof e.participants === 'string' ? JSON.parse(e.participants) : e.participants;
+    if (!Array.isArray(parsed) || !parsed.length) return 'None';
+
+    return parsed.map(p => p.name).join(', ');
+  } catch (err) {
+    console.error('Error parsing participants:', err);
+    return 'None';
+  }
+}
 
 export default function Dashboard() {
   const UPCOMING_PAGE_SIZE = 3;
@@ -441,7 +455,7 @@ export default function Dashboard() {
                     ) : null}
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
-                      Participants: {getDashboardParticipantsLabel(e)}
+                      Participants: {getEventParticipants(e)}
                     </span>
                     <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>

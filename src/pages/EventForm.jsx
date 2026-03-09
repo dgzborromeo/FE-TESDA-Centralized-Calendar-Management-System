@@ -70,6 +70,7 @@
 
   function assignedColorForUser(user) {
     const email = String(user?.email || '').toLowerCase();
+    if (email === 'ncr@tesda.gov.ph') return '#facc15';
     if (email === 'cluster.osec@tesda.gov.ph') return OSEC_COLOR;
     if (email === 'cluster.oddg.pp@tesda.gov.ph') return PO_COLOR;
     if (email === 'cluster.oddg.ai@tesda.gov.ph') return AS_COLOR;
