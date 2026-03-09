@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { events as eventsApi, users as usersApi, config as configApi } from '../api';
+import { events as eventsApi, users as usersApi } from '../api';
 import EventModal from '../components/EventModal';
 import { useAppDialog } from '../components/AppDialogProvider';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './Calendar.css';
 
-const EVENT_COLORS = { meeting: '#3b82f6', zoom: '#8b5cf6', event: '#f59e0b' };
+const EVENT_COLORS = { 'face-to-face': '#3b82f6', 'hybrid': '#8b5cf6', 'virtual': '#f59e0b' };
 const HOLIDAY_COLOR = '#334155';
 
 function lastMondayOfAugust(year) {
@@ -235,10 +235,6 @@ export default function Calendar() {
   const [moveSubmitting, setMoveSubmitting] = useState(false);
 
   const activeRangeRef = useRef({ start: null, end: null });
-  // Idagdag ito sa tabi ng iba pang useState
-const [categories, setCategories] = useState([]);
-const [filterParticipant, setFilterParticipant] = useState('');
-const [filterHost, setFilterHost] = useState('');
 
   // Keep FullCalendar's internal hit-detection in sync with actual layout.
   // This fixes "click/drag goes to adjacent day" when the page/layout changes after render.
@@ -377,11 +373,6 @@ const [filterHost, setFilterHost] = useState('');
 
   useEffect(() => {
     fetchLegend();
-// PALITAN ITO: mula eventsApi -> configApi
-  configApi.getCategories()
-    .then((rows) => setCategories(Array.isArray(rows) ? rows : []))
-    .catch((err) => console.error("Error loading categories:", err));
-    
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -432,41 +423,39 @@ const [filterHost, setFilterHost] = useState('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-const hostOptions = useMemo(() => {
-  if (!users.length || !clusterLegend.length) return [];
-
-  // 1. Pre-process users into a fast-lookup map by email prefix (code)
-  const userMapByCode = new Map();
-  users.forEach(u => {
-    const email = (u.email || '').toLowerCase();
-    const code = email.split('@')[0];
-    if (code && !code.startsWith('cluster.')) {
-      userMapByCode.set(code, u);
-    }
-  });
-
-  // 2. Map clusters and offices
-  return clusterLegend.map((cluster) => {
-    const items = [];
-    
-    // Cluster Account
-    const clusterAccountId = Number(cluster?.account?.id);
-    if (clusterAccountId > 0) {
-      items.push({
-        key: `${cluster.id}-cluster`,
-        label: cluster.name,
-        short: clusterShortLabel(cluster.name),
-        color: cluster.color || '#94a3b8',
-        accountId: clusterAccountId,
-      });
+  const hostOptions = useMemo(() => {
+    const usersByEmailLocal = new Map();
+    for (const u of users || []) {
+      const email = String(u?.email || '').toLowerCase();
+      const local = email.includes('@') ? email.split('@')[0] : '';
+      if (local) usersByEmailLocal.set(local, u);
     }
 
-    // Office Accounts
-    (cluster.offices || []).forEach(office => {
-      const codes = extractCodesFromName(office.name);
-      for (const code of codes) {
-        const matchedUser = userMapByCode.get(code.toLowerCase());
-        if (matchedUser) {
+    return (clusterLegend || [])
+      .map((cluster) => {
+        const items = [];
+        const clusterAccountId = Number(cluster?.account?.id) || null;
+        if (Number.isFinite(clusterAccountId) && clusterAccountId > 0) {
+          items.push({
+            key: `${cluster.id}-cluster`,
+            label: cluster.name,
+            short: clusterShortLabel(cluster.name),
+            color: cluster.color || '#94a3b8',
+            accountId: clusterAccountId,
+          });
+        }
+
+        for (const office of cluster.offices || []) {
+          const codes = extractCodesFromName(office.name);
+          let matchedUser = null;
+          for (const code of codes) {
+            const u = usersByEmailLocal.get(String(code || '').toLowerCase());
+            if (u && !String(u.email || '').toLowerCase().startsWith('cluster.')) {
+              matchedUser = u;
+              break;
+            }
+          }
+          if (!matchedUser) continue;
           items.push({
             key: `${cluster.id}-${office.name}`,
             label: office.name,
@@ -474,18 +463,16 @@ const hostOptions = useMemo(() => {
             color: office.color || cluster.color || '#94a3b8',
             accountId: Number(matchedUser.id),
           });
-          break; // Stop after first match
         }
-      }
-    });
 
-    return {
-      clusterId: cluster.id,
-      clusterName: cluster.name,
-      items,
-    };
-  }).filter(g => g.items.length > 0);
-}, [clusterLegend, users]);
+        return {
+          clusterId: cluster.id,
+          clusterName: cluster.name,
+          items: items.filter((x) => Number.isFinite(x.accountId) && x.accountId > 0),
+        };
+      })
+      .filter((g) => g.items.length > 0);
+  }, [clusterLegend, users]);
 
   const hostClusterOptionMap = useMemo(() => {
     const out = new Map();
@@ -526,58 +513,12 @@ const hostOptions = useMemo(() => {
     if (!Number.isFinite(endAt.getTime())) return false;
     return new Date() >= endAt;
   }
-const parsedEvents = useMemo(() => {
-  return events.map(e => {
-    let participantsArr = [];
-    try {
-      participantsArr = typeof e.participants === 'string' 
-        ? JSON.parse(e.participants || '[]') 
-        : (e.participants || []);
-    } catch (err) {
-      participantsArr = [];
-    }
-    return { ...e, _parsedParticipants: participantsArr };
-  });
-}, [events]);
-
-const sortedHostDropdownOptions = useMemo(() => {
-  return users
-    .filter(u => u.name && !u.name.toLowerCase().includes('cluster'))
-    .map(u => {
-      const match = u.name.match(/\(([^)]+)\)/);
-      return { 
-        id: u.id, 
-        shortName: match ? match[1] : u.name 
-      };
-    })
-    .sort((a, b) => a.shortName.localeCompare(b.shortName));
-}, [users]);
 
   const fcEvents = useMemo(() => {
-return parsedEvents
-    .filter((e) => {
-      const typeOk = !filterType ? true : e.type === filterType;
-      
-      // I-check kung typeOk muna bago mag-filter ng participant
-      if (!typeOk) return false;
-
-      // Filter by Participant
-      if (filterParticipant) {
-        const targetId = Number(filterParticipant);
-        // Siguraduhin na ang _parsedParticipants ay array para hindi mag-crash
-        const participants = e._parsedParticipants || [];
-        const hasMatch = participants.some(p => 
-          (p.source === 'category' && Number(p.id) === targetId) || 
-          (p.source === 'focal' && Number(p.parent_id) === targetId)
-        );
-        if (!hasMatch) return false;
-      }
-      // --- ADD THIS: Filter by Host ---
-      if (filterHost) {
-        if (Number(e.created_by) !== Number(filterHost)) return false;
-      }
-
-      return true;
+    return events
+      .filter((e) => {
+        const typeOk = !filterType ? true : e.type === filterType;
+        return typeOk;
       })
       .map((e) => {
         const tentativeMeta = parseTentativeDescription(e.description || '');
@@ -639,7 +580,7 @@ return parsedEvents
           },
         };
       });
-  }, [parsedEvents, filterType,filterHost, filterParticipant, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+  }, [events, filterType, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
 
   const hostModalEvents = useMemo(() => {
     if (!hostModalTarget?.accountId) return [];
@@ -664,58 +605,18 @@ return parsedEvents
               <h3>Legend</h3>
               <div className="calendar-legend-top-actions">
                 <div className="calendar-legend-filter">
-                  {/* <label htmlFor="calendar-type-filter">Type:</label>
+                  <label htmlFor="calendar-type-filter">Type:</label>
                   <select
                     id="calendar-type-filter"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
                     <option value="">All</option>
-                    <option value="meeting">Meeting</option>
-                    <option value="zoom">Zoom</option>
-                    <option value="event">Event</option>
-                  </select> */}
-                  {/* Participants Filter (Dapat naka-map na sa 'categories' state) */}
-<label htmlFor="calendar-host-filter">Host:</label>
-<select
-  id="calendar-host-filter"
-  value={filterHost}
-  onChange={(e) => setFilterHost(e.target.value)}
->
-  <option value="">All Hosts</option>
-  {sortedHostDropdownOptions.map(u => (
-    <option key={u.id} value={u.id}>
-      {u.shortName}
-    </option>
-  ))}
-</select>
-<label htmlFor="calendar-participant-filter">Participant:</label>
-<select
-  id="calendar-participant-filter"
-  value={filterParticipant} // Ngayon defined na ito
-  onChange={(e) => setFilterParticipant(e.target.value)}
->
-  <option value="">All Participants</option>
-  {categories.map(cat => (
-    <option key={cat.id} value={cat.id}>
-      {cat.category_name || cat.name}
-    </option>
-  ))}
-</select>
-{/* {(filterType || filterParticipant || filterHost) && (
-  <button 
-    type="button"
-    onClick={() => { 
-      setFilterType(''); 
-      setFilterParticipant(''); 
-      setFilterHost(''); 
-    }}
-    className="text-xs text-red-500 hover:underline ml-2"
-  >
-    Reset
-  </button>
-)} */}
-</div>
+                    <option value="face-to-face">Face to Face</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="virtual">Virtual/Zoom</option>
+                  </select>
+                </div>
                 {!isViewerLike && (
                   <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
                 )}
@@ -738,7 +639,7 @@ return parsedEvents
                 ) : (
                   <div
                     className="calendar-cluster-list"
-                    style={{ gridTemplateColumns: `repeat(${Math.max(clusterLegend.length, 1)}, minmax(0, 1fr))` }}
+                    style={{ gridTemplateColumns: `repeat(${Math.max(clusterLegend.length + 1, 1)}, minmax(0, 1fr))` }}
                   >
                     {clusterLegend.map((cluster, idx) => (
                       <div
@@ -830,16 +731,109 @@ return parsedEvents
                         )}
                       </div>
                     ))}
+                    {/* REGIONS LEGEND */}
+<div
+  className={`calendar-cluster-item dropdown-right ${openLegendClusterId === 'regions' ? 'is-open' : ''}`}
+>
+  <button
+    type="button"
+    className="calendar-cluster-summary"
+    style={{
+      backgroundColor: "#facc15",
+      color: "#1f2937"
+    }}
+    onClick={() =>
+      setOpenLegendClusterId(openLegendClusterId === 'regions' ? null : 'regions')
+    }
+  >
+    <span className="calendar-cluster-summary-main">
+      <span className="calendar-cluster-name-short">
+        REGIONS
+      </span>
+    </span>
+    <span className="calendar-cluster-chevron">▾</span>
+  </button>
+
+  {openLegendClusterId === 'regions' && (
+    <div className="calendar-cluster-dropdown">
+      <div className="calendar-cluster-dropdown-title">
+        <span
+          className="calendar-legend-swatch"
+          style={{ backgroundColor: "#facc15" }}
+        />
+        <span>TESDA Regions</span>
+      </div>
+
+      <ul className="calendar-cluster-offices">
+        {[
+          { name: "NCR", email: "ncr@tesda.gov.ph", clickable: true },
+          { name: "CAR", email: null, clickable: false },
+          { name: "Region I", email: null, clickable: false },
+          { name: "Region II", email: null, clickable: false },
+          { name: "Region III", email: null, clickable: false },
+          { name: "Region IV-A", email: null, clickable: false },
+          { name: "Region IV-B", email: null, clickable: false },
+          { name: "Region V", email: null, clickable: false },
+          { name: "Region VI", email: null, clickable: false },
+          { name: "Region VII", email: null, clickable: false },
+          { name: "Region VIII", email: null, clickable: false },
+          { name: "Region IX", email: null, clickable: false },
+          { name: "Region X", email: null, clickable: false },
+          { name: "Region XI", email: null, clickable: false },
+          { name: "Region XII", email: null, clickable: false },
+          { name: "Region XIII", email: null, clickable: false },
+          { name: "BARMM", email: null, clickable: false }
+        ].map((region) => {
+          // NCR is clickable
+          if (region.name === "NCR") {
+            const ncrUser = users.find(u => String(u?.email || '').toLowerCase() === 'ncr@tesda.gov.ph');
+            if (ncrUser) {
+              return (
+                <li key={region.name} className="calendar-cluster-office-item">
+                  <button
+                    type="button"
+                    className="calendar-legend-item calendar-legend-item-btn"
+                    onClick={() => {
+                      void openHostEventsTarget({
+                        key: 'regions-ncr',
+                        label: 'National Capital Region (NCR)',
+                        short: 'NCR',
+                        color: '#facc15',
+                        accountId: Number(ncrUser.id)
+                      });
+                    }}
+                    title="View hosted events: NCR"
+                  >
+                    <span
+                      className="calendar-legend-swatch"
+                      style={{ backgroundColor: "#facc15" }}
+                    />
+                    <span className="calendar-legend-name">{region.name}</span>
+                  </button>
+                </li>
+              );
+            }
+          }
+          
+          // Other regions - not clickable yet
+          return (
+            <li key={region.name} className="calendar-cluster-office-item">
+              <div className="calendar-legend-item">
+                <span
+                  className="calendar-legend-swatch"
+                  style={{ backgroundColor: "#facc15" }}
+                />
+                <span className="calendar-legend-name">{region.name}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  )}
+</div>
                   </div>
                 )}
-                <p className="calendar-legend-osec-note" aria-hidden="true">
-                  <span className="calendar-legend-osec-bookmark">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-                      <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-                    </svg>
-                  </span>
-                  <span>Sec. Francisco B. Benitez (OSEC) is a participant.</span>
-                </p>
               </>
             )}
           </section>
@@ -870,9 +864,13 @@ return parsedEvents
             selectable={!isViewerLike}
             dayMaxEventRows={5}
             eventDisplay="block"
-            displayEventTime={false}
+            displayEventTime={true}
+            eventTimeFormat={{
+              hour: 'numeric',
+              minute: '2-digit',
+              meridiem: 'short'
+            }}
             events={[...holidayEvents, ...fcEvents]}
-            lazyFetching={true}
             datesSet={async (arg) => {
               try {
                 setLoading(true);
