@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { events as eventsApi, users as usersApi } from '../api';
+import { events as eventsApi, users as usersApi, config as configApi } from '../api';
 import EventModal from '../components/EventModal';
 import { useAppDialog } from '../components/AppDialogProvider';
 import { useAuth } from '../context/AuthContext';
@@ -235,6 +235,10 @@ export default function Calendar() {
   const [moveSubmitting, setMoveSubmitting] = useState(false);
 
   const activeRangeRef = useRef({ start: null, end: null });
+    // Idagdag ito sa tabi ng iba pang useState
+const [categories, setCategories] = useState([]);
+const [filterParticipant, setFilterParticipant] = useState('');
+const [filterHost, setFilterHost] = useState('');
 
   // Keep FullCalendar's internal hit-detection in sync with actual layout.
   // This fixes "click/drag goes to adjacent day" when the page/layout changes after render.
@@ -373,6 +377,10 @@ export default function Calendar() {
 
   useEffect(() => {
     fetchLegend();
+    // PALITAN ITO: mula eventsApi -> configApi
+  configApi.getCategories()
+    .then((rows) => setCategories(Array.isArray(rows) ? rows : []))
+    .catch((err) => console.error("Error loading categories:", err));
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -423,39 +431,41 @@ export default function Calendar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  const hostOptions = useMemo(() => {
-    const usersByEmailLocal = new Map();
-    for (const u of users || []) {
-      const email = String(u?.email || '').toLowerCase();
-      const local = email.includes('@') ? email.split('@')[0] : '';
-      if (local) usersByEmailLocal.set(local, u);
+const hostOptions = useMemo(() => {
+  if (!users.length || !clusterLegend.length) return [];
+
+  // 1. Pre-process users into a fast-lookup map by email prefix (code)
+  const userMapByCode = new Map();
+  users.forEach(u => {
+    const email = (u.email || '').toLowerCase();
+    const code = email.split('@')[0];
+    if (code && !code.startsWith('cluster.')) {
+      userMapByCode.set(code, u);
+    }
+  });
+
+  // 2. Map clusters and offices
+  return clusterLegend.map((cluster) => {
+    const items = [];
+    
+    // Cluster Account
+    const clusterAccountId = Number(cluster?.account?.id);
+    if (clusterAccountId > 0) {
+      items.push({
+        key: `${cluster.id}-cluster`,
+        label: cluster.name,
+        short: clusterShortLabel(cluster.name),
+        color: cluster.color || '#94a3b8',
+        accountId: clusterAccountId,
+      });
     }
 
-    return (clusterLegend || [])
-      .map((cluster) => {
-        const items = [];
-        const clusterAccountId = Number(cluster?.account?.id) || null;
-        if (Number.isFinite(clusterAccountId) && clusterAccountId > 0) {
-          items.push({
-            key: `${cluster.id}-cluster`,
-            label: cluster.name,
-            short: clusterShortLabel(cluster.name),
-            color: cluster.color || '#94a3b8',
-            accountId: clusterAccountId,
-          });
-        }
-
-        for (const office of cluster.offices || []) {
-          const codes = extractCodesFromName(office.name);
-          let matchedUser = null;
-          for (const code of codes) {
-            const u = usersByEmailLocal.get(String(code || '').toLowerCase());
-            if (u && !String(u.email || '').toLowerCase().startsWith('cluster.')) {
-              matchedUser = u;
-              break;
-            }
-          }
-          if (!matchedUser) continue;
+    // Office Accounts
+    (cluster.offices || []).forEach(office => {
+      const codes = extractCodesFromName(office.name);
+      for (const code of codes) {
+        const matchedUser = userMapByCode.get(code.toLowerCase());
+        if (matchedUser) {
           items.push({
             key: `${cluster.id}-${office.name}`,
             label: office.name,
@@ -463,16 +473,19 @@ export default function Calendar() {
             color: office.color || cluster.color || '#94a3b8',
             accountId: Number(matchedUser.id),
           });
+          break; // Stop after first match
         }
+      }
+    });
 
-        return {
-          clusterId: cluster.id,
-          clusterName: cluster.name,
-          items: items.filter((x) => Number.isFinite(x.accountId) && x.accountId > 0),
-        };
-      })
-      .filter((g) => g.items.length > 0);
-  }, [clusterLegend, users]);
+    return {
+      clusterId: cluster.id,
+      clusterName: cluster.name,
+      items,
+    };
+  }).filter(g => g.items.length > 0);
+}, [clusterLegend, users]);
+
 
   const hostClusterOptionMap = useMemo(() => {
     const out = new Map();
@@ -513,12 +526,58 @@ export default function Calendar() {
     if (!Number.isFinite(endAt.getTime())) return false;
     return new Date() >= endAt;
   }
+const parsedEvents = useMemo(() => {
+  return events.map(e => {
+    let participantsArr = [];
+    try {
+      participantsArr = typeof e.participants === 'string' 
+        ? JSON.parse(e.participants || '[]') 
+        : (e.participants || []);
+    } catch (err) {
+      participantsArr = [];
+    }
+    return { ...e, _parsedParticipants: participantsArr };
+  });
+}, [events]);
 
-  const fcEvents = useMemo(() => {
-    return events
-      .filter((e) => {
-        const typeOk = !filterType ? true : e.type === filterType;
-        return typeOk;
+const sortedHostDropdownOptions = useMemo(() => {
+  return users
+    .filter(u => u.name && !u.name.toLowerCase().includes('cluster'))
+    .map(u => {
+      const match = u.name.match(/\(([^)]+)\)/);
+      return { 
+        id: u.id, 
+        shortName: match ? match[1] : u.name 
+      };
+    })
+    .sort((a, b) => a.shortName.localeCompare(b.shortName));
+}, [users]);
+
+   const fcEvents = useMemo(() => {
+return parsedEvents
+    .filter((e) => {
+      const typeOk = !filterType ? true : e.type === filterType;
+      
+      // I-check kung typeOk muna bago mag-filter ng participant
+      if (!typeOk) return false;
+
+      // Filter by Participant
+      if (filterParticipant) {
+        const targetId = Number(filterParticipant);
+        // Siguraduhin na ang _parsedParticipants ay array para hindi mag-crash
+        const participants = e._parsedParticipants || [];
+        const hasMatch = participants.some(p => 
+          (p.source === 'category' && Number(p.id) === targetId) || 
+          (p.source === 'focal' && Number(p.parent_id) === targetId)
+        );
+        if (!hasMatch) return false;
+      }
+      // --- ADD THIS: Filter by Host ---
+      if (filterHost) {
+        if (Number(e.created_by) !== Number(filterHost)) return false;
+      }
+
+      return true;
       })
       .map((e) => {
         const tentativeMeta = parseTentativeDescription(e.description || '');
@@ -580,7 +639,7 @@ export default function Calendar() {
           },
         };
       });
-  }, [events, filterType, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+ }, [parsedEvents, filterType,filterHost, filterParticipant, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
 
   const hostModalEvents = useMemo(() => {
     if (!hostModalTarget?.accountId) return [];
@@ -605,7 +664,7 @@ export default function Calendar() {
               <h3>Legend</h3>
               <div className="calendar-legend-top-actions">
                 <div className="calendar-legend-filter">
-                  <label htmlFor="calendar-type-filter">Type:</label>
+                  {/* <label htmlFor="calendar-type-filter">Type:</label>
                   <select
                     id="calendar-type-filter"
                     value={filterType}
@@ -615,8 +674,48 @@ export default function Calendar() {
                     <option value="face-to-face">Face to Face</option>
                     <option value="hybrid">Hybrid</option>
                     <option value="virtual">Virtual/Zoom</option>
-                  </select>
-                </div>
+                  </select> */}
+                 {/* Participants Filter (Dapat naka-map na sa 'categories' state) */}
+<label htmlFor="calendar-host-filter">Host:</label>
+<select
+  id="calendar-host-filter"
+  value={filterHost}
+  onChange={(e) => setFilterHost(e.target.value)}
+>
+  <option value="">All Hosts</option>
+  {sortedHostDropdownOptions.map(u => (
+    <option key={u.id} value={u.id}>
+      {u.shortName}
+    </option>
+  ))}
+</select>
+<label htmlFor="calendar-participant-filter">Participant:</label>
+<select
+  id="calendar-participant-filter"
+  value={filterParticipant} // Ngayon defined na ito
+  onChange={(e) => setFilterParticipant(e.target.value)}
+>
+  <option value="">All Participants</option>
+  {categories.map(cat => (
+    <option key={cat.id} value={cat.id}>
+      {cat.category_name || cat.name}
+    </option>
+  ))}
+</select>
+{/* {(filterType || filterParticipant || filterHost) && (
+  <button 
+    type="button"
+    onClick={() => { 
+      setFilterType(''); 
+      setFilterParticipant(''); 
+      setFilterHost(''); 
+    }}
+    className="text-xs text-red-500 hover:underline ml-2"
+  >
+    Reset
+  </button>
+)} */}
+</div>
                 {!isViewerLike && (
                   <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
                 )}
