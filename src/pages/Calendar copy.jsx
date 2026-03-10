@@ -10,7 +10,6 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './Calendar.css';
-import ParticipantsCalendarView from '../components/ParticipantsCalendarView';
 
 const EVENT_COLORS = { 'face-to-face': '#3b82f6', 'hybrid': '#8b5cf6', 'virtual': '#f59e0b' };
 const HOLIDAY_COLOR = '#334155';
@@ -1002,8 +1001,6 @@ return parsedEvents
               </>
             )}
           </section>
-          <div className="calendar-view-body">
-          {activeTab === 'offices' ? (
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -1242,17 +1239,6 @@ return parsedEvents
               if (api) api.updateSize();
             }}
           />
-          ) : (
-    /* KAPAG PARTICIPANTS: Ipakita ang bagong View */
-    <ParticipantsCalendarView 
-      events={fcEvents} // Ipinasa natin yung filtered events
-      user={user}
-      filterParticipant={filterParticipant}
-      filterHost={filterHost}
-      onEventClick={(event) => setSelectedEvent(event)}
-    />
-  )}
-</div>
           {loading && <div className="calendar-loading">Loading calendar...</div>}
           {error && (
             <div className="calendar-loading" style={{ position: 'static', padding: '1rem', color: 'var(--danger, #dc2626)' }}>
