@@ -261,54 +261,28 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
   const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
-// ... sa itaas ng descriptionText definition
-const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
-
-// PALITAN ANG PANGALAN DITO: Gawing participantLines
-let participantLines = hasBackendParticipants ? event.attendees.map(a => a.name) : [];
-
-if (participantLines.length === 0 && event.participants) {
-  try {
-    const parsed = typeof event.participants === 'string' 
-      ? JSON.parse(event.participants) 
-      : event.participants;
-
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const categoriesWithChildren = new Set();
-      parsed.forEach(p => {
-        if (p.source === 'focal') {
-          categoriesWithChildren.add('Focals');
-        }
-      });
-
-      participantLines = parsed
-        .filter(p => {
-          if (p.source === 'category') {
-            return !categoriesWithChildren.has(p.name);
-          }
-          return true;
-        })
-        .map(p => p.name);
-    }
-  } catch (e) {
-    console.error("Parse error:", e);
-  }
-}
-
-// Siguraduhin din na kung may laman ang dbParticipantLines (mga Directors), isasama mo sila:
-if (dbParticipantLines.length > 0) {
-    participantLines = [...participantLines, ...dbParticipantLines];
-}
+  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
+  const participantLines = hasBackendParticipants
+    ? event.attendees.map((a) => a.name)
+    : dbParticipantLines.length
+      ? dbParticipantLines
+      : localRegionalDirectorParticipants.length
+        ? localRegionalDirectorParticipants
+      : ['No participants'];
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';
-  const typeText = event.type || 'N/A';
+  const typeText = event.type === 'face-to-face' ? 'Face to Face' : event.type === 'hybrid' ? 'Hybrid' : event.type === 'virtual' ? 'Zoom Meeting' : (event.type || 'Event');
+  const locationIsUrl = /^https?:\/\//i.test(String(locationText).trim());
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-event" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{event.title}</h2>
+        <div className="modal-header modal-header-event">
+          <div className="modal-header-main">
+            <h2 className="modal-event-title">{event.title}</h2>
+            <span className={`modal-event-badge ${statusClass}`}>{statusLabel}</span>
+          </div>
           <div className="modal-header-actions">
             <button
               type="button"
@@ -323,36 +297,110 @@ if (dbParticipantLines.length > 0) {
           </div>
         </div>
         <div className="modal-body">
-          <div className="modal-row modal-description">
-            <span className="modal-label">Description</span>
-            <p>{descriptionText}</p>
-          </div>
-          <div className="modal-inline-grid modal-inline-grid-three">
-            <div className="modal-row">
-              <span className="modal-label">Date</span>
-              <span>{formatDateRange(eventDate, eventEndDate)}</span>
+          <div className="modal-event-grid">
+            <div className="modal-event-col modal-event-col-left">
+              <div className="modal-event-card modal-event-card--date">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="14" r="1.5"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Date & Time</span>
+                  <span className="modal-event-card-date">{formatDateRange(eventDate, eventEndDate)}</span>
+                  <span className="modal-event-card-time">{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+                </div>
+              </div>
+              <div className="modal-event-card modal-event-card--location">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Location</span>
+                  <span className="modal-event-card-value">{locationText}</span>
+                </div>
+              </div>
+              <div className="modal-event-desc-block">
+                <strong className="modal-event-desc-title">Description</strong>
+                <p className="modal-event-desc-text">{descriptionText}</p>
+              </div>
             </div>
-            <div className="modal-row">
-              <span className="modal-label">Time</span>
-              <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
-            </div>
-            <div className="modal-row">
-              <span className="modal-label">Location / Room / Zoom</span>
-              <span>{locationText}</span>
-            </div>
-            <div className="modal-row">
-              <span className="modal-label">Host</span>
-              <span>{event.creator_name || 'Unknown'}</span>
-            </div>
-            <div className="modal-row">
-              <span className="modal-label">Status</span>
-              <span className={`modal-status-pill ${statusClass}`}>
-                {statusLabel}
-              </span>
-            </div>
-            <div className="modal-row">
-              <span className="modal-label">Type</span>
-              <span className="modal-type">{typeText}</span>
+            <div className="modal-event-col modal-event-col-right">
+              <div className="modal-event-card modal-event-card--host">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Event Host</span>
+                  <span className="modal-event-card-label modal-event-host-name">{event.creator_name || 'Unknown'}</span>
+                  {(event.creator_office || event.office_name) && (
+                    <span className="modal-event-card-sublabel">{event.creator_office || event.office_name}</span>
+                  )}
+                </div>
+              </div>
+              <div className="modal-event-card modal-event-card--type">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Meeting Type</span>
+                  <span className="modal-event-card-value">{typeText}</span>
+                </div>
+              </div>
+              {locationIsUrl && (
+                <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Zoom Meeting Link</span>
+                    <a href={locationText} target="_blank" rel="noreferrer noopener" className="modal-event-join-btn">
+                      Join Zoom Meeting
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+                    </a>
+                    <span className="modal-event-join-url">{locationText}</span>
+                  </div>
+                </div>
+              )}
+              {(regularAttachments.length > 0 || postDocs.length > 0) && (
+                <div className="modal-event-card modal-event-card--attach">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Attachments ({regularAttachments.length + postDocs.length})</span>
+                    <ul className="modal-event-attach-list">
+                      {regularAttachments.map((a) => (
+                        <li key={a.id} className="modal-event-attach-item">
+                          <span className="modal-event-attach-icon">PDF</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                        </li>
+                      ))}
+                      {postDocs.map((a) => (
+                        <li key={a.id} className="modal-event-attach-item">
+                          <span className="modal-event-attach-icon">PDF</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+              <div className="modal-event-card modal-event-card--participants">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Participants</span>
+                  <ul className="modal-event-participants-list">
+                    {participantLines.map((name, idx) => (
+                      <li key={idx}>{name}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
           {isCancelled && event.cancel_reason ? (
@@ -385,16 +433,6 @@ if (dbParticipantLines.length > 0) {
               </span>
             </div>
           )}
-          <div className="modal-row">
-            <span className="modal-label">Participants</span>
-            <span>
-              {participantLines.map((name, idx) => (
-                <span key={idx} className="modal-participant-line">
-                  {name}
-                </span>
-              ))}
-            </span>
-          </div>
 
           {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
             <div className="modal-row modal-rsvps">
@@ -475,20 +513,6 @@ if (dbParticipantLines.length > 0) {
             </div>
           )}
 
-          {regularAttachments.length > 0 && (
-            <div className="modal-row modal-attachments">
-              <span className="modal-label">Attachment</span>
-              <ul className="modal-attachments-list">
-                {regularAttachments.map((a) => (
-                  <li key={a.id} className="modal-attachment-item">
-                    <a href={a.url} target="_blank" rel="noreferrer" className="modal-attachment-link">
-                      {a.original_name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
           {needsPostDoc && (
             <div className="modal-row modal-attachments">
               <span className="modal-label">{requiredPostDocLabel}</span>
@@ -499,15 +523,9 @@ if (dbParticipantLines.length > 0) {
                     : `Pending host submission: ${requiredPostDocLabel}.`}
                 </p>
               ) : (
-                <ul className="modal-attachments-list">
-                  {postDocs.map((a) => (
-                    <li key={a.id} className="modal-attachment-item">
-                      <a href={a.url} target="_blank" rel="noreferrer" className="modal-attachment-link">
-                        {a.original_name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                <p className="modal-postdoc-empty">
+                  Submitted ({postDocs.length}). See attachments section above.
+                </p>
               )}
               {isHost && isDone && (
                 <div className="modal-postdoc-upload">

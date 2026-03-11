@@ -6,7 +6,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
+import Dashboard2 from './pages/Dashboard2';
 import Calendar from './pages/Calendar';
+import Calendar2 from './pages/Calendar2';
 import EventForm from './pages/EventForm';
 import EventDetails from './pages/EventDetails';
 import Invitations from './pages/Invitations';
@@ -48,7 +50,9 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         {/* Public view-only pages */}
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="dashboard2" element={<Dashboard2 />} />
         <Route path="calendar" element={<Calendar />} />
+        <Route path="calendar2" element={<Calendar2 />} />
         <Route path="calendar/day/:date" element={<DayView />} />
         <Route path="list-of-activity" element={<ListOfActivity />} />
         <Route path="upcoming" element={<Upcoming />} />
