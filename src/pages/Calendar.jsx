@@ -257,13 +257,14 @@ export default function Calendar() {
   const [pendingMove, setPendingMove] = useState(null);
   const [moveReason, setMoveReason] = useState('');
   const [moveSubmitting, setMoveSubmitting] = useState(false);
-
+  const [eventHover, setEventHover] = useState(null);
+  const eventHoverLeaveRef = useRef(null);
   const activeRangeRef = useRef({ start: null, end: null });
     // Idagdag ito sa tabi ng iba pang useState
 const [categories, setCategories] = useState([]);
 const [filterParticipant, setFilterParticipant] = useState('');
 const [filterHost, setFilterHost] = useState('');
-
+const [hostLegendFilter, setHostLegendFilter] = useState(null);
   // Keep FullCalendar's internal hit-detection in sync with actual layout.
   // This fixes "click/drag goes to adjacent day" when the page/layout changes after render.
   useEffect(() => {
@@ -509,7 +510,15 @@ const hostOptions = useMemo(() => {
     };
   }).filter(g => g.items.length > 0);
 }, [clusterLegend, users]);
-
+const hostAccountIdsByCluster = useMemo(() => {
+  const map = new Map();
+  hostOptions.forEach(group => {
+    // Kunin lahat ng accountId (ng cluster mismo + lahat ng offices nito)
+    const ids = new Set(group.items.map(i => i.accountId).filter(id => !!id));
+    map.set(group.clusterId, ids);
+  });
+  return map;
+}, [hostOptions]);
 
   const hostClusterOptionMap = useMemo(() => {
     const out = new Map();
@@ -576,7 +585,7 @@ const sortedHostDropdownOptions = useMemo(() => {
     })
     .sort((a, b) => a.shortName.localeCompare(b.shortName));
 }, [users]);
-
+const [activeLegendFilter, setActiveLegendFilter] = useState(null);
    const fcEvents = useMemo(() => {
 return parsedEvents
     .filter((e) => {
@@ -600,6 +609,14 @@ return parsedEvents
       if (filterHost) {
         if (Number(e.created_by) !== Number(filterHost)) return false;
       }
+      if (hostLegendFilter?.accountIds?.size) {
+      const hostId = Number(e.created_by);
+      if (!hostLegendFilter.accountIds.has(hostId)) return false;
+    }
+    if (activeLegendFilter) {
+      const eventCreatorId = Number(e.created_by);
+      if (!activeLegendFilter.accountIds.has(eventCreatorId)) return false;
+    }
 
       return true;
       })
@@ -663,8 +680,28 @@ return parsedEvents
           },
         };
       });
- }, [parsedEvents, filterType,filterHost, filterParticipant, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+ }, [parsedEvents, filterType,filterHost, hostLegendFilter, activeLegendFilter, filterParticipant, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+const toggleHostLegendFilterCluster = (clusterId) => {
+  const ids = hostAccountIdsByCluster.get(clusterId);
+  if (!ids) return;
 
+  setHostLegendFilter((prev) => {
+    // Kapag kinlik ulit ang parehong cluster, i-reset (unfilter)
+    if (prev?.kind === 'cluster' && prev?.clusterId === clusterId) return null;
+    return { kind: 'cluster', clusterId, accountIds: ids };
+  });
+};
+
+const toggleHostLegendFilterOffice = (clusterId, officeName) => {
+  const officeOpt = hostOfficeOptionMap.get(`${clusterId}::${officeName}`);
+  const id = Number(officeOpt?.accountId);
+  if (!id) return;
+
+  setHostLegendFilter((prev) => {
+    if (prev?.kind === 'office' && prev?.officeName === officeName) return null;
+    return { kind: 'office', clusterId, officeName, accountIds: new Set([id]) };
+  });
+};
   const hostModalEvents = useMemo(() => {
     if (!hostModalTarget?.accountId) return [];
     return (events || [])
@@ -675,7 +712,28 @@ return parsedEvents
   if (loading) {
     // we'll flip `loading` off once the first `datesSet` fetch completes
   }
+const handleClusterClick = (cluster) => {
+  // 1. I-toggle yung dropdown (yung dati mong logic)
+  toggleLegendCluster(cluster.id);
 
+  // 2. I-apply ang filter para sa LAHAT ng offices sa cluster na ito
+  const allIdsInCluster = hostAccountIdsByCluster.get(cluster.id);
+  
+  setActiveLegendFilter(prev => {
+    // Kung active na itong cluster, i-off (reset)
+    if (prev?.type === 'cluster' && prev?.id === cluster.id) return null;
+    return { type: 'cluster', id: cluster.id, accountIds: allIdsInCluster };
+  });
+};
+
+const handleOfficeClick = (office, clusterId) => {
+  setActiveLegendFilter(prev => {
+    const officeId = Number(office.accountId);
+    // Kung active na itong office, i-off
+    if (prev?.type === 'office' && prev?.id === officeId) return null;
+    return { type: 'office', id: officeId, accountIds: new Set([officeId]) };
+  });
+};
   return (
     <div className="calendar-page">
       <div className="calendar-content">
@@ -806,96 +864,137 @@ return parsedEvents
                     className="calendar-cluster-list"
                     style={{ gridTemplateColumns: `repeat(${Math.max(clusterLegend.length + 1, 1)}, minmax(0, 1fr))` }}
                   >
-                    {clusterLegend.map((cluster, idx) => (
-                      <div
-                        key={cluster.id}
-                        className={`calendar-cluster-item ${openLegendClusterId === cluster.id ? 'is-open' : ''} ${idx >= clusterLegend.length - 2 ? 'dropdown-right' : ''}`}
-                      >
-                        <button
-                          type="button"
-                          className="calendar-cluster-summary"
-                          style={{
-                            backgroundColor: cluster.color || '#94a3b8',
-                            color: textColorForBackground(cluster.color || '#94a3b8'),
-                          }}
-                          onClick={() => toggleLegendCluster(cluster.id)}
-                          aria-expanded={openLegendClusterId === cluster.id}
-                          aria-label={`Toggle offices under ${cluster.name}`}
-                          title={`Show offices under ${cluster.name}`}
-                        >
-                          <span className="calendar-cluster-summary-main">
-                            <span className="calendar-cluster-name-short" title={cluster.name}>
-                              {clusterShortLabel(cluster.name)}
-                            </span>
-                          </span>
-                          <span className="calendar-cluster-chevron">▾</span>
-                        </button>
-                        {openLegendClusterId === cluster.id && (
-                          <div className="calendar-cluster-dropdown">
-                            {(() => {
-                              const clusterOpt = hostClusterOptionMap.get(cluster.id) || null;
-                              if (!clusterOpt) {
-                                return (
-                                  <div className="calendar-cluster-dropdown-title">
-                                    <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
-                                    <span>{cluster.name}</span>
-                                  </div>
-                                );
-                              }
-                              return (
-                                <button
-                                  type="button"
-                                  className="calendar-cluster-dropdown-title calendar-cluster-dropdown-title-btn"
-                                  onClick={() => { void openHostEventsTarget(clusterOpt); }}
-                                  title={`View hosted events: ${cluster.name}`}
-                                >
-                                  <span className="calendar-legend-swatch" style={{ backgroundColor: cluster.color || '#94a3b8' }} />
-                                  <span>{cluster.name}</span>
-                                  <span className="calendar-host-link-badge calendar-host-link-badge-office">Host</span>
-                                </button>
-                              );
-                            })()}
-                            <ul className="calendar-cluster-offices">
-                              {(cluster.offices || []).map((office) => (
-                                <li key={office.name} className="calendar-cluster-office-item">
-                                  {(() => {
-                                    const officeOpt = hostOfficeOptionMap.get(`${cluster.id}::${office.name}`) || null;
-                                    if (!officeOpt) {
-                                      return (
-                                        <div className="calendar-legend-item">
-                                          <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
-                                          <span className="calendar-legend-name">{office.name}</span>
-                                        </div>
-                                      );
-                                    }
-                                    return (
-                                      <button
-                                        type="button"
-                                        className="calendar-legend-item calendar-legend-item-btn"
-                                        onClick={() => { void openHostEventsTarget(officeOpt); }}
-                                        title={`View hosted events: ${office.name}`}
-                                      >
-                                        <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
-                                        <span className="calendar-legend-name">{office.name}</span>
-                                      </button>
-                                    );
-                                  })()}
-                                  {Array.isArray(office.divisions) && office.divisions.length > 0 ? (
-                                    <ul className="calendar-cluster-divisions">
-                                      {office.divisions.map((division) => (
-                                        <li key={division} className="calendar-cluster-division-item">
-                                          {division}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  ) : null}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+{clusterLegend.map((cluster, idx) => {
+  // Check kung ang cluster na ito ang active filter
+  const isClusterFiltering = hostLegendFilter?.kind === 'cluster' && hostLegendFilter?.clusterId === cluster.id;
+
+  return (
+    <div
+      key={cluster.id}
+      className={`calendar-cluster-item 
+        ${openLegendClusterId === cluster.id ? 'is-open' : ''} 
+        ${idx >= clusterLegend.length - 2 ? 'dropdown-right' : ''}`}
+    >
+      {/* MAIN BUTTON: Bukas/Sara lang ng dropdown */}
+      <button
+        type="button"
+        className="calendar-cluster-summary"
+        style={{
+          backgroundColor: cluster.color || '#94a3b8',
+          color: textColorForBackground(cluster.color || '#94a3b8'),
+          // Indicator kung may active filter sa loob ng cluster na ito
+          boxShadow: isClusterFiltering ? '0 0 0 3px #000 inset' : 'none'
+        }}
+        onClick={() => toggleLegendCluster(cluster.id)}
+        aria-expanded={openLegendClusterId === cluster.id}
+      >
+        <span className="calendar-cluster-summary-main">
+          <span className="calendar-cluster-name-short" title={cluster.name}>
+            {clusterShortLabel(cluster.name)}
+          </span>
+        </span>
+        <span className="calendar-cluster-chevron">▾</span>
+      </button>
+
+      {openLegendClusterId === cluster.id && (
+        <div className="calendar-cluster-dropdown">
+          {(() => {
+            const clusterOpt = hostClusterOptionMap.get(cluster.id) || null;
+            
+            // CLUSTER HEADER: Dito ang filter/reset trigger
+            return (
+              <button
+                type="button"
+                className={`calendar-cluster-dropdown-title calendar-cluster-dropdown-title-btn 
+                  ${isClusterFiltering ? 'active-filter' : ''}`}
+                onClick={() => toggleHostLegendFilterCluster(cluster.id)}
+              >
+                <span 
+                  className="calendar-legend-swatch" 
+                  style={{ 
+                    backgroundColor: cluster.color || '#94a3b8',
+                    boxShadow: isClusterFiltering ? '0 0 0 2px black' : 'none' 
+                  }} 
+                />
+                <span style={{ fontWeight: isClusterFiltering ? 'bold' : 'normal' }}>
+                  {cluster.name}
+                </span>
+
+                {isClusterFiltering ? (
+                  <span className="calendar-host-link-badge calendar-host-link-badge-office" style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>
+                    Reset Filter ✕
+                  </span>
+                ) : (
+                  <span className="calendar-host-link-badge calendar-host-link-badge-office">
+                    Filter All
+                  </span>
+                )}
+              </button>
+            );
+          })()}
+
+          <ul className="calendar-cluster-offices">
+            {(cluster.offices || []).map((office) => {
+              const officeOpt = hostOfficeOptionMap.get(`${cluster.id}::${office.name}`) || null;
+              const isOfficeFiltering = hostLegendFilter?.kind === 'office' && hostLegendFilter?.officeName === office.name;
+
+              return (
+                <li key={office.name} className="calendar-cluster-office-item">
+                  {!officeOpt ? (
+                    <div className="calendar-legend-item">
+                      <span className="calendar-legend-swatch" style={{ backgroundColor: office.color || cluster.color || '#94a3b8' }} />
+                      <span className="calendar-legend-name">{office.name}</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`office-item ${isOfficeFiltering ? 'active' : ''}`}
+                      onClick={() => toggleHostLegendFilterOffice(cluster.id, office.name)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: 'none',
+                        border: 'none',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '4px 8px',
+                        cursor: 'pointer',
+                        gap: '8px'
+                      }}
+                    >
+                      {/* ETO YUNG COLOR SWATCH NA RECTANGLE */}
+                      <span 
+                        className="calendar-legend-swatch" 
+                        style={{ 
+                          backgroundColor: office.color || cluster.color || '#94a3b8',
+                          flexShrink: 0 
+                        }} 
+                      />
+                      <span className="calendar-legend-name" style={{ fontWeight: isOfficeFiltering ? 'bold' : 'normal' }}>
+                        {office.name} {isOfficeFiltering && '✓'}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Divisions */}
+                  {Array.isArray(office.divisions) && office.divisions.length > 0 && (
+                    <ul className="calendar-cluster-divisions">
+                      {office.divisions.map((division) => (
+                        <li key={division} className="calendar-cluster-division-item">
+                          {division}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+})}
                     {/* REGIONS LEGEND */}
 <div
   className={`calendar-cluster-item dropdown-right ${openLegendClusterId === 'regions' ? 'is-open' : ''}`}
