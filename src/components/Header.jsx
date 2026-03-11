@@ -103,7 +103,7 @@ export default function Header() {
               <Link to="/list-of-activity" className="header-link">List of Activity</Link>
             )}
             <Link to="/upcoming" className="header-link">Upcoming</Link>
-            <Link to="/year-events" className="header-link">Year Events</Link>
+            <Link to="/year-events" className="header-link">Year Events/Meetings</Link>
             {user?.role === 'admin' && (
               <Link to="/user-config" className="header-link">User Configuration</Link>
             )}
