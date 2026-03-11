@@ -16,12 +16,12 @@
   font-size: clamp(1.6rem, 1.1rem + 1.2vw, 2.35rem);
   font-weight: 800;
   margin-bottom: 0.35rem;
-  color: #1f3a5f; /* Deep Navy - primary header */
+  color: #0f172a;
   letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
-  color: #9aa5b1; /* Cool Gray - subtitle */
+  color: #64748b;
   font-size: clamp(0.95rem, 0.86rem + 0.35vw, 1.1rem);
   margin-bottom: 0;
   line-height: 1.4;
@@ -37,9 +37,9 @@
   border-radius: 16px;
   border: 1px solid transparent;
   background:
-    radial-gradient(760px 220px at 15% 0%, rgba(31, 58, 95, 0.12), transparent 60%) padding-box,
-    radial-gradient(560px 220px at 95% 20%, rgba(63, 143, 140, 0.10), transparent 55%) padding-box,
-    linear-gradient(180deg, #f7f8fb 0%, #edf1f7 100%) padding-box,
+    radial-gradient(760px 220px at 15% 0%, rgba(37, 99, 235, 0.10), transparent 60%) padding-box,
+    radial-gradient(560px 220px at 95% 20%, rgba(14, 165, 233, 0.06), transparent 55%) padding-box,
+    linear-gradient(180deg, #fafbff 0%, #f0f4ff 100%) padding-box,
     var(--dash-border-grad) border-box;
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.04);
 }
@@ -62,9 +62,9 @@
   border-radius: 16px;
   padding: clamp(1rem, 1.8vw, 1.45rem);
   background:
-    radial-gradient(700px 220px at 10% 0%, rgba(31, 58, 95, 0.09), transparent 60%) padding-box,
-    radial-gradient(520px 200px at 90% 15%, rgba(63, 143, 140, 0.07), transparent 55%) padding-box,
-    linear-gradient(180deg, #ffffff 0%, #f5f7fb 100%) padding-box,
+    radial-gradient(700px 220px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 60%) padding-box,
+    radial-gradient(520px 200px at 90% 15%, rgba(14, 165, 233, 0.06), transparent 55%) padding-box,
+    linear-gradient(180deg, #ffffff 0%, #f8faff 100%) padding-box,
     var(--dash-border-grad) border-box;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   min-height: clamp(230px, 30vh, 315px);
@@ -128,15 +128,15 @@
 }
 
 .dashboard-overview-chip {
-  border: 1px solid rgba(31, 58, 95, 0.25);
-  background: linear-gradient(135deg, #f5f7fb 0%, #e3e8f0 100%);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border-radius: 999px;
   padding: 0.28rem 0.75rem;
   font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.85rem);
   font-weight: 700;
-  color: #1f3a5f;
+  color: #1d4ed8;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(31, 58, 95, 0.16);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .dashboard-panel-upcoming h2,

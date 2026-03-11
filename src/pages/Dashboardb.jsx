@@ -6,7 +6,7 @@ import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticip
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
-import './Dashboard2.css';
+import './Dashboard.css';
 
 function toLocalYMD(d) {
   const y = d.getFullYear();

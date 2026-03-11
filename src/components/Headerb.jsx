@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
-import './Header2.css';
+import './Header.css';
 
 export default function Header() {
   const { user, logout } = useAuth();

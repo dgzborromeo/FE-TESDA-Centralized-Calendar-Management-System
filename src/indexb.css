@@ -1,21 +1,18 @@
-/* TESDA Calendar - System-wide palette (boss colors) */
+/* TESDA Calendar - Professional light theme */
 :root {
-  /* Core neutrals */
-  --bg: #f5f7fb;
+  --bg: #f8fafc;
   --bg-card: #ffffff;
-  --bg-hover: #edf1f7;
-  --border: #d3d9e3;
-  --text: #2e2e2e;        /* Charcoal - text / titles */
-  --text-muted: #9aa5b1;  /* Cool Gray - labels / gridlines */
-
-  /* Brand accents */
-  --accent: #1f3a5f;           /* Deep Navy - primary */
-  --accent-hover: #4f6d8a;     /* Steel Blue - secondary */
-  --accent-light: #e3e8f0;     /* Soft panel background */
+  --bg-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: #eff6ff;
   --danger: #dc2626;
   --danger-hover: #b91c1c;
-  --warning: rgba(242, 142, 43, 0.4); /* Orange 40% - alerts / key KPI highlights */
-  --info: #3f8f8c;             /* Teal - positive / secondary highlight */
+  --warning: #d97706;
+  --info: #2563eb;
   --radius: 8px;
   --radius-sm: 6px;
   --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -24,12 +21,12 @@
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
 
-  /* Shared gradient border using new palette */
+  /* Shared blue gradient border (Dashboard / Calendar / Help & Info pages) */
   --border-grad-blue: linear-gradient(
     135deg,
-    #1f3a5f 0%,
-    #4f6d8a 45%,
-    #3f8f8c 100%
+    rgba(37, 99, 235, 0.85) 0%,
+    rgba(14, 165, 233, 0.75) 45%,
+    rgba(99, 102, 241, 0.70) 100%
   );
 }
 
@@ -46,25 +43,10 @@ html {
 
 body {
   font-family: var(--font);
-  background: linear-gradient(180deg, #f0f3fa 0%, #f5f7fb 30%, #ffffff 100%);
+  background: linear-gradient(180deg, #f0f7ff 0%, #f8fafc 30%, #ffffff 100%);
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
-}
-
-/* Global typography using brand colors */
-h1, h2, h3 {
-  color: #2e2e2e; /* Charcoal */
-}
-
-.page-title,
-.dashboard-title {
-  color: #1f3a5f; /* Deep Navy for primary headers */
-}
-
-.page-subtitle,
-.dashboard-subtitle {
-  color: #9aa5b1; /* Cool Gray for secondary text */
 }
 
 /* Slightly smaller on very small screens */

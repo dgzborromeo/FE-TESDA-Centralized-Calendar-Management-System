@@ -1,7 +1,7 @@
 .header {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #0ea5e9 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
+  background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 45%, #3f8f8c 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -38,7 +38,7 @@
 }
 
 .header-calendar-search {
-  width: clamp(140px, 12vw, 220px);
+  width: clamp(170px, 17vw, 300px);
   min-width: 140px;
   padding: 0.45rem 0.65rem;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -68,6 +68,8 @@
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 6px 14px rgba(2, 6, 23, 0.18);
   flex: 0 0 auto;
+  animation: tesda-spin 14s linear infinite;
+  transform-origin: 50% 50%;
 }
 
 @keyframes tesda-spin {
@@ -176,7 +178,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #3f8f8c 0%, #4f6d8a 100%);
   color: #fff;
   display: flex;
   align-items: center;
@@ -351,21 +353,4 @@
   .header-profile-btn {
     padding: 0.35rem 0.6rem;
   }
-}
-
-.disabled-link {
-  opacity: 0.4; /* Mas malabo para halatang disabled */
-  cursor: not-allowed !important;
-  filter: grayscale(1); /* Optional: gagawing black and white para mas halata */
-  /* pointer-events: none;  <-- TANGGALIN ITO para gumana ang alert() */
-}
-
-/* Para sa Dropdown items na disabled */
-.header-dropdown-item.disabled-link:hover {
-  background: none !important;
-  color: inherit !important;
-}
-.header-link-disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
