@@ -357,6 +357,7 @@ export default function Calendar() {
   const [pendingMove, setPendingMove] = useState(null);
   const [moveReason, setMoveReason] = useState('');
   const [moveSubmitting, setMoveSubmitting] = useState(false);
+  const [isSidePanelHidden, setIsSidePanelHidden] = useState(false);
 
   const activeRangeRef = useRef({ start: null, end: null });
     // Idagdag ito sa tabi ng iba pang useState
@@ -884,6 +885,12 @@ return parsedEvents
   );
 
   const sidebarEvents = hasSidebarFilter ? fcEvents.slice(0, 50) : [];
+
+  useEffect(() => {
+    if (!hasSidebarFilter) {
+      setIsSidePanelHidden(false);
+    }
+  }, [hasSidebarFilter]);
 
   const hostModalEvents = useMemo(() => {
     if (!hostModalTarget?.accountId) return [];
@@ -1686,6 +1693,17 @@ return parsedEvents
           )}
         </div>
         {hasSidebarFilter && (
+          <button
+            type="button"
+            className={`calendar-side-toggle ${isSidePanelHidden ? 'is-collapsed' : ''}`}
+            onClick={() => setIsSidePanelHidden((v) => !v)}
+            title={isSidePanelHidden ? 'Show filtered events list' : 'Hide filtered events list'}
+            aria-label={isSidePanelHidden ? 'Show filtered events list' : 'Hide filtered events list'}
+          >
+            {isSidePanelHidden ? '◀' : '▶'}
+          </button>
+        )}
+        {hasSidebarFilter && !isSidePanelHidden && (
           <aside className="calendar-side-panel">
             <h4 className="calendar-side-title">
               {activeTab === 'participants' && activeParticipantKey
