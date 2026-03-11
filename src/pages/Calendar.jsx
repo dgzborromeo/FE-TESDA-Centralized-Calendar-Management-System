@@ -1269,6 +1269,13 @@ return parsedEvents
             timeZone="local"
             initialView="dayGridMonth"
             initialDate={dateParam ? new Date(`${dateParam}T12:00:00`) : undefined}
+            dayHeaderContent={(arg) => {
+              const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
+              const day = d.getDay(); // 0=Sun, 6=Sat
+              const isWeekend = day === 0 || day === 6;
+              const label = d.toLocaleDateString('en-US', { weekday: isWeekend ? 'short' : 'long' });
+              return <span>{label}</span>;
+            }}
             headerToolbar={{
               left: 'prev,next today',
               center: 'title',
@@ -1683,8 +1690,12 @@ return parsedEvents
             <h4 className="calendar-side-title">
               {activeTab === 'participants' && activeParticipantKey
                 ? `Filtered: ${PARTICIPANT_LEGEND_ITEMS.find((i) => i.key === activeParticipantKey)?.label || activeParticipantKey}`
-                : 'Filtered by host'}
+                : 'Filtered by host'}{' '}
+              <span className="calendar-side-count">({sidebarEvents.length})</span>
             </h4>
+            {fcEvents.length > sidebarEvents.length && sidebarEvents.length > 0 && (
+              <p className="calendar-side-subtitle">Showing first {sidebarEvents.length} events in current view</p>
+            )}
             <ul className="calendar-side-list">
               {sidebarEvents.map((ev) => {
                 const ext = ev.extendedProps || {};

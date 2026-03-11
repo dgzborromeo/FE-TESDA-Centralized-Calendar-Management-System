@@ -140,6 +140,17 @@
   color: var(--text);
 }
 
+.calendar-side-count {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.calendar-side-subtitle {
+  margin: -0.4rem 0 0.7rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 .calendar-side-list {
   list-style: none;
   margin: 0;
@@ -918,6 +929,20 @@
 .calendar-main-fullcalendar .fc {
   --calendar-weekend-col: 4%;
   --calendar-weekday-col: calc((100% - (var(--calendar-weekend-col) * 2)) / 5);
+  /* Make grid lines more visible */
+  --fc-border-color: rgba(148, 163, 184, 0.55);
+}
+
+/* Stronger grid/border lines (month + timegrid) */
+.calendar-main-fullcalendar .fc .fc-scrollgrid,
+.calendar-main-fullcalendar .fc .fc-scrollgrid table,
+.calendar-main-fullcalendar .fc-theme-standard td,
+.calendar-main-fullcalendar .fc-theme-standard th {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.calendar-main-fullcalendar .fc-theme-standard .fc-scrollgrid {
+  border: 1px solid rgba(148, 163, 184, 0.55);
 }
 
 .calendar-main-fullcalendar .fc .fc-col-header-cell.fc-day-sat,
@@ -964,9 +989,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #475569;
+  color: #334155;
   background: rgba(248, 250, 252, 0.95);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.55);
 }
 .fc .fc-col-header-cell-cushion {
   padding: 0.2rem 0;
@@ -979,7 +1004,7 @@
 .fc .fc-daygrid-day-number {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #64748b;
+  color: #334155;
   margin: 0.35rem 0.4rem;
   width: 1.6rem;
   height: 1.6rem;
