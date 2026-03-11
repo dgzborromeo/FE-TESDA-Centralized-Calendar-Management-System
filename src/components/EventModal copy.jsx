@@ -1,0 +1,712 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { events as eventsApi } from '../api';
+import { useAuth } from '../context/AuthContext';
+import { useAppDialog } from './AppDialogProvider';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
+import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
+import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
+import './EventModal.css';
+
+function formatTime(t) {
+  if (!t) return '';
+  const parts = t.split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  const am = h < 12;
+  return `${h % 12 || 12}:${m} ${am ? 'AM' : 'PM'}`;
+}
+
+function formatDate(d) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function formatDateRange(startDate, endDate) {
+  const start = String(startDate || '').slice(0, 10);
+  const end = String(endDate || startDate || '').slice(0, 10);
+  if (!start) return '';
+  if (!end || end === start) return formatDate(start);
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
+function normalizeTime(t) {
+  if (!t) return '';
+  return t.length === 5 ? `${t}:00` : t;
+}
+
+export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const dialog = useAppDialog();
+  const isRomo = (user?.email || '').toLowerCase() === 'romo@tesda.gov.ph';
+  const isPo = (user?.email || '').toLowerCase() === 'po@tesda.gov.ph';
+  const isSmo = (user?.email || '').toLowerCase() === 'smo@tesda.gov.ph';
+  const isCo = (user?.email || '').toLowerCase() === 'co@tesda.gov.ph';
+  const isIcto = (user?.email || '').toLowerCase() === 'icto@tesda.gov.ph';
+  const isAs = (user?.email || '').toLowerCase() === 'as@tesda.gov.ph';
+  const isPlo = (user?.email || '').toLowerCase() === 'plo@tesda.gov.ph';
+  const isPio = (user?.email || '').toLowerCase() === 'pio@tesda.gov.ph';
+  const isQso = (user?.email || '').toLowerCase() === 'qso@tesda.gov.ph';
+  const isFms = (user?.email || '').toLowerCase() === 'fms@tesda.gov.ph';
+  const isClgeo = (user?.email || '').toLowerCase() === 'clgeo@tesda.gov.ph';
+  const isEbeto = (user?.email || '').toLowerCase() === 'ebeto@tesda.gov.ph';
+  const isAdmin = user?.role === 'admin';
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [repName, setRepName] = useState('');
+  const [declineReason, setDeclineReason] = useState('');
+  const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const [cancelMode, setCancelMode] = useState('cancel');
+  const [cancelReason, setCancelReason] = useState('');
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleEndDate, setRescheduleEndDate] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [postDocFile, setPostDocFile] = useState(null);
+  const [postDocUploading, setPostDocUploading] = useState(false);
+  const [nowTick, setNowTick] = useState(0);
+
+  // Update status periodically so it changes from Active -> Ongoing -> Done in real-time
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick((x) => x + 1), 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!eventId) return;
+    setLoading(true);
+    eventsApi.get(eventId)
+      .then((e) => {
+        setEvent(e);
+        // Reset inputs each time we open a modal
+        setRepName('');
+        setDeclineReason('');
+        setCancelMode('cancel');
+        setCancelReason('');
+        setRescheduleDate('');
+        setRescheduleEndDate('');
+        setPostDocFile(null);
+      })
+      .catch(() => onClose())
+      .finally(() => setLoading(false));
+    // Intentionally only refetch when the selected event changes.
+    // Including onClose here can cause repeated refetches when parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  const refreshEvent = async () => {
+    const e = await eventsApi.get(eventId);
+    setEvent(e);
+  };
+
+  const submitRsvp = async (status) => {
+    if (!eventId) return;
+    try {
+      setRsvpSubmitting(true);
+      await eventsApi.rsvp(eventId, {
+        status,
+        representative_name: status === 'accepted' ? repName : undefined,
+        decline_reason: status === 'declined' ? declineReason : undefined,
+      });
+      await refreshEvent();
+    } catch (e) {
+      await dialog.alert(e.message);
+    } finally {
+      setRsvpSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const ok = await dialog.confirm('Delete this event?', {
+      title: 'Confirm Delete',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await eventsApi.delete(eventId);
+      onDelete?.();
+      onClose();
+    } catch (e) {
+      await dialog.alert(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    onClose();
+    navigate(`/events/${eventId}/edit`);
+    onEdit?.();
+  };
+
+  const handleCancelOrReschedule = async () => {
+    if (!isAdmin) return;
+    const mode = cancelMode === 'reschedule' ? 'reschedule' : 'cancel';
+    if (mode === 'reschedule' && !rescheduleDate) {
+      await dialog.alert('Please select a new date for reschedule.', { title: 'Incomplete Form' });
+      return;
+    }
+    const confirmMsg = mode === 'reschedule'
+      ? 'Cancel this event and create a rescheduled linked event?'
+      : 'Cancel this event?';
+    const ok = await dialog.confirm(confirmMsg, {
+      title: mode === 'reschedule' ? 'Confirm Cancel + Reschedule' : 'Confirm Cancel',
+      confirmText: mode === 'reschedule' ? 'Proceed' : 'Cancel Event',
+      cancelText: 'Back',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    try {
+      setCancelSubmitting(true);
+      await eventsApi.cancel(eventId, {
+        mode,
+        reason: cancelReason.trim() || undefined,
+        new_date: mode === 'reschedule' ? rescheduleDate : undefined,
+        new_end_date: mode === 'reschedule' ? (rescheduleEndDate || undefined) : undefined,
+      });
+      await refreshEvent();
+      onDelete?.();
+      if (mode === 'reschedule') {
+        await dialog.alert('Event cancelled and rescheduled successfully.', { title: 'Success' });
+      } else {
+        await dialog.alert('Event cancelled successfully.', { title: 'Success' });
+      }
+    } catch (e) {
+      await dialog.alert(e.message, { title: 'Action Failed' });
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
+
+  const handleUploadPostDocument = async () => {
+    if (!postDocFile) return;
+    try {
+      setPostDocUploading(true);
+      await eventsApi.uploadPostDocument(eventId, postDocFile);
+      setPostDocFile(null);
+      await refreshEvent();
+      onDelete?.();
+    } catch (e) {
+      await dialog.alert(e.message || 'Failed to upload document.', { title: 'Upload Failed' });
+    } finally {
+      setPostDocUploading(false);
+    }
+  };
+
+  if (loading || !event) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-loading">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const isCreator = Number(event.created_by) === Number(user?.id);
+  const eventDate = String(event.date || '').slice(0, 10);
+  const eventEndDate = String(event.end_date || event.date || '').slice(0, 10);
+  const startAt = new Date(`${eventDate}T${normalizeTime(event.start_time)}`);
+  const endAt = new Date(`${eventEndDate}T${normalizeTime(event.end_time)}`);
+  const now = new Date();
+  
+  // Calculate event status based on current time
+  const isCancelled = String(event.status || 'active').toLowerCase() === 'cancelled';
+  let eventStatus = 'active'; // default: upcoming
+  let statusLabel = 'Active';
+  let statusClass = 'modal-status-active';
+  
+  if (isCancelled) {
+    eventStatus = 'cancelled';
+    statusLabel = 'Cancelled';
+    statusClass = 'modal-status-cancelled';
+  } else if (Number.isFinite(startAt.getTime()) && Number.isFinite(endAt.getTime())) {
+    if (now >= endAt) {
+      // Event has finished
+      eventStatus = 'done';
+      statusLabel = 'Done';
+      statusClass = 'modal-status-done';
+    } else if (now >= startAt && now < endAt) {
+      // Event is currently happening
+      eventStatus = 'ongoing';
+      statusLabel = 'Ongoing';
+      statusClass = 'modal-status-ongoing';
+    } else {
+      // Event is upcoming
+      eventStatus = 'active';
+      statusLabel = 'Active';
+      statusClass = 'modal-status-active';
+    }
+  }
+  
+  const isDone = eventStatus === 'done';
+  const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone && !isCancelled;
+  const canAdminCancel = isAdmin && !isCancelled;
+  const requiredPostDocLabel = event.required_post_document || (event.type === 'event' ? 'After Activity Report (AAR)' : 'Minutes of the Meeting');
+  const postDocs = Array.isArray(event.attachments) ? event.attachments.filter((a) => Boolean(a.is_post_document)) : [];
+  const regularAttachments = Array.isArray(event.attachments) ? event.attachments.filter((a) => !a.is_post_document) : [];
+  const postDocRequired = Boolean(event.post_document_required || isDone);
+  const isHost = Number(event.created_by) === Number(user?.id);
+  const needsPostDoc = !isCancelled && postDocRequired;
+  const missingPostDoc = needsPostDoc && postDocs.length === 0;
+  const myRsvp = event.rsvps?.find((r) => Number(r.office_user_id) === Number(user?.id)) || null;
+  const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
+  const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
+  const tentativeMeta = parseTentativeDescription(event.description || '');
+  const normalizeAttendeeName = (a) => {
+    if (!a) return '';
+    if (typeof a === 'string') return a.trim();
+    // common backend shapes
+    return String(
+      a.name ||
+        a.full_name ||
+        a.display_name ||
+        a.office_name ||
+        a.user_name ||
+        a.email ||
+        ''
+    ).trim();
+  };
+
+  let attendeesArr = [];
+  if (Array.isArray(event.attendees)) {
+    attendeesArr = event.attendees;
+  } else if (typeof event.attendees === 'string') {
+    try {
+      const parsed = JSON.parse(event.attendees);
+      if (Array.isArray(parsed)) attendeesArr = parsed;
+    } catch {
+      attendeesArr = [];
+    }
+  }
+
+  const backendParticipantLines = attendeesArr
+    .map(normalizeAttendeeName)
+    .filter(Boolean);
+  const hasBackendParticipants = backendParticipantLines.length > 0;
+
+  let participantsArr = [];
+  if (Array.isArray(event.participants)) {
+    participantsArr = event.participants;
+  } else if (typeof event.participants === 'string') {
+    try {
+      const parsed = JSON.parse(event.participants);
+      if (Array.isArray(parsed)) participantsArr = parsed;
+    } catch {
+      participantsArr = [];
+    }
+  }
+  const participantsFromJson = participantsArr
+    .map((p) => {
+      if (!p) return '';
+      if (typeof p === 'string') return p.trim();
+      return String(p.label || p.name || p.category_name || p.focal_name || '').trim();
+    })
+    .filter(Boolean);
+
+  const dbRdParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
+  const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
+  const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
+  const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
+  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
+  const participantLines = hasBackendParticipants
+    ? backendParticipantLines
+    : participantsFromJson.length
+      ? participantsFromJson
+    : dbParticipantLines.length
+      ? dbParticipantLines
+      : localRegionalDirectorParticipants.length
+        ? localRegionalDirectorParticipants
+      : ['No participants'];
+  const descriptionText =
+    tentativeMeta.plainDescription || event.description || 'No description available';
+  const locationText = event.location || 'TBA';
+  const getMeetingTypeLabel = (t) => {
+    if (!t) return 'Event';
+    const s = String(t).toLowerCase();
+    if (s === 'face-to-face' || s === 'meeting' || s === 'event') return 'Face to Face';
+    if (s === 'hybrid') return 'Hybrid';
+    if (s === 'virtual' || s === 'zoom') return 'Virtual/Zoom';
+    return t;
+  };
+  const typeText = getMeetingTypeLabel(event.type);
+  const locationIsUrl = /^https?:\/\//i.test(String(locationText).trim());
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal modal-event" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header modal-header-event">
+          <div className="modal-header-main">
+            <h2 className="modal-event-title">{event.title}</h2>
+            <span className={`modal-event-badge ${statusClass}`}>{statusLabel}</span>
+          </div>
+          <div className="modal-header-actions">
+            <button
+              type="button"
+              className="modal-open-tab"
+              onClick={() => window.open(`/events/${eventId}/details`, '_blank', 'noopener,noreferrer')}
+              title="Open full event details in new tab"
+              aria-label="Open full event details in new tab"
+            >
+              ↗
+            </button>
+            <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          </div>
+        </div>
+        <div className="modal-body">
+          <div className="modal-event-grid">
+            <div className="modal-event-col modal-event-col-left">
+              <div className="modal-event-card modal-event-card--date">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="14" r="1.5"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Date & Time</span>
+                  <span className="modal-event-card-date">{formatDateRange(eventDate, eventEndDate)}</span>
+                  <span className="modal-event-card-time">{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+                </div>
+              </div>
+              <div className="modal-event-card modal-event-card--location">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Location</span>
+                  <span className="modal-event-card-value">{locationText}</span>
+                </div>
+              </div>
+              <div className="modal-event-desc-block">
+                <strong className="modal-event-desc-title">Description</strong>
+                <p className="modal-event-desc-text">{descriptionText}</p>
+              </div>
+            </div>
+            <div className="modal-event-col modal-event-col-right">
+              <div className="modal-event-card modal-event-card--host">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Event Host</span>
+                  <span className="modal-event-card-label modal-event-host-name">{event.creator_name || 'Unknown'}</span>
+                  {(event.creator_office || event.office_name) && (
+                    <span className="modal-event-card-sublabel">{event.creator_office || event.office_name}</span>
+                  )}
+                </div>
+              </div>
+              <div className="modal-event-card modal-event-card--type">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Meeting Type</span>
+                  <span className="modal-event-card-value">{typeText}</span>
+                </div>
+              </div>
+              {locationIsUrl && (
+                <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Zoom Meeting Link</span>
+                    <a href={locationText} target="_blank" rel="noreferrer noopener" className="modal-event-join-btn">
+                      Join Zoom Meeting
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+                    </a>
+                    <span className="modal-event-join-url">{locationText}</span>
+                  </div>
+                </div>
+              )}
+              {(regularAttachments.length > 0 || postDocs.length > 0) && (
+                <div className="modal-event-card modal-event-card--attach">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Attachments ({regularAttachments.length + postDocs.length})</span>
+                    <ul className="modal-event-attach-list">
+                      {regularAttachments.map((a) => (
+                        <li key={a.id} className="modal-event-attach-item">
+                          <span className="modal-event-attach-icon">PDF</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                        </li>
+                      ))}
+                      {postDocs.map((a) => (
+                        <li key={a.id} className="modal-event-attach-item">
+                          <span className="modal-event-attach-icon">PDF</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+              <div className="modal-event-card modal-event-card--participants">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Participants</span>
+                  <ul className="modal-event-participants-list">
+                    {participantLines.map((name, idx) => (
+                      <li key={idx}>{name}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          {isCancelled && event.cancel_reason ? (
+            <div className="modal-row">
+              <span className="modal-label">Cancel Reason</span>
+              <span>{event.cancel_reason}</span>
+            </div>
+          ) : null}
+          {event.rescheduled_to_event ? (
+            <div className="modal-row">
+              <span className="modal-label">Rescheduled To</span>
+              <span>
+                {event.rescheduled_to_event.title} ({formatDateRange(event.rescheduled_to_event.date, event.rescheduled_to_event.end_date || event.rescheduled_to_event.date)})
+              </span>
+            </div>
+          ) : null}
+          {event.rescheduled_from_event ? (
+            <div className="modal-row">
+              <span className="modal-label">Rescheduled From</span>
+              <span>
+                {event.rescheduled_from_event.title} ({formatDateRange(event.rescheduled_from_event.date, event.rescheduled_from_event.end_date || event.rescheduled_from_event.date)})
+              </span>
+            </div>
+          ) : null}
+          {tentativeMeta.isTentative && (
+            <div className="modal-row">
+              <span className="modal-label">Schedule</span>
+              <span>
+                Tentative{tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}
+              </span>
+            </div>
+          )}
+
+          {Array.isArray(event.rsvps) && event.rsvps.length > 0 && (
+            <div className="modal-row modal-rsvps">
+              <span className="modal-label">Responses</span>
+              <ul className="modal-rsvp-list">
+                {event.rsvps.map((r) => (
+                  <li key={`${r.office_user_id}`} className="modal-rsvp-item">
+                    <span className="modal-rsvp-office">{r.office_name || 'Unknown office'}</span>
+                    <span className={`modal-rsvp-badge modal-rsvp-${r.status}`}>{prettyStatus(r.status)}</span>
+                    {r.status === 'accepted' && r.representative_name ? (
+                      <span className="modal-rsvp-detail">Representative: {r.representative_name}</span>
+                    ) : null}
+                    {r.status === 'declined' && r.decline_reason ? (
+                      <span className="modal-rsvp-detail">Reason: {r.decline_reason}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {myRsvp && (
+            <div className="modal-row modal-my-rsvp">
+              <span className="modal-label">Your Response</span>
+              <div className="modal-my-rsvp-inner">
+                <div className="modal-my-rsvp-status">
+                  Status: <span className={`modal-rsvp-badge modal-rsvp-${myRsvp.status}`}>{prettyStatus(myRsvp.status)}</span>
+                  {rsvpLocked ? <span className="modal-rsvp-locked">Response locked (event started)</span> : null}
+                </div>
+
+                {myRsvp.status === 'pending' && !rsvpLocked && (
+                  <div className="modal-rsvp-actions">
+                    <div className="modal-rsvp-action">
+                      <label className="modal-rsvp-action-label">
+                        Representative name
+                        <input
+                          value={repName}
+                          onChange={(e) => setRepName(e.target.value)}
+                          placeholder="Enter representative"
+                          className="modal-input"
+                          disabled={rsvpSubmitting}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="modal-btn modal-btn-edit"
+                        onClick={() => submitRsvp('accepted')}
+                        disabled={rsvpSubmitting || !repName.trim()}
+                      >
+                        {rsvpSubmitting ? 'Submitting...' : 'Accept'}
+                      </button>
+                    </div>
+
+                    <div className="modal-rsvp-action">
+                      <label className="modal-rsvp-action-label">
+                        Decline reason
+                        <textarea
+                          value={declineReason}
+                          onChange={(e) => setDeclineReason(e.target.value)}
+                          placeholder="Why can’t you attend?"
+                          className="modal-textarea"
+                          rows={3}
+                          disabled={rsvpSubmitting}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="modal-btn modal-btn-delete"
+                        onClick={() => submitRsvp('declined')}
+                        disabled={rsvpSubmitting || !declineReason.trim()}
+                      >
+                        {rsvpSubmitting ? 'Submitting...' : 'Decline'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {needsPostDoc && (
+            <div className="modal-row modal-attachments">
+              <span className="modal-label">{requiredPostDocLabel}</span>
+              {postDocs.length === 0 ? (
+                <p className="modal-postdoc-empty">
+                  {isHost
+                    ? `Required after this ${event.type || 'event'} is done. Please upload ${requiredPostDocLabel}.`
+                    : `Pending host submission: ${requiredPostDocLabel}.`}
+                </p>
+              ) : (
+                <p className="modal-postdoc-empty">
+                  Submitted ({postDocs.length}). See attachments section above.
+                </p>
+              )}
+              {isHost && isDone && (
+                <div className="modal-postdoc-upload">
+                  <input
+                    type="file"
+                    onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
+                    disabled={postDocUploading}
+                  />
+                  <button
+                    type="button"
+                    className="modal-btn modal-btn-edit"
+                    onClick={handleUploadPostDocument}
+                    disabled={postDocUploading || !postDocFile}
+                    title={missingPostDoc ? 'Upload required post-event document.' : 'Upload another file/version.'}
+                  >
+                    {postDocUploading ? 'Uploading...' : `Upload ${requiredPostDocLabel}`}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {event.conflicts?.length > 0 && (
+            <div className="modal-conflicts">
+              <span className="modal-label">⚠ Conflicts</span>
+              <ul>
+                {event.conflicts.map((c) => (
+                  <li key={c.id}>{c.title} ({formatTime(c.start_time)} – {formatTime(c.end_time)})</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {canAdminCancel && (
+            <div className="modal-row modal-cancel-admin">
+              <span className="modal-label">Admin Action</span>
+              <div className="modal-cancel-body">
+                <div className="modal-cancel-mode">
+                  <label className="modal-cancel-option">
+                    <input
+                      type="radio"
+                      name="cancelMode"
+                      value="cancel"
+                      checked={cancelMode === 'cancel'}
+                      onChange={(e) => setCancelMode(e.target.value)}
+                      disabled={cancelSubmitting}
+                    />
+                    Cancel only
+                  </label>
+                  <label className="modal-cancel-option">
+                    <input
+                      type="radio"
+                      name="cancelMode"
+                      value="reschedule"
+                      checked={cancelMode === 'reschedule'}
+                      onChange={(e) => setCancelMode(e.target.value)}
+                      disabled={cancelSubmitting}
+                    />
+                    Cancel and reschedule
+                  </label>
+                </div>
+                <label className="modal-cancel-field">
+                  Reason (optional)
+                  <textarea
+                    rows={2}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className="modal-textarea"
+                    disabled={cancelSubmitting}
+                    placeholder="Why this event is cancelled/rescheduled"
+                  />
+                </label>
+                {cancelMode === 'reschedule' ? (
+                  <div className="modal-cancel-date-grid">
+                    <label className="modal-cancel-field">
+                      New start date <span className="required">*</span>
+                      <input
+                        type="date"
+                        value={rescheduleDate}
+                        onChange={(e) => setRescheduleDate(e.target.value)}
+                        className="modal-input"
+                        disabled={cancelSubmitting}
+                      />
+                    </label>
+                    <label className="modal-cancel-field">
+                      New end date (optional)
+                      <input
+                        type="date"
+                        value={rescheduleEndDate}
+                        min={rescheduleDate || undefined}
+                        onChange={(e) => setRescheduleEndDate(e.target.value)}
+                        className="modal-input"
+                        disabled={cancelSubmitting}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  className="modal-btn modal-btn-delete"
+                  onClick={handleCancelOrReschedule}
+                  disabled={cancelSubmitting}
+                >
+                  {cancelSubmitting
+                    ? 'Saving...'
+                    : (cancelMode === 'reschedule' ? 'Cancel + Reschedule' : 'Cancel Event')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          {canEdit && (
+            <>
+              <button type="button" className="modal-btn modal-btn-edit" onClick={handleEdit}>Edit</button>
+              <button type="button" className="modal-btn modal-btn-delete" onClick={handleDelete} disabled={deleting}>
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </>
+          )}
+          <button type="button" className="modal-btn modal-btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}

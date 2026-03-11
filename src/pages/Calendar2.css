@@ -113,6 +113,118 @@
   align-items: stretch;
 }
 
+.calendar-content .calendar-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Side panel: filtered events list (host or participant filter) */
+.calendar-side-panel {
+  width: 280px;
+  min-width: 260px;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.calendar-side-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calendar-side-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.calendar-side-item {
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.calendar-side-item:hover {
+  background: rgba(37, 99, 235, 0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.calendar-side-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.calendar-side-date {
+  font-weight: 600;
+}
+
+.calendar-side-time {
+  color: var(--text-muted);
+}
+
+.calendar-side-main {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.calendar-side-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.calendar-side-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calendar-side-chip-label {
+  color: var(--text);
+}
+
+.calendar-side-title-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.calendar-side-empty {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .calendar-tabs {
   display: inline-flex;
   align-items: center;
@@ -250,6 +362,17 @@
 .calendar-legend-active-host-filter:hover {
   background: rgba(37, 99, 235, 0.12);
   border-color: rgba(37, 99, 235, 0.38);
+}
+
+.calendar-legend-active-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.calendar-legend-active-label {
+  flex: 0 0 auto;
 }
 
 .calendar-legend-filter label {
@@ -497,6 +620,33 @@
   margin-top: 0.5rem;
 }
 
+.calendar-cluster-reset-row {
+  margin-top: 0.3rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.calendar-cluster-reset-btn {
+  flex: 0 0 auto;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  background: rgba(248, 113, 113, 0.08);
+  color: #b91c1c;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.calendar-cluster-reset-btn:hover {
+  border-color: rgba(220, 38, 38, 0.9);
+  background: rgba(248, 113, 113, 0.18);
+  color: #991b1b;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.3);
+}
+
 .calendar-cluster-summary {
   width: 100%;
   position: relative;
@@ -689,9 +839,15 @@
   cursor: pointer;
 }
 
-.calendar-legend-item-btn:hover,
-.calendar-legend-item-btn.is-active {
+.calendar-legend-item-btn:hover {
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
+}
+
+.calendar-participant-legend .calendar-legend-item-btn.is-active {
+  border-color: rgba(37, 99, 235, 0.55);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
   transform: translateY(-1px);
 }
 
@@ -999,6 +1155,31 @@
 
 .fc-event-host-stripe-code {
   font-weight: 700;
+}
+
+.fc-event-title-wrap--participants {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.fc-event-participant-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.fc-event-participant-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.08rem 0.3rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .fc-event-done-badge {

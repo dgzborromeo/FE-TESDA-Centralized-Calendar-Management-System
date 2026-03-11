@@ -9,7 +9,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import './Calendar.css';
+import './Calendar2.css';
 import ParticipantsCalendarView from '../components/ParticipantsCalendarView';
 
 // Calendar color palette (aligned with design brief)
@@ -137,10 +137,12 @@ function formatEventDateLong(dateYmd, endDateYmd, startTime, endTime) {
 }
 
 function getEventTypeLabel(type) {
-  if (type === 'face-to-face') return 'Face to Face';
-  if (type === 'hybrid') return 'Hybrid';
-  if (type === 'virtual') return 'Virtual/Zoom';
-  return type || 'Event';
+  if (!type) return 'Event';
+  const s = String(type).toLowerCase();
+  if (s === 'face-to-face' || s === 'meeting' || s === 'event') return 'Face to Face';
+  if (s === 'hybrid') return 'Hybrid';
+  if (s === 'virtual' || s === 'zoom') return 'Virtual/Zoom';
+  return type;
 }
 
 function getDateFromPoint(clientX, clientY) {
@@ -195,8 +197,8 @@ function textColorForBackground(hexColor) {
 }
 
 const PARTICIPANT_LEGEND_ITEMS = [
-  // OSEC red
-  { key: 'osec', label: 'OSEC', color: '#ef4444' },
+  // SEC red
+  { key: 'osec', label: 'SEC', color: '#ef4444' },
   // DDGs pink
   { key: 'ddgs', label: 'DDGs', color: '#ec4899' },
   // EDs cyan
@@ -211,9 +213,76 @@ const PARTICIPANT_LEGEND_ITEMS = [
   { key: 'admin', label: 'ADMIN', color: '#22c55e' },
   // CHIEF blue
   { key: 'chief', label: 'CHIEF', color: '#3b82f6' },
-  // Focals yellow
-  { key: 'focals', label: 'Focals', color: '#eab308' },
+  // FOCALS yellow
+  { key: 'focals', label: 'FOCALS', color: '#eab308' },
 ];
+
+function inferParticipantKeys(participantsArr, hasOsecParticipant) {
+  const parts = Array.isArray(participantsArr) ? participantsArr : [];
+  const out = new Set();
+
+  if (hasOsecParticipant) out.add('osec');
+
+  const legendByLabel = PARTICIPANT_LEGEND_ITEMS.map((item) => ({
+    key: item.key,
+    label: String(item.label || '').toLowerCase(),
+  }));
+
+  for (const p of parts) {
+    if (!p) continue;
+    const rawName =
+      typeof p === 'string'
+        ? p
+        : p.label || p.name || p.category_name || p.focal_name || '';
+    const name = String(rawName || '').toLowerCase();
+    if (!name) continue;
+
+    // Match against legend labels (e.g. "DDGs", "RDs", "ADMIN", etc.)
+    for (const l of legendByLabel) {
+      if (name.includes(l.label) || l.label.includes(name)) {
+        out.add(l.key);
+      }
+    }
+
+    // Explicit mapping for some common patterns in names
+    if (name.includes('osec')) out.add('osec');
+    if (name.includes('ddg')) out.add('ddgs');
+    if (name.includes('executive director') || /\bed?s?\b/.test(name)) out.add('eds');
+    if (name.includes('regional director') || /\brd?s?\b/.test(name)) out.add('rds');
+    if (
+      name.includes('provincial director') ||
+      /\bpd?s?\b/.test(name) ||
+      name.includes('division director') ||
+      name.includes('dd ')
+    ) {
+      out.add('pds_dds');
+    }
+    if (name.includes('assistant executive') || name.includes('aed')) out.add('aeds');
+    if (name.includes('admin')) out.add('admin');
+    if (name.includes('chief')) out.add('chief');
+    if (name.includes('focal')) out.add('focals');
+  }
+
+  // If any selected participant is a focal source, tag as focals
+  if (parts.some((p) => p && typeof p === 'object' && String(p.source || '').toLowerCase() === 'focal')) {
+    out.add('focals');
+  }
+
+  return Array.from(out);
+}
+
+function participantMetaForEvent(participantsArr, hasOsecParticipant) {
+  const keys = inferParticipantKeys(participantsArr, hasOsecParticipant);
+  const byKey = new Map(PARTICIPANT_LEGEND_ITEMS.map((i) => [i.key, i]));
+  const primaryKey = keys[0] || '';
+  const primary = primaryKey ? byKey.get(primaryKey) : null;
+  return {
+    keys,
+    primaryKey,
+    label: primary?.label || (keys.length ? String(keys[0]).toUpperCase() : 'No participant'),
+    color: primary?.color || '#94a3b8',
+  };
+}
 
 function stopEvent(e) {
   e.preventDefault();
@@ -432,10 +501,9 @@ const [filterHost, setFilterHost] = useState('');
 
   useEffect(() => {
     fetchLegend();
-    // PALITAN ITO: mula eventsApi -> configApi
-  configApi.getCategories()
-    .then((rows) => setCategories(Array.isArray(rows) ? rows : []))
-    .catch((err) => console.error("Error loading categories:", err));
+    // Categories are only needed for the (currently hidden) participant filter UI.
+    // Avoid calling a missing endpoint and spamming the console with 404s.
+    setCategories([]);
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -596,6 +664,7 @@ const hostOptions = useMemo(() => {
       if (prev?.kind === 'cluster' && prev?.clusterId === clusterId) return null;
       return { kind: 'cluster', clusterId, officeName: '', label, accountIds: ids };
     });
+    setOpenLegendClusterId(null);
   };
 
   const toggleHostLegendFilterOffice = async (clusterId, officeName) => {
@@ -615,6 +684,7 @@ const hostOptions = useMemo(() => {
         accountIds: new Set([id]),
       };
     });
+    setOpenLegendClusterId(null);
   };
 
   // Backwards compatibility (if anything still uses it): treat it as office filter by accountId
@@ -693,13 +763,19 @@ const sortedHostDropdownOptions = useMemo(() => {
     .sort((a, b) => a.shortName.localeCompare(b.shortName));
 }, [users]);
 
-   const fcEvents = useMemo(() => {
+ const fcEvents = useMemo(() => {
 return parsedEvents
     .filter((e) => {
       const typeOk = !filterType ? true : e.type === filterType;
       
       // I-check kung typeOk muna bago mag-filter ng participant
       if (!typeOk) return false;
+
+      // Participants tab quick filter (legend)
+      if (activeTab === 'participants' && activeParticipantKey) {
+        const meta = participantMetaForEvent(e._parsedParticipants || [], Boolean(e.has_osec_participant));
+        if (!meta.keys.includes(activeParticipantKey)) return false;
+      }
 
       // Filter by Participant
       if (filterParticipant) {
@@ -747,7 +823,9 @@ return parsedEvents
         const hostNeedsPostDoc = done && !cancelled && Number(e.created_by) === Number(user?.id) && postDocCount === 0;
         const dateRangeText = isMultiDay ? `${date} to ${endDate}` : date;
         const hasAttachment = Number(e.attachment_count || 0) > 0;
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nHost: ${host}${e.has_osec_participant ? '\nParticipant: OSEC' : ''}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
+        const participantMeta = participantMetaForEvent(e._parsedParticipants || [], Boolean(e.has_osec_participant));
+        const typeLabel = getEventTypeLabel(e.type);
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nType: ${typeLabel}\nHost: ${host}${e.has_osec_participant ? '\nParticipant: OSEC' : ''}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -760,8 +838,8 @@ return parsedEvents
           borderColor,
           textColor: '#2e2e2e',
           allDay: isMultiDay,
-          startEditable: canEditThis && !isMultiDay && !done && !cancelled,
-          durationEditable: canEditThis && !isMultiDay && !done && !cancelled,
+          startEditable: activeTab !== 'participants' && canEditThis && !isMultiDay && !done && !cancelled,
+          durationEditable: activeTab !== 'participants' && canEditThis && !isMultiDay && !done && !cancelled,
           classNames: [
             ...(done ? ['fc-event-done'] : []),
             ...(cancelled ? ['fc-event-cancelled'] : []),
@@ -777,6 +855,10 @@ return parsedEvents
             host_needs_postdoc: hostNeedsPostDoc,
             has_attachment: hasAttachment,
             has_osec_participant: Boolean(e.has_osec_participant),
+            participant_key: participantMeta.primaryKey,
+            participant_label: participantMeta.label,
+            participant_color: participantMeta.color,
+            participant_keys: participantMeta.keys,
             is_tentative: tentativeMeta.isTentative,
             tentative_note: tentativeMeta.note || '',
             is_multi_day: isMultiDay,
@@ -794,7 +876,14 @@ return parsedEvents
           },
         };
       });
- }, [parsedEvents, filterType, filterHost, hostLegendFilter, filterParticipant, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+ }, [parsedEvents, filterType, filterHost, hostLegendFilter, filterParticipant, activeTab, activeParticipantKey, isAdmin, isReadOnlyOffice, user?.id, nowTick]);
+
+  const hasSidebarFilter = useMemo(
+    () => Boolean(hostLegendFilter?.accountIds?.size || (activeTab === 'participants' && activeParticipantKey)),
+    [hostLegendFilter, activeTab, activeParticipantKey]
+  );
+
+  const sidebarEvents = hasSidebarFilter ? fcEvents.slice(0, 50) : [];
 
   const hostModalEvents = useMemo(() => {
     if (!hostModalTarget?.accountId) return [];
@@ -869,15 +958,62 @@ return parsedEvents
                   */}
                 </div>
                 {activeTab === 'offices' && hostLegendFilter?.accountIds?.size ? (
-                  <button
-                    type="button"
-                    className="calendar-legend-active-host-filter"
-                    onClick={clearHostLegendFilter}
-                    title="Clear host filter"
-                  >
-                    Filtered: {hostLegendFilter.label} <span aria-hidden>×</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="calendar-legend-active-host-filter"
+                      onClick={clearHostLegendFilter}
+                      title="Clear host filter"
+                    >
+                      Filtered: {hostLegendFilter.label} <span aria-hidden>×</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="calendar-cluster-reset-btn"
+                      onClick={() => {
+                        clearHostLegendFilter();
+                        setHostModalTarget(null);
+                      }}
+                      title="Reset calendar filter"
+                      aria-label="Reset calendar filter"
+                    >
+                      Reset
+                    </button>
+                  </>
                 ) : null}
+                {activeTab === 'participants' && activeParticipantKey ? (() => {
+                  const activeLegend = PARTICIPANT_LEGEND_ITEMS.find((i) => i.key === activeParticipantKey);
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        className="calendar-legend-active-host-filter"
+                        onClick={() => setActiveParticipantKey('')}
+                        title="Clear participant filter"
+                      >
+                        {activeLegend && (
+                          <span
+                            className="calendar-legend-active-dot"
+                            style={{ backgroundColor: activeLegend.color }}
+                          />
+                        )}
+                        <span className="calendar-legend-active-label">
+                          {activeLegend?.label || activeParticipantKey}
+                        </span>
+                        <span aria-hidden>×</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="calendar-cluster-reset-btn"
+                        onClick={() => setActiveParticipantKey('')}
+                        title="Reset participant filter"
+                        aria-label="Reset participant filter"
+                      >
+                        Reset
+                      </button>
+                    </>
+                  );
+                })() : null}
                 {!isViewerLike && (
                   <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
                 )}
@@ -1023,26 +1159,26 @@ return parsedEvents
                       </div>
                     ))}
                     {/* REGIONS LEGEND */}
-<div
-  className={`calendar-cluster-item dropdown-right ${openLegendClusterId === 'regions' ? 'is-open' : ''}`}
->
-  <button
-    type="button"
-    className="calendar-cluster-summary"
-    style={{ '--cluster-color': '#facc15' }}
-    onClick={() =>
-      setOpenLegendClusterId(openLegendClusterId === 'regions' ? null : 'regions')
-    }
-  >
-    <span className="calendar-cluster-summary-main">
-      <span className="calendar-cluster-name-short">
-        REGIONS
-      </span>
-    </span>
-    <span className="calendar-cluster-chevron">▾</span>
-  </button>
+                    <div
+                      className={`calendar-cluster-item dropdown-right ${openLegendClusterId === 'regions' ? 'is-open' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className="calendar-cluster-summary"
+                        style={{ '--cluster-color': '#facc15' }}
+                        onClick={() =>
+                          setOpenLegendClusterId(openLegendClusterId === 'regions' ? null : 'regions')
+                        }
+                      >
+                        <span className="calendar-cluster-summary-main">
+                          <span className="calendar-cluster-name-short">
+                            REGIONS
+                          </span>
+                        </span>
+                        <span className="calendar-cluster-chevron">▾</span>
+                      </button>
 
-  {openLegendClusterId === 'regions' && (
+                      {openLegendClusterId === 'regions' && (
     <div className="calendar-cluster-dropdown">
       <div className="calendar-cluster-dropdown-title">
         <span
@@ -1082,6 +1218,7 @@ return parsedEvents
                     type="button"
                     className="calendar-legend-item calendar-legend-item-btn"
                     onClick={() => {
+                      setOpenLegendClusterId(null);
                       void openHostEventsTarget({
                         key: 'regions-ncr',
                         label: 'National Capital Region (NCR)',
@@ -1126,8 +1263,6 @@ return parsedEvents
             )}
           </section>
           <div className="calendar-view-body">
-          {activeTab === 'offices' ? (
-          <>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -1151,8 +1286,8 @@ return parsedEvents
             // so events only appear in their actual month when you navigate.
             showNonCurrentDates={false}
             height="auto"
-            editable={!isReadOnlyOffice && !isViewerLike}
-            selectable={!isViewerLike}
+            editable={activeTab !== 'participants' && !isReadOnlyOffice && !isViewerLike}
+            selectable={activeTab !== 'participants' && !isViewerLike}
             dayMaxEventRows={5}
             eventDisplay="block"
             displayEventTime={true}
@@ -1361,6 +1496,8 @@ return parsedEvents
               const isHoliday = Boolean(arg.event.extendedProps?.isHoliday);
               const hostColor = arg.event.extendedProps?.host_color || '#1f3a5f';
               const hostAcronym = arg.event.extendedProps?.host_acronym || '';
+              const participantColor = arg.event.extendedProps?.participant_color || '#94a3b8';
+              const participantLabel = arg.event.extendedProps?.participant_label || 'No participant';
               const startRaw = arg.event.extendedProps?.start_time_raw || '';
               const endRaw = arg.event.extendedProps?.end_time_raw || '';
               const startLabel = formatTimeShort(startRaw);
@@ -1372,6 +1509,60 @@ return parsedEvents
               const statusTextColor = isTentative ? '#92400e' : '#166534'; // darker amber / green
               // Final icon only for active, non-tentative, non-done events
               const isFinal = !isTentative && !cancelled && !done;
+
+              if (activeTab === 'participants' && !isHoliday) {
+                const keys = Array.isArray(arg.event.extendedProps?.participant_keys)
+                  ? arg.event.extendedProps.participant_keys
+                  : (arg.event.extendedProps?.participant_key ? [arg.event.extendedProps.participant_key] : []);
+                const legendByKey = new Map(PARTICIPANT_LEGEND_ITEMS.map((i) => [i.key, i]));
+                const chips = keys
+                  .map((k) => legendByKey.get(k))
+                  .filter(Boolean);
+                const shown = chips.slice(0, 3);
+                const extra = Math.max(0, chips.length - shown.length);
+                return (
+                  <div>
+                    {timeLabel && (
+                      <div className="fc-event-time" style={{ color: statusTextColor }}>
+                        {timeLabel}
+                      </div>
+                    )}
+                    <div className={`fc-event-title-wrap fc-event-title-wrap--participants ${conflict ? 'fc-event-conflict' : ''}`}>
+                      <div className="fc-event-participant-chips">
+                        {shown.length ? (
+                          shown.map((p) => (
+                            <span key={p.key} className="fc-event-host-stripe-pill">
+                              <span className="fc-event-host-stripe-bar" style={{ backgroundColor: p.color }} />
+                              <span className="fc-event-host-stripe-code" style={{ color: statusTextColor }}>
+                                {p.label}
+                              </span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="fc-event-host-stripe-pill">
+                            <span className="fc-event-host-stripe-bar" style={{ backgroundColor: participantColor }} />
+                            <span className="fc-event-host-stripe-code" style={{ color: statusTextColor }}>
+                              {participantLabel}
+                            </span>
+                          </span>
+                        )}
+                        {extra > 0 && (
+                          <span className="fc-event-participant-more" style={{ color: statusTextColor }}>
+                            +{extra}
+                          </span>
+                        )}
+                      </div>
+                      {done && <span className="fc-event-done-badge">Done</span>}
+                      {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
+                      {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
+                      {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
+                      {hostNeedsPostDoc && <span className="fc-event-postdoc-required">REQ</span>}
+                      {conflict && <span className="fc-event-conflict-dot">● </span>}
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div>
                   {timeLabel && (
@@ -1459,14 +1650,12 @@ return parsedEvents
                   <span>{eventHover.extendedProps.date_formatted}</span>
                 </div>
               )}
-              {eventHover.extendedProps?.type_label && (
-                <div className="calendar-event-hover-card-row">
-                  <span className="calendar-event-hover-card-icon" aria-hidden>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                  </span>
-                  <span>{eventHover.extendedProps.type_label}</span>
-                </div>
-              )}
+              <div className="calendar-event-hover-card-row">
+                <span className="calendar-event-hover-card-icon" aria-hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </span>
+                <span>{eventHover.extendedProps?.type_label ?? getEventTypeLabel(eventHover.extendedProps?.type) ?? 'Event'}</span>
+              </div>
               <div className="calendar-event-hover-card-row">
                 <span className="calendar-event-hover-card-icon" aria-hidden>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1481,18 +1670,7 @@ return parsedEvents
               )}
             </div>
           )}
-          </>
-          ) : (
-    /* KAPAG PARTICIPANTS: Ipakita ang bagong View */
-    <ParticipantsCalendarView 
-      events={fcEvents} // Ipinasa natin yung filtered events
-      user={user}
-      filterParticipant={filterParticipant}
-      filterHost={filterHost}
-      onEventClick={(event) => setSelectedEvent(event)}
-    />
-  )}
-</div>
+        </div>
           {loading && <div className="calendar-loading">Loading calendar...</div>}
           {error && (
             <div className="calendar-loading" style={{ position: 'static', padding: '1rem', color: 'var(--danger, #dc2626)' }}>
@@ -1500,6 +1678,56 @@ return parsedEvents
             </div>
           )}
         </div>
+        {hasSidebarFilter && (
+          <aside className="calendar-side-panel">
+            <h4 className="calendar-side-title">
+              {activeTab === 'participants' && activeParticipantKey
+                ? `Filtered: ${PARTICIPANT_LEGEND_ITEMS.find((i) => i.key === activeParticipantKey)?.label || activeParticipantKey}`
+                : 'Filtered by host'}
+            </h4>
+            <ul className="calendar-side-list">
+              {sidebarEvents.map((ev) => {
+                const ext = ev.extendedProps || {};
+                const dateLabel = ext.date_formatted || (typeof ev.start === 'string' ? ev.start.slice(0, 10) : '');
+                const startLabel = formatTimeShort(ext.start_time_raw || '');
+                const endLabel = formatTimeShort(ext.end_time_raw || '');
+                const timeLabel = startLabel && endLabel && startLabel !== endLabel ? `${startLabel}–${endLabel}` : startLabel || '';
+                const isParticipantsView = activeTab === 'participants';
+                const activeLegend = activeTab === 'participants' && activeParticipantKey
+                  ? PARTICIPANT_LEGEND_ITEMS.find((i) => i.key === activeParticipantKey)
+                  : null;
+                const chipLabel = isParticipantsView
+                  ? (activeLegend?.label ?? ext.participant_label ?? '')
+                  : hostAcronymFromName(ext.creator_name || '');
+                const chipColor = isParticipantsView
+                  ? (activeLegend?.color ?? ext.participant_color ?? '#4b5563')
+                  : (ext.host_color || '#1f3a5f');
+                return (
+                  <li
+                    key={ev.id}
+                    className="calendar-side-item"
+                    onClick={() => setSelectedEvent(ev.id)}
+                  >
+                    <div className="calendar-side-meta">
+                      <span className="calendar-side-date">{dateLabel}</span>
+                      {timeLabel && <span className="calendar-side-time">{timeLabel}</span>}
+                    </div>
+                    <div className="calendar-side-main">
+                      <span className="calendar-side-chip">
+                        <span className="calendar-side-chip-dot" style={{ backgroundColor: chipColor }} />
+                        <span className="calendar-side-chip-label">{chipLabel}</span>
+                      </span>
+                      <span className="calendar-side-title-text">{ev.title}</span>
+                    </div>
+                  </li>
+                );
+              })}
+              {sidebarEvents.length === 0 && (
+                <li className="calendar-side-empty">No events match this filter.</li>
+              )}
+            </ul>
+          </aside>
+        )}
       </div>
 
       {selectedEvent && (
