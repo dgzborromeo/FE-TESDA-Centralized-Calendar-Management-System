@@ -26,6 +26,53 @@ export default function SimpleEventForm() {
     return /zoom\.us\//i.test(s);
   };
 
+  const toLocalYMD = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const isWeekendYMD = (ymd) => {
+    if (!ymd || String(ymd).length < 10) return false;
+    const d = new Date(`${String(ymd).slice(0, 10)}T12:00:00`);
+    const day = d.getDay();
+    return day === 0 || day === 6;
+  };
+
+  const addBusinessDays = (date, businessDays) => {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+    let remaining = Math.max(0, Number(businessDays) || 0);
+    while (remaining > 0) {
+      d.setDate(d.getDate() + 1);
+      const day = d.getDay();
+      const isWeekend = day === 0 || day === 6;
+      if (!isWeekend) remaining -= 1;
+    }
+    return d;
+  };
+
+  const today = new Date();
+  const minStartDateYmd = toLocalYMD(addBusinessDays(today, 10));
+
+  const dateErrors = (() => {
+    const errs = {};
+    const start = form.startDate;
+    const end = form.endDate;
+
+    if (start) {
+      if (isWeekendYMD(start)) errs.startDate = 'Weekends are not allowed. Please select a weekday (Mon–Fri).';
+      else if (start < minStartDateYmd) errs.startDate = 'Minimum lead time is 10 working days (Mon–Fri). Please select a later date.';
+    }
+    if (end) {
+      if (isWeekendYMD(end)) errs.endDate = 'Weekends are not allowed. Please select a weekday (Mon–Fri).';
+      else if (start && end < start) errs.endDate = 'End Date must be the same as or after Start Date.';
+    }
+    return errs;
+  })();
+
+  const hasBlockingErrors = Boolean(dateErrors.startDate || dateErrors.endDate);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -40,6 +87,10 @@ export default function SimpleEventForm() {
     e.preventDefault();
     if (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) {
       alert('Please enter a valid Zoom link (e.g. https://zoom.us/j/...) to continue.');
+      return;
+    }
+    if (hasBlockingErrors) {
+      alert('Please fix the date requirements before saving.');
       return;
     }
     // For now, just log. This page is intentionally not wired to backend/calendar.
@@ -161,8 +212,12 @@ export default function SimpleEventForm() {
                   value={form.startDate}
                   onChange={handleChange}
                   className="simple-event-input"
+                  min={minStartDateYmd}
                   required
                 />
+                {dateErrors.startDate && (
+                  <span className="simple-event-hint simple-event-hint-error">{dateErrors.startDate}</span>
+                )}
               </div>
 
               <div className="simple-event-field">
@@ -176,8 +231,12 @@ export default function SimpleEventForm() {
                   value={form.endDate}
                   onChange={handleChange}
                   className="simple-event-input"
+                  min={form.startDate || minStartDateYmd}
                   required
                 />
+                {dateErrors.endDate && (
+                  <span className="simple-event-hint simple-event-hint-error">{dateErrors.endDate}</span>
+                )}
               </div>
 
               <div className="simple-event-field">
@@ -331,7 +390,7 @@ export default function SimpleEventForm() {
             <button
               type="submit"
               className="simple-event-submit"
-              disabled={form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)}
+              disabled={(form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
             >
               Save Event
             </button>
