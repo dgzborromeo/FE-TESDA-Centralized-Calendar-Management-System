@@ -1652,7 +1652,7 @@ return parsedEvents
                 >
                   {eventHover.extendedProps?.is_tentative ? 'Tentative' : 'Final'}
                 </span>
-                <span className="calendar-event-hover-card-tag tag-confirmed">
+                <span className={`calendar-event-hover-card-tag ${eventHover.extendedProps?.done ? 'tag-done' : eventHover.extendedProps?.cancelled ? 'tag-cancelled' : 'tag-confirmed'}`}>
                   {eventHover.extendedProps?.cancelled ? 'Cancelled' : eventHover.extendedProps?.done ? 'Done' : 'Confirmed'}
                 </span>
               </div>
@@ -1703,13 +1703,22 @@ return parsedEvents
             {isSidePanelHidden ? '◀' : '▶'}
           </button>
         )}
-        {hasSidebarFilter && !isSidePanelHidden && (
+        {hasSidebarFilter && !isSidePanelHidden && (() => {
+          const tentativeCount = sidebarEvents.filter((ev) => ev.extendedProps?.is_tentative).length;
+          const doneCount = sidebarEvents.filter((ev) => ev.extendedProps?.done).length;
+          return (
           <aside className="calendar-side-panel">
             <h4 className="calendar-side-title">
               {activeTab === 'participants' && activeParticipantKey
                 ? `Filtered: ${PARTICIPANT_LEGEND_ITEMS.find((i) => i.key === activeParticipantKey)?.label || activeParticipantKey}`
                 : 'Filtered by host'}{' '}
               <span className="calendar-side-count">({sidebarEvents.length})</span>
+              {tentativeCount > 0 && (
+                <span className="calendar-side-count calendar-side-count-tentative"> · {tentativeCount} tentative</span>
+              )}
+              {doneCount > 0 && (
+                <span className="calendar-side-count calendar-side-count-done"> · {doneCount} done</span>
+              )}
             </h4>
             {fcEvents.length > sidebarEvents.length && sidebarEvents.length > 0 && (
               <p className="calendar-side-subtitle">Showing first {sidebarEvents.length} events in current view</p>
@@ -1717,6 +1726,8 @@ return parsedEvents
             <ul className="calendar-side-list">
               {sidebarEvents.map((ev) => {
                 const ext = ev.extendedProps || {};
+                const isTentative = Boolean(ext.is_tentative);
+                const isDone = Boolean(ext.done);
                 const dateLabel = ext.date_formatted || (typeof ev.start === 'string' ? ev.start.slice(0, 10) : '');
                 const startLabel = formatTimeShort(ext.start_time_raw || '');
                 const endLabel = formatTimeShort(ext.end_time_raw || '');
@@ -1734,12 +1745,16 @@ return parsedEvents
                 return (
                   <li
                     key={ev.id}
-                    className="calendar-side-item"
+                    className={`calendar-side-item ${isTentative ? 'calendar-side-item--tentative' : ''} ${isDone ? 'calendar-side-item--done' : ''}`}
                     onClick={() => setSelectedEvent(ev.id)}
                   >
                     <div className="calendar-side-meta">
                       <span className="calendar-side-date">{dateLabel}</span>
                       {timeLabel && <span className="calendar-side-time">{timeLabel}</span>}
+                      <span className="calendar-side-badges">
+                        {isTentative && <span className="calendar-side-tentative-badge">Tentative</span>}
+                        {isDone && <span className="calendar-side-done-badge">Done</span>}
+                      </span>
                     </div>
                     <div className="calendar-side-main">
                       <span className="calendar-side-chip">
@@ -1756,7 +1771,8 @@ return parsedEvents
               )}
             </ul>
           </aside>
-        )}
+          );
+        })()}
       </div>
 
       {selectedEvent && (
