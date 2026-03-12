@@ -2,8 +2,9 @@ import { useState } from 'react';
 import Logo from '../components/Logo';
 import '../components/Header.css';
 import './SimpleEventForm.css';
-
+import { config as scheduleAPI } from '../api';
 export default function SimpleEventForm() {
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     office: '',
     division: '',
@@ -83,20 +84,89 @@ export default function SimpleEventForm() {
     setForm((prev) => ({ ...prev, attachment: file }));
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Final Validations
     if (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) {
-      alert('Please enter a valid Zoom link (e.g. https://zoom.us/j/...) to continue.');
+      alert('Please enter a valid Zoom link.');
       return;
     }
     if (hasBlockingErrors) {
       alert('Please fix the date requirements before saving.');
       return;
     }
-    // For now, just log. This page is intentionally not wired to backend/calendar.
-    // eslint-disable-next-line no-console
-    console.log('Simple event form submit:', form);
-    alert('Simple Event Form submit captured in console (no backend wiring yet).');
+
+    setLoading(true);
+
+    try {
+      // Prepare FormData for Backend (Supports File Upload)
+      const formData = new FormData();
+      
+      // Mapping to Backend Model (snake_case)
+      formData.append('host_name', form.office);
+      formData.append('host_division', form.division);
+      formData.append('event_title', form.title);
+      formData.append('description', form.description);
+      
+      // Map Type to ENUM
+      const typeMapping = {
+        'face-to-face': 'Face to Face',
+        'hybrid': 'Hybrid',
+        'virtual': 'Virtual/Zoom'
+      };
+      formData.append('type', typeMapping[form.meetingType]);
+
+      formData.append('start_date', form.startDate);
+      formData.append('end_date', form.endDate);
+      formData.append('start_time', form.startTime);
+      formData.append('end_time', form.endTime);
+      
+      // Handle Location & Zoom Link
+      let finalLocation = form.location;
+      if (form.meetingType === 'virtual') finalLocation = `Zoom: ${form.zoomLink}`;
+      if (form.meetingType === 'hybrid') finalLocation = `${form.location} | Zoom: ${form.zoomLink}`;
+      formData.append('location', finalLocation);
+
+      formData.append('participants', form.participants);
+
+      // Attachment logic
+      if (form.attachment) {
+        formData.append('attachment_file', form.attachment);
+      }
+
+      // API CALL
+      const response = await scheduleAPI.addSchedule(formData);
+
+if (response) {
+      alert('Event saved successfully!');
+      
+      // RESET FORM (Para hindi na kailangan mag-reload)
+      setForm({
+        office: '',
+        division: '',
+        title: '',
+        description: '',
+        meetingType: 'face-to-face',
+        startDate: '',
+        endDate: '',
+        startTime: '',
+        endTime: '',
+        location: '',
+        zoomLink: '',
+        participants: '',
+        attachment: null,
+      });
+
+      // Clear the file input manually (React state doesn't clear the file input's visual value easily)
+      e.target.reset();
+    }
+    } catch (err) {
+      console.error('Submission error:', err);
+      alert('Failed to save event: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -339,7 +409,8 @@ export default function SimpleEventForm() {
                   />
                   {form.zoomLink && !isZoomLink(form.zoomLink) && (
                     <span className="simple-event-hint simple-event-hint-error">
-                      Please enter a valid Zoom link (e.g. https://zoom.us/j/...)
+                      {/* Please enter a valid Zoom link (e.g. https://zoom.us/j/...) */}
+                      Please enter a valid Zoom link 
                     </span>
                   )}
                 </div>
@@ -387,13 +458,13 @@ export default function SimpleEventForm() {
           </section>
 
           <div className="simple-event-actions">
-            <button
-              type="submit"
-              className="simple-event-submit"
-              disabled={(form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
-            >
-              Save Event
-            </button>
+<button
+  type="submit"
+  className="simple-event-submit"
+  disabled={loading || (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
+>
+  {loading ? 'Saving...' : 'Save Event'}
+</button>
           </div>
         </form>
       </main>

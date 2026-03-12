@@ -174,4 +174,18 @@ export const config = {
   deleteFocal: (id) => api(`/focal/${id}`, { 
     method: 'DELETE' 
   }),
+
+      getSchedules: () => api('/schedules'),
+  getSchedule: (id) => api(`/schedule/${id}`),
+  addSchedule: (formData) => api('/schedule', { 
+    method: 'POST', 
+    body: formData
+  }),
+  updateSchedule: (id, formData) => api(`/schdeule/${id}`, { 
+    method: 'POST', 
+    body: formData
+  }),
+  deleteFocal: (id) => api(`/schedule/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
