@@ -256,52 +256,83 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
   const tentativeMeta = parseTentativeDescription(event.description || '');
-  const hasBackendParticipants = Array.isArray(event.attendees) && event.attendees.length > 0;
+  const normalizeAttendeeName = (a) => {
+    if (!a) return '';
+    if (typeof a === 'string') return a.trim();
+    // common backend shapes
+    return String(
+      a.name ||
+        a.full_name ||
+        a.display_name ||
+        a.office_name ||
+        a.user_name ||
+        a.email ||
+        ''
+    ).trim();
+  };
+
+  let attendeesArr = [];
+  if (Array.isArray(event.attendees)) {
+    attendeesArr = event.attendees;
+  } else if (typeof event.attendees === 'string') {
+    try {
+      const parsed = JSON.parse(event.attendees);
+      if (Array.isArray(parsed)) attendeesArr = parsed;
+    } catch {
+      attendeesArr = [];
+    }
+  }
+
+  const backendParticipantLines = attendeesArr
+    .map(normalizeAttendeeName)
+    .filter(Boolean);
+  const hasBackendParticipants = backendParticipantLines.length > 0;
+
+  let participantsArr = [];
+  if (Array.isArray(event.participants)) {
+    participantsArr = event.participants;
+  } else if (typeof event.participants === 'string') {
+    try {
+      const parsed = JSON.parse(event.participants);
+      if (Array.isArray(parsed)) participantsArr = parsed;
+    } catch {
+      participantsArr = [];
+    }
+  }
+  const participantsFromJson = participantsArr
+    .map((p) => {
+      if (!p) return '';
+      if (typeof p === 'string') return p.trim();
+      return String(p.label || p.name || p.category_name || p.focal_name || '').trim();
+    })
+    .filter(Boolean);
+
   const dbRdParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
   const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
   const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
-const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
-
-// PALITAN ANG PANGALAN DITO: Gawing participantLines
-let participantLines = hasBackendParticipants ? event.attendees.map(a => a.name) : [];
-
-if (participantLines.length === 0 && event.participants) {
-  try {
-    const parsed = typeof event.participants === 'string' 
-      ? JSON.parse(event.participants) 
-      : event.participants;
-
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const categoriesWithChildren = new Set();
-      parsed.forEach(p => {
-        if (p.source === 'focal') {
-          categoriesWithChildren.add('Focals');
-        }
-      });
-
-      participantLines = parsed
-        .filter(p => {
-          if (p.source === 'category') {
-            return !categoriesWithChildren.has(p.name);
-          }
-          return true;
-        })
-        .map(p => p.name);
-    }
-  } catch (e) {
-    console.error("Parse error:", e);
-  }
-}
-
-// Siguraduhin din na kung may laman ang dbParticipantLines (mga Directors), isasama mo sila:
-if (dbParticipantLines.length > 0) {
-    participantLines = [...participantLines, ...dbParticipantLines];
-}
+  const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
+  const participantLines = hasBackendParticipants
+    ? backendParticipantLines
+    : participantsFromJson.length
+      ? participantsFromJson
+    : dbParticipantLines.length
+      ? dbParticipantLines
+      : localRegionalDirectorParticipants.length
+        ? localRegionalDirectorParticipants
+      : ['No participants'];
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';
-  const typeText = event.type === 'face-to-face' ? 'Face to Face' : event.type === 'hybrid' ? 'Hybrid' : event.type === 'virtual' ? 'Zoom Meeting' : (event.type || 'Event');
+  const getMeetingTypeLabel = (t) => {
+    if (!t) return 'Event';
+    const s = String(t).toLowerCase();
+    if (s === 'face-to-face' || s === 'meeting' || s === 'event') return 'Face to Face';
+    if (s === 'hybrid') return 'Hybrid';
+    if (s === 'virtual' || s === 'zoom') return 'Virtual/Zoom';
+    return t;
+  };
+  const typeText = getMeetingTypeLabel(event.type);
   const locationIsUrl = /^https?:\/\//i.test(String(locationText).trim());
 
   return (
@@ -424,11 +455,9 @@ if (dbParticipantLines.length > 0) {
                 <div className="modal-event-card-body">
                   <span className="modal-event-card-heading">Participants</span>
                   <ul className="modal-event-participants-list">
-              {participantLines.map((name, idx) => (
-                <span key={idx} className="modal-participant-line">
-                  {name}
-                </span>
-              ))}
+                    {participantLines.map((name, idx) => (
+                      <li key={idx}>{name}</li>
+                    ))}
                   </ul>
                 </div>
               </div>

@@ -306,20 +306,28 @@
   color: var(--accent);
 }
 
-/* Participants list in card */
+/* Participants list in card – inline grid of badges (fit to name) */
 .modal-event-participants-list {
   list-style: none;
   margin: 0.35rem 0 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.88rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  font-size: 0.8rem;
   color: var(--text);
 }
 
 .modal-event-participants-list li {
-  padding: 0.15rem 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.65rem;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  width: fit-content;
 }
 
 .modal-loading {

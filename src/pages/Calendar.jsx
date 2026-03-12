@@ -345,6 +345,7 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventHover, setEventHover] = useState(null);
   const eventHoverLeaveRef = useRef(null);
+  const hoverRafRef = useRef(null);
   const [filterType, setFilterType] = useState('');
   const [hostModalTarget, setHostModalTarget] = useState(null);
   const [activeTab, setActiveTab] = useState('offices');
@@ -811,13 +812,12 @@ return parsedEvents
         const end = isMultiDay ? addDaysYMD(endDate, 1) : `${date}T${normalizeTime(e.end_time)}`;
         const host = e.creator_name || 'Unknown';
         const hostColor = e.color || EVENT_COLORS[e.type] || '#1f3a5f';
+        // Match the reference "clean card" look: light background + subtle border.
+        // Status is indicated via badges (Completed / [TENTATIVE]) and text colors.
         const isTentativeStatus = tentativeMeta.isTentative;
-        // Card color is based on status (final vs tentative), not host.
-        // Final: pastel green
-        // Tentative: Yellow (pending)
-        const statusBaseColor = isTentativeStatus ? '#FACC15' : '#22c55e';
-        const backgroundColor = softenColor(statusBaseColor, isTentativeStatus ? 0.1 : 0.32);
-        const borderColor = statusBaseColor;
+        const backgroundColor = isTentativeStatus ? 'rgba(250, 204, 21, 0.14)' : '#ffffff';
+        // Keep border neutral; we color only the left stripe via `eventDidMount`.
+        const borderColor = '#cbd5e1';
         const done = isEventDone(e);
         const cancelled = String(e.status || 'active').toLowerCase() === 'cancelled';
         const postDocCount = Number(e.post_document_count || 0);
@@ -835,8 +835,8 @@ return parsedEvents
           title: e.title,
           start,
           end,
-          backgroundColor,
-          borderColor,
+          backgroundColor: cancelled ? 'rgba(127, 29, 29, 0.9)' : backgroundColor,
+          borderColor: cancelled ? 'rgba(127, 29, 29, 0.98)' : borderColor,
           textColor: '#2e2e2e',
           allDay: isMultiDay,
           startEditable: activeTab !== 'participants' && canEditThis && !isMultiDay && !done && !cancelled,
@@ -899,6 +899,22 @@ return parsedEvents
       .sort((a, b) => (String(a.date || '') + String(a.start_time || '')).localeCompare(String(b.date || '') + String(b.start_time || '')));
   }, [events, hostModalTarget]);
 
+  const syncToolbarTabs = () => {
+    const root = containerRef.current;
+    if (!root) return;
+    const officesBtn = root.querySelector?.('.fc-officesTab-button');
+    const participantsBtn = root.querySelector?.('.fc-participantsTab-button');
+    if (officesBtn) officesBtn.classList.toggle('is-active', activeTab === 'offices');
+    if (participantsBtn) participantsBtn.classList.toggle('is-active', activeTab === 'participants');
+    const group = officesBtn?.closest?.('.fc-button-group') || participantsBtn?.closest?.('.fc-button-group') || null;
+    if (group) group.classList.add('fc-calendar-tabs');
+  };
+
+  useEffect(() => {
+    syncToolbarTabs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   if (loading) {
     // we'll flip `loading` off once the first `datesSet` fetch completes
   }
@@ -910,26 +926,6 @@ return parsedEvents
           ref={containerRef}
           className="calendar-main calendar-main-fullcalendar"
         >
-          <div className="calendar-tabs" role="tablist" aria-label="Calendar view mode">
-            <button
-              type="button"
-              role="tab"
-              className={`calendar-tab ${activeTab === 'offices' ? 'is-active' : ''}`}
-              aria-selected={activeTab === 'offices'}
-              onClick={() => setActiveTab('offices')}
-            >
-              Offices
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className={`calendar-tab ${activeTab === 'participants' ? 'is-active' : ''}`}
-              aria-selected={activeTab === 'participants'}
-              onClick={() => setActiveTab('participants')}
-            >
-              Participants
-            </button>
-          </div>
           <section className="calendar-legend calendar-legend-top">
             <div className="calendar-legend-top-head">
               <h3>Legend</h3>
@@ -1276,6 +1272,16 @@ return parsedEvents
             timeZone="local"
             initialView="dayGridMonth"
             initialDate={dateParam ? new Date(`${dateParam}T12:00:00`) : undefined}
+            customButtons={{
+              officesTab: {
+                text: 'Offices',
+                click: () => setActiveTab('offices'),
+              },
+              participantsTab: {
+                text: 'Participants',
+                click: () => setActiveTab('participants'),
+              },
+            }}
             dayHeaderContent={(arg) => {
               const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
               const day = d.getDay(); // 0=Sun, 6=Sat
@@ -1284,9 +1290,12 @@ return parsedEvents
               return <span>{label}</span>;
             }}
             headerToolbar={{
-              left: 'prev,next today',
+              left: 'prev,next today officesTab,participantsTab',
               center: 'title',
               right: 'dayGridMonth,timeGridWeek,timeGridDay',
+            }}
+            viewDidMount={() => {
+              syncToolbarTabs();
             }}
             buttonText={{
               today: 'Today',
@@ -1312,6 +1321,7 @@ return parsedEvents
             }}
             events={[...holidayEvents, ...fcEvents]}
             datesSet={async (arg) => {
+              try { syncToolbarTabs(); } catch { /* ignore */ }
               try {
                 setLoading(true);
                 setError('');
@@ -1354,22 +1364,47 @@ return parsedEvents
             eventDidMount={(arg) => {
               if (arg.event.extendedProps?.isHoliday) return;
               const el = arg.el;
+              // Match reference: only the LEFT stripe uses host color (not the whole border).
+              try {
+                const ext = arg.event.extendedProps || {};
+                const cancelled = Boolean(ext.cancelled);
+                const hostColor = ext.host_color || '#1f3a5f';
+                el.style.setProperty('--host-stripe-color', cancelled ? 'rgba(127, 29, 29, 0.98)' : hostColor);
+              } catch {
+                // ignore
+              }
               const clearLeave = () => {
                 if (eventHoverLeaveRef.current) clearTimeout(eventHoverLeaveRef.current);
                 eventHoverLeaveRef.current = setTimeout(() => setEventHover(null), 180);
               };
-              el.addEventListener('mouseenter', () => {
+              const onEnter = (ev) => {
                 if (eventHoverLeaveRef.current) {
                   clearTimeout(eventHoverLeaveRef.current);
                   eventHoverLeaveRef.current = null;
                 }
+                const clientX = ev?.clientX ?? 0;
+                const clientY = ev?.clientY ?? 0;
                 setEventHover({
                   eventId: arg.event.id,
                   title: arg.event.title,
                   extendedProps: arg.event.extendedProps || {},
-                  rect: el.getBoundingClientRect(),
+                  x: clientX,
+                  y: clientY,
                 });
-              });
+              };
+              const onMove = (ev) => {
+                const clientX = ev?.clientX ?? 0;
+                const clientY = ev?.clientY ?? 0;
+                if (hoverRafRef.current) cancelAnimationFrame(hoverRafRef.current);
+                hoverRafRef.current = requestAnimationFrame(() => {
+                  setEventHover((prev) => {
+                    if (!prev || String(prev.eventId) !== String(arg.event.id)) return prev;
+                    return { ...prev, x: clientX, y: clientY };
+                  });
+                });
+              };
+              el.addEventListener('mouseenter', onEnter);
+              el.addEventListener('mousemove', onMove);
               el.addEventListener('mouseleave', clearLeave);
             }}
             eventDragStart={(arg) => {
@@ -1520,7 +1555,8 @@ return parsedEvents
                 startLabel && endLabel && startLabel !== endLabel
                   ? `${startLabel}–${endLabel}`
                   : startLabel || '';
-              const statusTextColor = isTentative ? '#92400e' : '#166534'; // darker amber / green
+              // Reference style: keep event text readable (mostly black).
+              const statusTextColor = cancelled ? '#ffffff' : '#0f172a';
               // Final icon only for active, non-tentative, non-done events
               const isFinal = !isTentative && !cancelled && !done;
 
@@ -1537,8 +1573,11 @@ return parsedEvents
                 return (
                   <div>
                     {timeLabel && (
-                      <div className="fc-event-time" style={{ color: statusTextColor }}>
-                        {timeLabel}
+                      <div className="fc-event-time-row">
+                        <span className="fc-event-time" style={{ color: statusTextColor }}>
+                          {timeLabel}
+                        </span>
+                        {done && <span className="fc-event-done-badge">Done</span>}
                       </div>
                     )}
                     <div className={`fc-event-title-wrap fc-event-title-wrap--participants ${conflict ? 'fc-event-conflict' : ''}`}>
@@ -1566,7 +1605,7 @@ return parsedEvents
                           </span>
                         )}
                       </div>
-                      {done && <span className="fc-event-done-badge">Done</span>}
+                      {/* completed badge moved to time row */}
                       {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
                       {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
                       {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
@@ -1580,8 +1619,11 @@ return parsedEvents
               return (
                 <div>
                   {timeLabel && (
-                    <div className="fc-event-time" style={{ color: statusTextColor }}>
-                      {timeLabel}
+                    <div className="fc-event-time-row">
+                      <span className="fc-event-time" style={{ color: statusTextColor }}>
+                        {timeLabel}
+                      </span>
+                      {done && <span className="fc-event-done-badge">Done</span>}
                     </div>
                   )}
                   <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`}>
@@ -1600,7 +1642,7 @@ return parsedEvents
                       </span>
                     )}
                     {isHoliday && <span className="fc-event-holiday-badge">Holiday</span>}
-                    {done && <span className="fc-event-done-badge">Done</span>}
+                    {/* completed badge moved to time row */}
                     {hostNeedsPostDoc && <span className="fc-event-postdoc-required">REQ</span>}
                     {cancelled && <span className="fc-event-cancelled-badge">Canceled</span>}
                     {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
@@ -1630,8 +1672,14 @@ return parsedEvents
             <div
               className="calendar-event-hover-card"
               style={{
-                left: Math.min(eventHover.rect.left, typeof window !== 'undefined' ? window.innerWidth - 340 : eventHover.rect.left),
-                top: eventHover.rect.bottom + 8,
+                left: Math.min(
+                  Math.max(8, (eventHover.x || 0) + 12),
+                  typeof window !== 'undefined' ? window.innerWidth - 340 : (eventHover.x || 0)
+                ),
+                top: Math.min(
+                  Math.max(8, (eventHover.y || 0) + 14),
+                  typeof window !== 'undefined' ? window.innerHeight - 220 : (eventHover.y || 0)
+                ),
               }}
               onMouseEnter={() => {
                 if (eventHoverLeaveRef.current) {

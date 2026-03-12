@@ -42,6 +42,40 @@ function isWithinRange(targetYmd, startYmd, endYmd) {
   return targetYmd >= startYmd && targetYmd <= end;
 }
 
+/** Monday (weekday) of the week containing d, YMD. */
+function getWeekMondayYMD(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+  const daysFromMonday = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - daysFromMonday);
+  return toLocalYMD(x);
+}
+
+/** Friday (weekday) of the week containing d, YMD. */
+function getWeekFridayYMD(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0);
+  const daysFromMonday = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - daysFromMonday + 4);
+  return toLocalYMD(x);
+}
+
+/** First day of month of d, YMD. */
+function getMonthStartYMD(d) {
+  return toLocalYMD(new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0));
+}
+
+/** Last day of month of d, YMD. */
+function getMonthEndYMD(d) {
+  return toLocalYMD(new Date(d.getFullYear(), d.getMonth() + 1, 0, 12, 0, 0));
+}
+
+/** True if event has already ended (by date and time). */
+function isEventDone(e, todayYmd, nowMins) {
+  const endDate = e.end_date || e.date;
+  if (endDate < todayYmd) return true;
+  if (endDate > todayYmd) return false;
+  return timeToMinutes(e.end_time) <= nowMins;
+}
+
 function getDayColors(events, ymd) {
   const set = new Set();
   for (const e of events) {
@@ -160,9 +194,6 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [miniMonthEvents, setMiniMonthEvents] = useState([]);
-  const [todayCount, setTodayCount] = useState(0);
-  const [weekCount, setWeekCount] = useState(0);
-  const [monthCount, setMonthCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [upcomingPage, setUpcomingPage] = useState(0);
@@ -173,42 +204,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     const now = new Date();
-    const today = toLocalYMD(now);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 12, 0, 0);
     const rangeStart = new Date(now);
     rangeStart.setDate(rangeStart.getDate() - 30);
     const rangeEnd = new Date(now);
     rangeEnd.setDate(rangeEnd.getDate() + 30);
+    const start = rangeStart <= monthStart ? toLocalYMD(rangeStart) : toLocalYMD(monthStart);
+    const end = rangeEnd >= monthEnd ? toLocalYMD(rangeEnd) : toLocalYMD(monthEnd);
 
     Promise.all([
-      eventsApi.list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) }),
+      eventsApi.list({ start, end }),
     ])
       .then(([list]) => {
         setEvents(list);
-
-        // Recompute summary counts
-        const next7 = new Date(now);
-        next7.setDate(next7.getDate() + 7);
-        const next7YMD = toLocalYMD(next7);
-
-        const next30 = new Date(now);
-        next30.setDate(next30.getDate() + 30);
-        const next30YMD = toLocalYMD(next30);
-
-        const isInToday = (e) => isWithinRange(today, e.date, e.end_date || e.date);
-        const isInWeek = (e) => {
-          const start = e.date;
-          const end = e.end_date || e.date;
-          return end >= today && start <= next7YMD;
-        };
-        const isInMonth = (e) => {
-          const start = e.date;
-          const end = e.end_date || e.date;
-          return end >= today && start <= next30YMD;
-        };
-
-        setTodayCount(list.filter(isInToday).length);
-        setWeekCount(list.filter(isInWeek).length);
-        setMonthCount(list.filter(isInMonth).length);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -228,40 +237,18 @@ export default function Dashboard() {
   const refresh = () => {
     setLoading(true);
     const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 12, 0, 0);
     const rangeStart = new Date(now);
     rangeStart.setDate(rangeStart.getDate() - 30);
     const rangeEnd = new Date(now);
     rangeEnd.setDate(rangeEnd.getDate() + 30);
+    const start = rangeStart <= monthStart ? toLocalYMD(rangeStart) : toLocalYMD(monthStart);
+    const end = rangeEnd >= monthEnd ? toLocalYMD(rangeEnd) : toLocalYMD(monthEnd);
     eventsApi
-      .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
+      .list({ start, end })
       .then((list) => {
         setEvents(list);
-
-        // Also refresh summary counts
-        const todayYMD = toLocalYMD(now);
-        const next7 = new Date(now);
-        next7.setDate(next7.getDate() + 7);
-        const next7YMD = toLocalYMD(next7);
-
-        const next30 = new Date(now);
-        next30.setDate(next30.getDate() + 30);
-        const next30YMD = toLocalYMD(next30);
-
-        const isInToday = (e) => isWithinRange(todayYMD, e.date, e.end_date || e.date);
-        const isInWeek = (e) => {
-          const start = e.date;
-          const end = e.end_date || e.date;
-          return end >= todayYMD && start <= next7YMD;
-        };
-        const isInMonth = (e) => {
-          const start = e.date;
-          const end = e.end_date || e.date;
-          return end >= todayYMD && start <= next30YMD;
-        };
-
-        setTodayCount(list.filter(isInToday).length);
-        setWeekCount(list.filter(isInWeek).length);
-        setMonthCount(list.filter(isInMonth).length);
       })
       .finally(() => setLoading(false));
   };
@@ -269,13 +256,43 @@ export default function Dashboard() {
   // Current reference time for summary + upcoming sections
   const now = new Date();
   const today = toLocalYMD(now);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const weekMondayYmd = getWeekMondayYMD(now);
+  const weekFridayYmd = getWeekFridayYMD(now);
+  const monthStartYmd = getMonthStartYMD(now);
+  const monthEndYmd = getMonthEndYMD(now);
+
   const next7 = new Date(now);
   next7.setDate(next7.getDate() + 7);
   const next7Ymd = toLocalYMD(next7);
 
-  const next30 = new Date(now);
-  next30.setDate(next30.getDate() + 30);
-  const next30Ymd = toLocalYMD(next30);
+  const cardCounts = useMemo(() => {
+    const isInToday = (e) => isWithinRange(today, e.date, e.end_date || e.date);
+    const isInWeek = (e) => {
+      const start = e.date;
+      const end = e.end_date || e.date;
+      return end >= weekMondayYmd && start <= weekFridayYmd;
+    };
+    const isInMonth = (e) => {
+      const start = e.date;
+      const end = e.end_date || e.date;
+      return end >= monthStartYmd && start <= monthEndYmd;
+    };
+    const inToday = events.filter(isInToday);
+    const inWeek = events.filter(isInWeek);
+    const inMonth = events.filter(isInMonth);
+    const todayDone = inToday.filter((e) => isEventDone(e, today, nowMins)).length;
+    const weekDone = inWeek.filter((e) => isEventDone(e, today, nowMins)).length;
+    const monthDone = inMonth.filter((e) => isEventDone(e, today, nowMins)).length;
+    return {
+      todayCount: inToday.length,
+      weekCount: inWeek.length,
+      monthCount: inMonth.length,
+      todayDoneCount: todayDone,
+      weekDoneCount: weekDone,
+      monthDoneCount: monthDone,
+    };
+  }, [events, today, nowMins, weekMondayYmd, weekFridayYmd, monthStartYmd, monthEndYmd]);
 
   const classifyStatus = (e) => {
     const status = String(e.status || 'active').toLowerCase();
@@ -289,30 +306,42 @@ export default function Dashboard() {
   };
 
   const weekBreakdown = useMemo(() => {
-    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0 };
+    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0, done: 0 };
     events.forEach((e) => {
       const end = e.end_date || e.date;
-      const inRange = end >= today && e.date <= next7Ymd;
-      if (!inRange) return;
+      if (end < weekMondayYmd || e.date > weekFridayYmd) return;
       const key = classifyStatus(e);
-      counts[key] += 1;
+      if (key === 'cancelled' || key === 'rescheduled') counts[key] += 1;
+      else if (isEventDone(e, today, nowMins)) counts.done += 1;
+      else counts[key] += 1;
     });
     return counts;
-  }, [events, today, next7Ymd]);
+  }, [events, today, nowMins, weekMondayYmd, weekFridayYmd]);
 
   const monthBreakdown = useMemo(() => {
-    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0 };
+    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0, done: 0 };
     events.forEach((e) => {
       const end = e.end_date || e.date;
-      const inRange = end >= today && e.date <= next30Ymd;
-      if (!inRange) return;
+      if (end < monthStartYmd || e.date > monthEndYmd) return;
       const key = classifyStatus(e);
-      counts[key] += 1;
+      if (key === 'cancelled' || key === 'rescheduled') counts[key] += 1;
+      else if (isEventDone(e, today, nowMins)) counts.done += 1;
+      else counts[key] += 1;
     });
     return counts;
-  }, [events, today, next30Ymd]);
+  }, [events, today, nowMins, monthStartYmd, monthEndYmd]);
 
-  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const todayBreakdown = useMemo(() => {
+    const counts = { tentative: 0, final: 0, cancelled: 0, rescheduled: 0, done: 0 };
+    events.forEach((e) => {
+      if (!isWithinRange(today, e.date, e.end_date || e.date)) return;
+      const key = classifyStatus(e);
+      if (key === 'cancelled' || key === 'rescheduled') counts[key] += 1;
+      else if (isEventDone(e, today, nowMins)) counts.done += 1;
+      else counts[key] += 1;
+    });
+    return counts;
+  }, [events, today, nowMins]);
   const overviewDateLabel = now.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -456,7 +485,7 @@ export default function Dashboard() {
                     <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
                     <span className="dashboard-upcoming-meta">
                       Participants: {getEventParticipants(e)}
-                  </span>
+                    </span>
                     <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
                   </button>
                 </li>
@@ -533,22 +562,33 @@ export default function Dashboard() {
 
       <div className="dashboard-cards">
         <div className="dashboard-card">
+          <span className="dashboard-card-icon dashboard-card-icon-today" aria-hidden>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
           <span className="dashboard-card-label">Today</span>
-          <span className="dashboard-card-value">{todayCount}</span>
-          <span className="dashboard-card-sublabel">Events/Meetings</span>
-        </div>
-        <div className="dashboard-card">
-          <span className="dashboard-card-label">This week</span>
-          <span className="dashboard-card-value">{weekCount}</span>
+          <span className="dashboard-card-value">{cardCounts.todayCount}</span>
           <span className="dashboard-card-sublabel">
-            Events/Meetings · Tentative: {weekBreakdown.tentative} · Final: {weekBreakdown.final} · Cancelled: {weekBreakdown.cancelled} · Rescheduled: {weekBreakdown.rescheduled}
+            Events/Meetings · Done: {todayBreakdown.done}
           </span>
         </div>
         <div className="dashboard-card">
-          <span className="dashboard-card-label">This month</span>
-          <span className="dashboard-card-value">{monthCount}</span>
+          <span className="dashboard-card-icon dashboard-card-icon-week" aria-hidden>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>
+          </span>
+          <span className="dashboard-card-label">This week</span>
+          <span className="dashboard-card-value">{cardCounts.weekCount}</span>
           <span className="dashboard-card-sublabel">
-            Events/Meetings · Tentative: {monthBreakdown.tentative} · Final: {monthBreakdown.final} · Cancelled: {monthBreakdown.cancelled} · Rescheduled: {monthBreakdown.rescheduled}
+            Mon–Fri · Tentative: {weekBreakdown.tentative} · Final: {weekBreakdown.final} · Done: {weekBreakdown.done} · Cancelled: {weekBreakdown.cancelled} · Rescheduled: {weekBreakdown.rescheduled}
+          </span>
+        </div>
+        <div className="dashboard-card">
+          <span className="dashboard-card-icon dashboard-card-icon-month" aria-hidden>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </span>
+          <span className="dashboard-card-label">This month</span>
+          <span className="dashboard-card-value">{cardCounts.monthCount}</span>
+          <span className="dashboard-card-sublabel">
+            Full month · Tentative: {monthBreakdown.tentative} · Final: {monthBreakdown.final} · Done: {monthBreakdown.done} · Cancelled: {monthBreakdown.cancelled} · Rescheduled: {monthBreakdown.rescheduled}
           </span>
         </div>
       </div>

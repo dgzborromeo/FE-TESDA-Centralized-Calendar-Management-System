@@ -540,6 +540,37 @@
   border-color: rgba(37, 99, 235, 0.2);
 }
 
+.dashboard-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+
+.dashboard-card-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.dashboard-card-icon-today {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(14, 165, 233, 0.12) 100%);
+  color: #1d4ed8;
+}
+
+.dashboard-card-icon-week {
+  background: linear-gradient(135deg, rgba(31, 58, 95, 0.2) 0%, rgba(63, 143, 140, 0.14) 100%);
+  color: #1f3a5f;
+}
+
+.dashboard-card-icon-month {
+  background: linear-gradient(135deg, rgba(63, 143, 140, 0.2) 0%, rgba(79, 109, 138, 0.14) 100%);
+  color: #0d9488;
+}
+
 .dashboard-card-label {
   font-size: 0.82rem;
   font-weight: 700;

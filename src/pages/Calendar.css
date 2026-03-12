@@ -239,12 +239,13 @@
 }
 
 .calendar-side-item--done {
-  border-left: 3px solid #166534;
-  background: rgba(22, 101, 52, 0.08);
+  border-left: 3px solid #16a34a;
+  background: rgba(187, 247, 208, 0.75);
+  border-color: rgba(22, 163, 74, 0.25);
 }
 
 .calendar-side-item--done:hover {
-  background: rgba(22, 101, 52, 0.12);
+  background: rgba(187, 247, 208, 0.9);
 }
 
 .calendar-side-done-badge {
@@ -253,7 +254,8 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #166534;
-  background: rgba(22, 101, 52, 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(22, 163, 74, 0.25);
   padding: 0.12rem 0.4rem;
   border-radius: 999px;
 }
@@ -422,6 +424,40 @@
   gap: 0.6rem;
   margin-bottom: 0.45rem;
   flex-wrap: wrap;
+}
+
+/* Tabs are now rendered in FullCalendar toolbar (beside Today). */
+
+/* FullCalendar toolbar tabs (Offices/Participants) – match original pill tab bar */
+.fc .fc-toolbar .fc-button-group.fc-calendar-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.fc .fc-toolbar .fc-button-group.fc-calendar-tabs .fc-button {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.35rem 0.9rem !important;
+  border-radius: 999px !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: var(--cal-muted) !important;
+  line-height: 1.1;
+}
+
+.fc .fc-toolbar .fc-button-group.fc-calendar-tabs .fc-button:hover {
+  color: var(--cal-primary) !important;
+}
+
+.fc .fc-toolbar .fc-button-group.fc-calendar-tabs .fc-button.is-active {
+  background: linear-gradient(135deg, var(--cal-primary) 0%, var(--cal-secondary) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(31, 58, 95, 0.35) !important;
 }
 
 .calendar-legend-top-actions {
@@ -1072,8 +1108,15 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #334155;
-  background: rgba(248, 250, 252, 0.95);
+  background: rgba(226, 232, 240, 0.96);
   border-bottom: 1px solid rgba(148, 163, 184, 0.55);
+}
+
+/* Only weekdays (Mon–Fri) should look bold */
+.fc .fc-col-header-cell.fc-day-sat,
+.fc .fc-col-header-cell.fc-day-sun {
+  font-weight: 600;
+  color: #64748b;
 }
 .fc .fc-col-header-cell-cushion {
   padding: 0.2rem 0;
@@ -1081,7 +1124,17 @@
 
 /* Day cells: date number and today highlight */
 .fc .fc-daygrid-day {
-  background: #fff;
+  background: #e2e8f0;
+}
+
+/* TimeGrid columns background (week/day views) */
+.fc .fc-timegrid-col {
+  background: #e2e8f0;
+}
+
+/* Make the day cell inner frame consistent */
+.fc .fc-daygrid-day-frame {
+  background: transparent;
 }
 .fc .fc-daygrid-day-number {
   font-size: 0.8rem;
@@ -1110,7 +1163,7 @@
 .fc .fc-day-sun,
 .fc .fc-timegrid-col.fc-day-sat,
 .fc .fc-timegrid-col.fc-day-sun {
-  background: rgba(241, 245, 249, 0.8);
+  background: rgba(203, 213, 225, 0.85);
 }
 
 .calendar-main-fullcalendar .calendar-loading {
@@ -1139,11 +1192,17 @@
 .fc .fc-button {
   border-radius: 10px;
   font-weight: 600;
-  padding: 0.5rem 0.9rem;
+  padding: 0.38rem 0.65rem;
+  font-size: 0.82rem;
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: #fff;
   color: #334155;
   transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+/* Make prev/next arrows more compact */
+.fc .fc-button .fc-icon {
+  font-size: 1.05em;
 }
 .fc .fc-button:hover {
   background: #f1f5f9;
@@ -1173,14 +1232,15 @@
 
 /* Event cards: card look with shadow, left accent, hover */
 .fc .fc-event {
-  border-radius: 8px;
+  border-radius: 6px;
   border-left-width: 4px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
+  box-shadow: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   overflow: hidden;
 }
 .fc .fc-event:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
 }
 .fc .fc-event .fc-event-main {
@@ -1208,7 +1268,7 @@
 }
 
 .fc .fc-daygrid-event .fc-event-title {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .fc-event-title-wrap {
@@ -1225,12 +1285,19 @@
   letter-spacing: 0.01em;
 }
 
+.fc-event-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.05rem;
+}
+
 .fc-event-time {
   font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: var(--text);
-  display: block;
-  margin-bottom: 0.05rem;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
 }
 
 .fc-event-host-stripe {
@@ -1248,9 +1315,10 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.08rem 0.4rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.02);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
 }
 
 .fc-event-host-stripe-bar {
@@ -1293,17 +1361,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  padding: 0.18rem 0.5rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: #166534;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: #fff;
+  background: #bbf7d0;
+  border: 1px solid #86efac;
+  color: #166534;
   flex: 0 0 auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  margin-left: auto;
+  box-shadow: none;
 }
 .fc-event-done-badge::before {
   content: '✓';
@@ -1426,16 +1495,16 @@
 }
 
 .fc .fc-event.fc-event-done {
-  border-left: 4px solid #166534 !important;
-  opacity: 0.92;
-  filter: saturate(0.85);
+  border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
+  opacity: 1;
+  filter: none;
 }
 .fc .fc-event.fc-event-done .fc-event-main {
-  background: linear-gradient(90deg, rgba(22, 101, 52, 0.12) 0%, transparent 8%) !important;
+  background: transparent !important;
 }
 .fc .fc-event.fc-event-done:hover {
   opacity: 1;
-  filter: saturate(1);
+  filter: none;
 }
 
 .fc .fc-event.fc-event-cancelled {
@@ -1465,6 +1534,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 700;
 }
 
 /* Month view */
