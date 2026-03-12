@@ -90,6 +90,17 @@
   margin-left: 0.25rem;
 }
 
+.simple-event-hint {
+  display: block;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+}
+
+.simple-event-hint-error {
+  color: #b91c1c;
+  font-weight: 500;
+}
+
 .simple-event-input,
 .simple-event-textarea {
   border-radius: 10px;
@@ -151,6 +162,19 @@
 .simple-event-submit:active {
   transform: translateY(0);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.26);
+}
+
+.simple-event-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.simple-event-submit:disabled:hover {
+  transform: none;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.28);
+  filter: none;
 }
 
 @media (max-width: 900px) {

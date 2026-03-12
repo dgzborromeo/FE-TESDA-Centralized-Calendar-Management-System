@@ -5,7 +5,6 @@ import './SimpleEventForm.css';
 
 export default function SimpleEventForm() {
   const [form, setForm] = useState({
-    region: '',
     office: '',
     division: '',
     title: '',
@@ -16,9 +15,16 @@ export default function SimpleEventForm() {
     startTime: '',
     endTime: '',
     location: '',
+    zoomLink: '',
     participants: '',
     attachment: null,
   });
+
+  const isZoomLink = (str) => {
+    const s = (str || '').trim();
+    if (!s) return false;
+    return /zoom\.us\//i.test(s);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +38,10 @@ export default function SimpleEventForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) {
+      alert('Please enter a valid Zoom link (e.g. https://zoom.us/j/...) to continue.');
+      return;
+    }
     // For now, just log. This page is intentionally not wired to backend/calendar.
     // eslint-disable-next-line no-console
     console.log('Simple event form submit:', form);
@@ -56,22 +66,6 @@ export default function SimpleEventForm() {
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Host</h2>
             <div className="simple-event-grid">
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="region">
-                  Region
-                </label>
-                <input
-                  id="region"
-                  name="region"
-                  type="text"
-                  value={form.region}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  placeholder="e.g. NCR, Region III"
-                  required
-                />
-              </div>
-
               <div className="simple-event-field">
                 <label className="simple-event-label" htmlFor="office">
                   Office
@@ -216,21 +210,81 @@ export default function SimpleEventForm() {
                 />
               </div>
 
-              <div className="simple-event-field simple-event-field-full">
-                <label className="simple-event-label" htmlFor="location">
-                  Location / Zoom Link
-                </label>
-                <input
-                  id="location"
-                  name="location"
-                  type="text"
-                  value={form.location}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  placeholder="e.g. TESDA Auditorium or https://zoom.us/j/..."
-                  required
-                />
-              </div>
+              {form.meetingType === 'face-to-face' && (
+                <div className="simple-event-field simple-event-field-full">
+                  <label className="simple-event-label" htmlFor="location">
+                    Location
+                  </label>
+                  <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    value={form.location}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    placeholder="e.g. TESDA Auditorium, Room 101"
+                    required
+                  />
+                </div>
+              )}
+
+              {form.meetingType === 'hybrid' && (
+                <>
+                  <div className="simple-event-field simple-event-field-full">
+                    <label className="simple-event-label" htmlFor="location">
+                      Location
+                    </label>
+                    <input
+                      id="location"
+                      name="location"
+                      type="text"
+                      value={form.location}
+                      onChange={handleChange}
+                      className="simple-event-input"
+                      placeholder="e.g. TESDA Auditorium, Room 101"
+                      required
+                    />
+                  </div>
+                  <div className="simple-event-field simple-event-field-full">
+                    <label className="simple-event-label" htmlFor="zoomLink">
+                      Zoom Link
+                    </label>
+                    <input
+                      id="zoomLink"
+                      name="zoomLink"
+                      type="url"
+                      value={form.zoomLink}
+                      onChange={handleChange}
+                      className="simple-event-input"
+                      placeholder="e.g. https://zoom.us/j/123456789"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {form.meetingType === 'virtual' && (
+                <div className="simple-event-field simple-event-field-full">
+                  <label className="simple-event-label" htmlFor="zoomLink">
+                    Zoom Link
+                  </label>
+                  <input
+                    id="zoomLink"
+                    name="zoomLink"
+                    type="url"
+                    value={form.zoomLink}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    placeholder="e.g. https://zoom.us/j/123456789"
+                    required
+                  />
+                  {form.zoomLink && !isZoomLink(form.zoomLink) && (
+                    <span className="simple-event-hint simple-event-hint-error">
+                      Please enter a valid Zoom link (e.g. https://zoom.us/j/...)
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </section>
 
@@ -274,7 +328,11 @@ export default function SimpleEventForm() {
           </section>
 
           <div className="simple-event-actions">
-            <button type="submit" className="simple-event-submit">
+            <button
+              type="submit"
+              className="simple-event-submit"
+              disabled={form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)}
+            >
               Save Event
             </button>
           </div>
