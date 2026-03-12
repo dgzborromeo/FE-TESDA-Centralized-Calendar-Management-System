@@ -6,9 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
-
 import Calendar from './pages/Calendar';
-
 import EventForm from './pages/EventForm';
 import EventDetails from './pages/EventDetails';
 import Invitations from './pages/Invitations';
@@ -24,6 +22,7 @@ import FAQ from './pages/FAQ';
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import SimpleEventForm from './pages/SimpleEventForm';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -45,14 +44,13 @@ function AppRoutes() {
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
+      <Route path="/simple-event-form" element={<SimpleEventForm />} />
       <Route path="/" element={<Layout />}>
         {/* Public landing: show dashboard even without login */}
         <Route index element={<Dashboard />} />
         {/* Public view-only pages */}
         <Route path="dashboard" element={<Dashboard />} />
-    
         <Route path="calendar" element={<Calendar />} />
-        
         <Route path="calendar/day/:date" element={<DayView />} />
         <Route path="list-of-activity" element={<ListOfActivity />} />
         <Route path="upcoming" element={<Upcoming />} />
