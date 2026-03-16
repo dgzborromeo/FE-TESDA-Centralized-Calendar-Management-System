@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Logo from '../components/Logo';
 import '../components/Header.css';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
 export default function SimpleEventForm() {
   const [loading, setLoading] = useState(false);
+  const [positions, setPositions] = useState([]);
+  const [focalships, setFocalships] = useState([]);
+  const [selectedPositions, setSelectedPositions] = useState([]);
+  const [selectedFocal, setSelectedFocal] = useState('');
+  const [selectedFocals, setSelectedFocals] = useState([]);
+  const [showOthersInput, setShowOthersInput] = useState(false);
+const [newFocalName, setNewFocalName] = useState('');
   const [form, setForm] = useState({
     office: '',
     division: '',
@@ -20,6 +27,101 @@ export default function SimpleEventForm() {
     participants: '',
     attachment: null,
   });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [posRes, focalRes] = await Promise.all([
+          scheduleAPI.getPositions(),
+          scheduleAPI.getFocalships()
+        ]);
+        setPositions(posRes || []);
+        setFocalships(focalRes || []);
+      } catch (err) {
+        console.error("Failed to fetch participant data", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const updateParticipantsText = useCallback((selPos, selFocals) => {
+    const posNames = selPos.map(p => p.name);
+    const focalNames = selFocals.map(f => `Focal: ${f}`);
+    const combined = [...posNames, ...focalNames];
+    
+    setForm(prev => ({
+      ...prev,
+      participants: combined.join(', ')
+    }));
+  }, []);
+  const handlePositionDropdownChange = (e) => {
+    const val = e.target.value;
+    const posObj = positions.find(p => p.name === val);
+    
+    if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
+        const updated = [...selectedPositions, posObj];
+        setSelectedPositions(updated);
+        updateParticipantsText(updated, selectedFocals);
+    }
+    e.target.value = ""; 
+};
+  const handleCheckboxChange = (pos) => {
+    let updated;
+    if (selectedPositions.find(p => p.id === pos.id)) {
+      updated = selectedPositions.filter(p => p.id !== pos.id);
+    } else {
+      updated = [...selectedPositions, pos];
+    }
+    setSelectedPositions(updated);
+    updateParticipantsText(updated, selectedFocal);
+  };
+
+const handleFocalDropdownChange = (e) => {
+    const val = e.target.value;
+    if (val === 'Others') {
+        setShowOthersInput(true);
+    } else {
+        setShowOthersInput(false);
+        if (val && !selectedFocals.includes(val)) {
+            const updatedFocals = [...selectedFocals, val];
+            setSelectedFocals(updatedFocals);
+            updateParticipantsText(selectedPositions, updatedFocals);
+        }
+    }
+    e.target.value = ""; // Reset dropdown
+};
+
+const handleAddCustomFocal = async () => {
+    if (!newFocalName.trim()) return;
+    
+    try {
+        setLoading(true);
+        const savedFocal = await scheduleAPI.addFocalship({ name: newFocalName });
+        setFocalships(prev => [...prev, savedFocal]);
+        
+        const updatedFocals = [...selectedFocals, savedFocal.name];
+        setSelectedFocals(updatedFocals);
+        updateParticipantsText(selectedPositions, updatedFocals);
+        
+        // Reset states
+        setNewFocalName('');
+        setShowOthersInput(false);
+    } catch (err) {
+        alert("Failed to add new focalship.");
+    } finally {
+        setLoading(false);
+    }
+};
+const removeParticipant = (item, type) => {
+    if (type === 'position') {
+        const updated = selectedPositions.filter(p => p.name !== item);
+        setSelectedPositions(updated);
+        updateParticipantsText(updated, selectedFocals);
+    } else {
+        const updated = selectedFocals.filter(f => f !== item);
+        setSelectedFocals(updated);
+        updateParticipantsText(selectedPositions, updated);
+    }
+};
 
   const isZoomLink = (str) => {
     const s = (str || '').trim();
@@ -284,17 +386,19 @@ if (response) {
                 <label className="simple-event-label" htmlFor="contactNumber">
                     Contact Number
                 </label>
-                <input
-                    id="contactNumber"
-                    name="contactNumber"
-                    type="tel"
-                    pattern="[0-9]{10,15}"
-                    value={form.contactNumber}
-                    onChange={handleContactChange}
-                    className="simple-event-input"
-                    placeholder="Enter contact number"
-                    required
-                />
+                  <input
+                      id="contactNumber"
+                      name="contactNumber"
+                      type="tel"
+                      // Binago ang pattern para tanggapin ang format na may dash
+                      pattern="[0-9]{4}-[0-9]{3}-[0-9]{4}" 
+                      value={form.contactNumber}
+                      onChange={handleContactChange}
+                      className="simple-event-input"
+                      placeholder="09XX-XXX-XXXX" // Mas mainam na placeholder para sa user
+                      required
+                      title="Format: 09XX-XXX-XXXX" // Lalabas ito kapag mali ang format
+                  />
                 </div>
             </div>
           
@@ -499,27 +603,84 @@ if (response) {
               )}
             </div>
           </section>
+<section className="simple-event-section">
+  <h2 className="simple-event-section-title">Participants</h2>
+  <div className="participants-container">
+    
+<div className="participants-inline-row">
+  {/* Positions Group */}
+  <div className="input-group-inline">
+    <label>Heads</label>
+    <select 
+      className="simple-event-input modern-select" 
+      onChange={handlePositionDropdownChange}
+      defaultValue=""
+    >
+      <option value="" disabled>-- Select Participant--</option>
+      {positions.map(p => (
+        <option key={p.id} value={p.name}>{p.name}</option>
+      ))}
+    </select>
+  </div>
 
-          <section className="simple-event-section">
-            <h2 className="simple-event-section-title">Participants</h2>
-            <div className="simple-event-grid">
-              <div className="simple-event-field simple-event-field-full">
-                <label className="simple-event-label" htmlFor="participants">
-                  Participants
-                </label>
-                <textarea
-                  id="participants"
-                  name="participants"
-                  value={form.participants}
-                  onChange={handleChange}
-                  className="simple-event-textarea"
-                  placeholder="List of participants, roles, or categories"
-                  rows={3}
-                  required
-                />
-              </div>
-            </div>
-          </section>
+  {/* Focals Group */}
+  <div className="input-group-inline">
+    <label>Focals</label>
+    <select 
+      className="simple-event-input modern-select" 
+      onChange={handleFocalDropdownChange}
+      defaultValue=""
+    >
+      <option value="" disabled>-- Select Participant--</option>
+      {focalships.map(f => (
+        <option key={f.id} value={f.name}>{f.name}</option>
+      ))}
+      <option value="Others" className="option-others">+ Others (New)</option>
+    </select>
+  </div>
+
+  {/* Others Field - Biglang susulpot sa dulo */}
+  {showOthersInput && (
+    <div className="input-group-inline others-animate">
+      <label>Specify Name</label>
+      <div className="modern-inline-group">
+        <input 
+          type="text"
+          className="simple-event-input compact-input"
+          placeholder="Enter focal..."
+          value={newFocalName}
+          onChange={(e) => setNewFocalName(e.target.value)}
+          autoFocus
+        />
+        <button type="button" className="badge-type" onClick={handleAddCustomFocal}>Add</button>
+        <button type="button" className="btn-cancel-inline" onClick={() => setShowOthersInput(false)}>&times;</button>
+      </div>
+    </div>
+  )}
+</div>
+<label className="simple-event-label">Final Participants List (Review)</label>
+    {/* Unified Badge List (Always Sorted: Positions first) */}
+    <div className="unified-badges-list">
+      {/* First: Positions */}
+      {selectedPositions.map((p) => (
+        <span key={`pos-${p.id}`} className="participant-badge badge-position">
+          <span className="badge-type">Position</span>
+          {p.name}
+          <button type="button" onClick={() => removeParticipant(p.name, 'position')} className="remove-badge-btn">&times;</button>
+        </span>
+      ))}
+
+      {/* Second: Focals */}
+      {selectedFocals.map((f, idx) => (
+        <span key={`foc-${idx}`} className="participant-badge badge-focal">
+          <span className="badge-type">Focal</span>
+          {f}
+          <button type="button" onClick={() => removeParticipant(f, 'focal')} className="remove-badge-btn">&times;</button>
+        </span>
+      ))}
+    </div>
+  </div>
+</section>
 
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Attachments</h2>

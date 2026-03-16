@@ -10,6 +10,7 @@ const TABS = [
   { id: 'divisions', label: 'Divisions' },
   { id: 'positions', label: 'Positions' },
   { id: 'pos-setup', label: 'Position Setup' },
+  { id: 'focals', label: 'Focalships' },
 ];
 
 export default function UserConfig() {
@@ -28,7 +29,7 @@ export default function UserConfig() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
-
+const [focals, setFocals] = useState([]);
   // Load Offices
   const loadOffices = useCallback(() => {
     setLoading(true);
@@ -59,6 +60,17 @@ const loadConfigPositions = useCallback(() => {
     setLoading(true);
     configApi.getConfigPositions().then(data => { setConfigPositions(data || []); setLoading(false); }).catch(console.error);
   }, []);
+
+const loadFocals = useCallback(() => {
+  setLoading(true);
+  configApi.getFocalships()
+    .then(data => {
+      setFocals(data || []);
+      setLoading(false);
+    })
+    .catch(err => { console.error(err); setLoading(false); });
+}, []);
+
   useEffect(() => {
     if (activeTab === 'offices') loadOffices();
     if (activeTab === 'divisions') {
@@ -72,12 +84,14 @@ const loadConfigPositions = useCallback(() => {
         loadDivisions(); 
         loadPositions(); 
     }
+    if (activeTab === 'focals') loadFocals();
     // I-reset ang form state paglipat ng tab
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadDivisions, loadPositions, loadConfigPositions]);
+  }, [activeTab, loadOffices, loadDivisions, loadPositions, loadConfigPositions, loadFocals]);
 
+  
   // Handle Save (Unified for Office and Division)
 const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,7 +116,12 @@ const handleSubmit = async (e) => {
         if (editingId) await configApi.updatePosition(editingId, { name: payload.name });
         else await configApi.addPosition({ name: payload.name });
         loadPositions();
-      } else if (activeTab === 'pos-setup') {
+      } else if (activeTab === 'focals') {
+        if (editingId) await configApi.updateFocalship(editingId, { name: payload.name });
+        else await configApi.addFocalship({ name: payload.name });
+        loadFocals();
+      }
+      else if (activeTab === 'pos-setup') {
         // SETUP CONFIG POSITION CRUD
         const payload = {
             office_id: formData.office_id,
@@ -147,12 +166,13 @@ const handleSubmit = async (e) => {
       else if (activeTab === 'divisions') await configApi.deleteDivision(id);
       else if (activeTab === 'positions') await configApi.deletePosition(id);
       else if (activeTab === 'pos-setup') await configApi.deleteConfigPosition(id);
-      
+      else if (activeTab === 'focals') await configApi.deleteFocalship(id);
       // Refresh current tab
       if (activeTab === 'offices') loadOffices();
       if (activeTab === 'divisions') loadDivisions();
       if (activeTab === 'positions') loadPositions();
       if (activeTab === 'pos-setup') loadConfigPositions();
+      if (activeTab === 'focals') loadFocals();
     } catch (err) {
       alert("Delete failed");
     }
@@ -397,6 +417,49 @@ const handleSubmit = async (e) => {
           <section className="user-config-panel">
             <h2 className="user-config-panel-title">Users</h2>
             <p className="user-config-empty">Content will be loaded from the database.</p>
+          </section>
+        )}
+        {/* FOCALSHIPS TAB */}
+        {activeTab === 'focals' && (
+          <section className="user-config-panel">
+            <div className="panel-header-inline">
+              <h2 className="user-config-panel-title">Focalship Configuration</h2>
+              {!isFormOpen && (
+                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Focalship</button>
+              )}
+            </div>
+
+            {isFormOpen && (
+              <form className="inline-config-form" onSubmit={handleSubmit}>
+                <div className="inline-form-inputs">
+                  <input 
+                    type="text" 
+                    placeholder="Focalship Name (e.g. GAD Focal, 5S Committee)" 
+                    className="input-name-wide"
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                    required
+                  />
+                  <div className="inline-form-btns">
+                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            <ul className="modern-config-list">
+              {loading ? <p>Loading...</p> : focals.map(f => (
+                <li key={f.id} className="config-list-item">
+                  <span className="office-display-text">{f.name}</span>
+                  <div className="item-actions">
+                    <button className="btn-action-edit" onClick={() => handleEdit(f)}>Edit</button>
+                    <button className="btn-action-delete" onClick={() => handleDelete(f.id)}>Delete</button>
+                  </div>
+                </li>
+              ))}
+              {!loading && focals.length === 0 && <p className="user-config-empty">No focalships found.</p>}
+            </ul>
           </section>
         )}
 

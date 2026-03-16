@@ -202,4 +202,116 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* Eto yung magpapatabi sa kanila */
+.participants-inline-row {
+  display: flex;
+  flex-wrap: wrap; /* Para kung sobrang haba, kusa bababa sa mobile */
+  gap: 20px;
+  align-items: center; /* Pantay na horizontal line */
+  padding: 10px 0;
+}
 
+.input-group-inline {
+  display: flex;
+  align-items: center; /* Pinapatabi yung Label sa Select */
+  gap: 10px;
+}
+
+.input-group-inline label {
+  white-space: nowrap; /* Para hindi maputol yung text */
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+/* Fix width para hindi masyadong malapad */
+.modern-select {
+  width: 200px; 
+  height: 40px;
+}
+
+.compact-input {
+  width: 150px;
+  height: 40px;
+}
+
+/* Animation para sa Others */
+.others-animate {
+  animation: fadeInRight 0.3s ease-in-out;
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.modern-inline-group {
+  display: flex;
+  gap: 5px;
+}
+.modern-select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background-color: #ffffff;
+}
+
+.unified-badges-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+    min-height: 50px;
+    border: 1px dashed #cbd5e1;
+}
+
+/* Base Badge Style */
+.participant-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    animation: badgePop 0.2s ease-out;
+}
+
+@keyframes badgePop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Style for Positions (Blue) */
+.badge-position {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+/* Style for Focals (Green) */
+.badge-focal {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-type {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    opacity: 0.6;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    padding: 0 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}

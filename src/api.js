@@ -188,4 +188,19 @@ export const config = {
   deleteFocal: (id) => api(`/schedule/${id}`, { 
     method: 'DELETE' 
   }),
+
+
+    getFocalships: () => api('/focalship'),
+  getFocalship: (id) => api(`/focalship/${id}`),
+  addFocalship: (body) => api('/focalship', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateFocalship: (id, body) => api(`/focalship/${id}`, { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  deleteFocalship: (id) => api(`/focalship/${id}`, { 
+    method: 'DELETE' 
+  }),
 };
