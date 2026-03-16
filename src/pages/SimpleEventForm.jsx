@@ -84,6 +84,32 @@ export default function SimpleEventForm() {
     setForm((prev) => ({ ...prev, attachment: file }));
   };
 
+const handleContactChange = (e) => {
+  let numbers = e.target.value.replace(/\D/g, '');
+
+  // limit to 11 digits
+  numbers = numbers.slice(0, 11);
+
+  // format: 0912 345 6789
+  let formatted = numbers;
+
+  if (numbers.length > 4 && numbers.length <= 7) {
+    formatted = numbers.slice(0, 4) + '-' + numbers.slice(4);
+  } else if (numbers.length > 7) {
+    formatted =
+      numbers.slice(0, 4) +
+      '-' +
+      numbers.slice(4, 7) +
+      '-' +
+      numbers.slice(7);
+  }
+
+  setForm((prev) => ({
+    ...prev,
+    contactNumber: formatted,
+  }));
+};
+
 const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -261,11 +287,13 @@ if (response) {
                 <input
                     id="contactNumber"
                     name="contactNumber"
-                    type="text"
+                    type="tel"
+                    pattern="[0-9]{10,15}"
                     value={form.contactNumber}
-                    onChange={handleChange}
+                    onChange={handleContactChange}
                     className="simple-event-input"
                     placeholder="Enter contact number"
+                    required
                 />
                 </div>
             </div>
