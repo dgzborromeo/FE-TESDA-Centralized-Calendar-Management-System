@@ -292,7 +292,7 @@ if (response) {
                     value={form.contactNumber}
                     onChange={handleContactChange}
                     className="simple-event-input"
-                    placeholder="Enter contact number"
+                      placeholder="e.g. 0912-345-6789"
                     required
                 />
                 </div>
