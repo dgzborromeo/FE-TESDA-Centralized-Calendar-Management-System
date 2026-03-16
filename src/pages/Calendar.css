@@ -239,13 +239,13 @@
 }
 
 .calendar-side-item--done {
-  border-left: 3px solid #16a34a;
-  background: rgba(187, 247, 208, 0.75);
-  border-color: rgba(22, 163, 74, 0.25);
+  border-left: 3px solid #9ca3af;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
 }
 
 .calendar-side-item--done:hover {
-  background: rgba(187, 247, 208, 0.9);
+  background: #e5e7eb;
 }
 
 .calendar-side-done-badge {
@@ -271,10 +271,11 @@
 
 .calendar-side-date {
   font-weight: 600;
+  color: #111827;
 }
 
 .calendar-side-time {
-  color: var(--text-muted);
+  color: #111827;
 }
 
 .calendar-side-main {
@@ -311,6 +312,28 @@
   font-weight: 600;
   color: var(--text);
   word-break: break-word;
+}
+
+.calendar-side-item--done .calendar-side-title-text {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.calendar-side-item--done .calendar-side-time {
+  color: #9ca3af;
+}
+
+.calendar-side-item--done .calendar-side-date {
+  color: #6b7280;
+}
+
+.calendar-side-item--done .calendar-side-chip-label {
+  color: #9ca3af;
+}
+
+.calendar-side-item--done .calendar-side-chip-dot {
+  opacity: 0.4;
+  filter: grayscale(0.8);
 }
 
 .calendar-side-empty {
@@ -1495,16 +1518,22 @@
 }
 
 .fc .fc-event.fc-event-done {
-  border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
-  opacity: 1;
+  border-left-color: rgba(148, 163, 184, 0.6) !important; /* faded host stripe */
+  opacity: 0.8;
   filter: none;
 }
 .fc .fc-event.fc-event-done .fc-event-main {
   background: transparent !important;
+  filter: blur(0.4px);
 }
 .fc .fc-event.fc-event-done:hover {
   opacity: 1;
   filter: none;
+}
+
+.fc .fc-event.fc-event-done .fc-event-host-stripe-bar {
+  opacity: 0.4;
+  filter: grayscale(0.8);
 }
 
 .fc .fc-event.fc-event-cancelled {

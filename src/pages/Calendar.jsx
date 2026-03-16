@@ -1555,8 +1555,8 @@ return parsedEvents
                 startLabel && endLabel && startLabel !== endLabel
                   ? `${startLabel}–${endLabel}`
                   : startLabel || '';
-              // Reference style: keep event text readable (mostly black).
-              const statusTextColor = cancelled ? '#ffffff' : '#0f172a';
+              // Reference style: keep event text readable; grey out done events.
+              const statusTextColor = cancelled ? '#ffffff' : done ? '#6b7280' : '#0f172a';
               // Final icon only for active, non-tentative, non-done events
               const isFinal = !isTentative && !cancelled && !done;
 
