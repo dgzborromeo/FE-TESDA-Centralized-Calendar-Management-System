@@ -145,6 +145,9 @@ if (response) {
       setForm({
         office: '',
         division: '',
+        email: '',
+        contactPerson: '',
+        contactNumner: '',
         title: '',
         description: '',
         meetingType: 'face-to-face',
@@ -216,8 +219,57 @@ if (response) {
                   className="simple-event-input"
                   placeholder="e.g. ROMD, HRMD"
                 />
-              </div>
+                </div>
             </div>
+
+            <div className="simple-event-grid-3">
+
+              <div className="simple-event-field">
+                <label className="simple-event-label" htmlFor="email">
+                    Email
+                </label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    placeholder="Enter email"
+                />
+            </div>
+
+            <div className="simple-event-field">
+                <label className="simple-event-label" htmlFor="contactPerson">
+                    Contact Person
+                </label>
+                <input
+                    id="contactPerson"
+                    name="contactPerson"
+                    type="text"
+                    value={form.contactPerson}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    placeholder="Enter contact person"
+                />
+            </div>
+
+            <div className="simple-event-field">
+                <label className="simple-event-label" htmlFor="contactNumber">
+                    Contact Number
+                </label>
+                <input
+                    id="contactNumber"
+                    name="contactNumber"
+                    type="text"
+                    value={form.contactNumber}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    placeholder="Enter contact number"
+                />
+                </div>
+            </div>
+          
           </section>
 
           <section className="simple-event-section">
@@ -270,6 +322,8 @@ if (response) {
                   <option value="virtual">Virtual/Zoom</option>
                 </select>
               </div>
+
+              
 
               <div className="simple-event-field">
                 <label className="simple-event-label" htmlFor="startDate">
