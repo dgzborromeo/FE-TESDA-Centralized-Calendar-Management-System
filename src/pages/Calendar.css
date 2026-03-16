@@ -477,6 +477,22 @@
   line-height: 1.1;
 }
 
+.fc .fc-toolbar .fc-button-group.fc-calendar-tabs .fc-button::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.35rem;
+  font-size: 0.95em;
+}
+
+.fc .fc-officesTab-button::before {
+  content: '🏢';
+}
+
+.fc .fc-participantsTab-button::before {
+  content: '👥';
+}
+
 .fc .fc-toolbar .fc-button-group.fc-calendar-tabs .fc-button:hover {
   color: var(--cal-primary) !important;
 }
