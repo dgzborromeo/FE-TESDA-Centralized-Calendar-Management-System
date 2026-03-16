@@ -449,6 +449,10 @@
   flex-wrap: wrap;
 }
 
+.calendar-legend-top-head h3 {
+  display: none;
+}
+
 /* Tabs are now rendered in FullCalendar toolbar (beside Today). */
 
 /* FullCalendar toolbar tabs (Offices/Participants) – match original pill tab bar */
@@ -674,18 +678,11 @@
 }
 
 .calendar-legend-toggle {
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.32rem 0.6rem;
-  cursor: pointer;
+  display: none;
 }
 
 .calendar-legend-toggle:hover {
-  background: rgba(37, 99, 235, 0.09);
+  background: none;
 }
 
 .calendar-legend-top .calendar-cluster-list {
