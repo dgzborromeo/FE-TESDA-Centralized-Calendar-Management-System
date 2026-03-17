@@ -197,8 +197,8 @@ function textColorForBackground(hexColor) {
 }
 
 const PARTICIPANT_LEGEND_ITEMS = [
-  // SEC red
-  { key: 'osec', label: 'SEC', color: '#ef4444' },
+  // DG red
+  { key: 'osec', label: 'DG', color: '#ef4444' },
   // DDGs pink
   { key: 'ddgs', label: 'DDGs', color: '#ec4899' },
   // EDs cyan
@@ -826,7 +826,7 @@ return parsedEvents
         const hasAttachment = Number(e.attachment_count || 0) > 0;
         const participantMeta = participantMetaForEvent(e._parsedParticipants || [], Boolean(e.has_osec_participant));
         const typeLabel = getEventTypeLabel(e.type);
-        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nType: ${typeLabel}\nHost: ${host}${e.has_osec_participant ? '\nParticipant: OSEC' : ''}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
+        const tooltip = `${e.title} - ${dateRangeText} ${formatTimeShort(e.start_time)}–${formatTimeShort(e.end_time)}\nType: ${typeLabel}\nHost: ${host}${e.has_osec_participant ? '\nParticipant: DG' : ''}${tentativeMeta.isTentative ? `\nSchedule: Tentative${tentativeMeta.note ? ` (${tentativeMeta.note})` : ''}` : ''}${hasAttachment ? '\nAttachment: Yes' : ''}${done ? '\nStatus: Done' : ''}${cancelled ? '\nStatus: Cancelled' : ''}${hostNeedsPostDoc ? '\nRequired: Upload AAR/Minutes' : ''}`;
         const start_time_raw = normalizeTime(e.start_time);
         const end_time_raw = normalizeTime(e.end_time);
         const canEditThis = !isReadOnlyOffice && (isAdmin || Number(e.created_by) === Number(user?.id));
@@ -1648,7 +1648,7 @@ return parsedEvents
                     {isTentative && <span className="fc-event-tentative-badge">[TENTATIVE]</span>}
                     {hasAttachment && <span className="fc-event-attachment-badge" title="Has attachment">●</span>}
                     {hasOsecParticipant && (
-                      <span className="fc-event-osec-bookmark" title="OSEC participant">
+                      <span className="fc-event-osec-bookmark" title="DG participant">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12" aria-hidden="true">
                           <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
                         </svg>
@@ -1790,10 +1790,12 @@ return parsedEvents
                 const chipColor = isParticipantsView
                   ? (activeLegend?.color ?? ext.participant_color ?? '#4b5563')
                   : (ext.host_color || '#1f3a5f');
+                const stripeColor = !isDone && !isTentative ? chipColor : undefined;
                 return (
                   <li
                     key={ev.id}
                     className={`calendar-side-item ${isTentative ? 'calendar-side-item--tentative' : ''} ${isDone ? 'calendar-side-item--done' : ''}`}
+                    style={stripeColor ? { '--calendar-side-stripe-color': stripeColor } : undefined}
                     onClick={() => setSelectedEvent(ev.id)}
                   >
                     <div className="calendar-side-meta">

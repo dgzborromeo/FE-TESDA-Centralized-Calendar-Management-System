@@ -206,6 +206,11 @@
   transition: background 0.15s, box-shadow 0.15s;
 }
 
+/* Host/participant color stripe on left for items that are not done and not tentative */
+.calendar-side-item:not(.calendar-side-item--done):not(.calendar-side-item--tentative) {
+  border-left: 3px solid var(--calendar-side-stripe-color, #94a3b8);
+}
+
 .calendar-side-item:hover {
   background: rgba(37, 99, 235, 0.06);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
@@ -2445,6 +2450,8 @@
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+
+  line-clamp: 3;
   overflow: hidden;
 }
 
