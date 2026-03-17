@@ -1777,7 +1777,9 @@ return parsedEvents
               <p className="calendar-side-subtitle">Showing first {sidebarEvents.length} events in current view</p>
             )}
             <ul className="calendar-side-list">
-              {sidebarEvents.map((ev) => {
+            {[...sidebarEvents]
+             .sort((a, b) => new Date(b.start) - new Date(a.start))
+              .map((ev) => {
                 const ext = ev.extendedProps || {};
                 const isTentative = Boolean(ext.is_tentative);
                 const isDone = Boolean(ext.done);
@@ -1804,23 +1806,23 @@ return parsedEvents
                     onClick={() => setSelectedEvent(ev.id)}
                   >
                     <div className="calendar-side-meta">
-                      <span className="calendar-side-date">{dateLabel}</span>
-                      {timeLabel && <span className="calendar-side-time">{timeLabel}</span>}
-                      <span className="calendar-side-badges">
-                        {isTentative && <span className="calendar-side-tentative-badge">Tentative</span>}
-                        {isDone && <span className="calendar-side-done-badge">Done</span>}
-                      </span>
-                    </div>
-                    <div className="calendar-side-main">
-                      <span className="calendar-side-chip">
-                        <span className="calendar-side-chip-dot" style={{ backgroundColor: chipColor }} />
-                        <span className="calendar-side-chip-label">{chipLabel}</span>
-                      </span>
-                      <span className="calendar-side-title-text">{ev.title}</span>
-                    </div>
-                  </li>
-                );
-              })}
+                    <span className="calendar-side-date">{dateLabel}</span>
+                    {timeLabel && <span className="calendar-side-time">{timeLabel}</span>}
+                    <span className="calendar-side-badges">
+                      {isTentative && <span className="calendar-side-tentative-badge">Tentative</span>}
+                      {isDone && <span className="calendar-side-done-badge">Done</span>}
+                    </span>
+                  </div>
+                  <div className="calendar-side-main">
+                    <span className="calendar-side-chip">
+                      <span className="calendar-side-chip-dot" style={{ backgroundColor: chipColor }} />
+                      <span className="calendar-side-chip-label">{chipLabel}</span>
+                    </span>
+                    <span className="calendar-side-title-text">{ev.title}</span>
+                  </div>
+                </li>
+              );
+          })}
               {sidebarEvents.length === 0 && (
                 <li className="calendar-side-empty">No events match this filter.</li>
               )}
