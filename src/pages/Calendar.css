@@ -152,9 +152,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem;
-  overflow: hidden;
+
   display: flex;
   flex-direction: column;
+  
+  height: 100vh; /* important para may scroll area */
+
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -190,11 +193,15 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
+
+  overflow-y: auto; /* scroll dito */
   flex: 1;
+
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  padding-right: 4px; /* para di matakpan ng scrollbar */
 }
 
 .calendar-side-item {
