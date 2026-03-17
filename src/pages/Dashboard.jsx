@@ -421,6 +421,15 @@ export default function Dashboard() {
               {user && user.role !== 'viewer' && (
                 <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
               )}
+              {!user && (
+                <Link
+                  to="/simple-event-form"
+                  state={{ backTo: '/dashboard' }}
+                  className="dashboard-btn dashboard-btn-primary"
+                >
+                  Add Schedule
+                </Link>
+              )}
               <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
             </div>
           </div>

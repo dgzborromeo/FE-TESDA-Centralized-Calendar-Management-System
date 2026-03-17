@@ -312,6 +312,7 @@ export default function Calendar() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const dialog = useAppDialog();
+  const isPublicView = !user;
   const isRomo = (user?.email || '').toLowerCase() === 'romo@tesda.gov.ph';
   const isPo = (user?.email || '').toLowerCase() === 'po@tesda.gov.ph';
   const isSmo = (user?.email || '').toLowerCase() === 'smo@tesda.gov.ph';
@@ -1281,6 +1282,10 @@ return parsedEvents
                 text: 'Participants',
                 click: () => setActiveTab('participants'),
               },
+              addSchedule: {
+                text: 'Add Schedule',
+                click: () => navigate('/simple-event-form', { state: { backTo: '/calendar' } }),
+              },
             }}
             dayHeaderContent={(arg) => {
               const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
@@ -1292,7 +1297,7 @@ return parsedEvents
             headerToolbar={{
               left: 'prev,next today officesTab,participantsTab',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: isPublicView ? 'addSchedule dayGridMonth,timeGridWeek,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay',
             }}
             viewDidMount={() => {
               syncToolbarTabs();

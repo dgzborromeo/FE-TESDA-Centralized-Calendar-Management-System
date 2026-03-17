@@ -15,9 +15,44 @@
   pointer-events: auto;
 }
 
+.simple-event-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.simple-event-back-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.96);
+  font-weight: 700;
+  padding: 0.55rem 0.85rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+  white-space: nowrap;
+}
+
+.simple-event-back-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.simple-event-back-btn:active {
+  transform: translateY(1px);
+}
+
+.simple-event-back-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
 .simple-event-main {
-  padding: 0 clamp(1rem, 3vw, 2rem) 2rem;
-  max-width: min(1600px, 96vw);
+  /* Match header-inner container width/padding for perfect alignment */
+  padding: 0 clamp(0.95rem, 1.4vw, 1.5rem) 2rem;
+  max-width: min(96vw, 1920px);
   width: 100%;
   margin: 0 auto;
 }

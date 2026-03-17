@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 import '../components/Header.css';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
 export default function SimpleEventForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const backTo = location?.state?.backTo || '/dashboard';
+
   const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState([]);
   const [focalships, setFocalships] = useState([]);
@@ -309,6 +314,15 @@ if (response) {
               <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
               <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
             </div>
+          </div>
+          <div className="simple-event-header-actions">
+            <button
+              type="button"
+              className="simple-event-back-btn"
+              onClick={() => navigate(backTo)}
+            >
+              Back
+            </button>
           </div>
         </div>
       </header>
