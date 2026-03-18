@@ -16,6 +16,16 @@ export default function SimpleEventForm() {
   const [selectedFocal, setSelectedFocal] = useState('');
   const [selectedFocals, setSelectedFocals] = useState([]);
   const [showOthersInput, setShowOthersInput] = useState(false);
+  const [clusters, setClusters] = useState([]);
+const [offices, setOffices] = useState([]);
+const [regions, setRegions] = useState([]);
+const [provinces, setProvinces] = useState([]);
+const [selectedRegionId, setSelectedRegionId] = useState(null); // Para sa Provincial Director logic
+const [isMenuOpen, setIsMenuOpen] = useState(false);
+const [hoveredPosition, setHoveredPosition] = useState(null);
+// Para sa UI logic ng cascading
+const [subType, setSubType] = useState(null); // 'cluster', 'office', 'region', 'province'
+const [tempRegions, setTempRegions] = useState([]);
 const [newFocalName, setNewFocalName] = useState('');
   const [form, setForm] = useState({
     office: '',
@@ -35,19 +45,33 @@ const [newFocalName, setNewFocalName] = useState('');
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [posRes, focalRes] = await Promise.all([
+        const [posRes, focalRes, clusterRes, officeRes, regionRes] = await Promise.all([
           scheduleAPI.getPositions(),
-          scheduleAPI.getFocalships()
+          scheduleAPI.getFocalships(),
+          scheduleAPI.getClusters(), // Siguraduhin na may ganito sa API index.js
+          scheduleAPI.getOffices(),
+          scheduleAPI.getRegions()
         ]);
         setPositions(posRes || []);
         setFocalships(focalRes || []);
+        setClusters(clusterRes || []);
+      setOffices(officeRes || []);
+      setRegions(regionRes || []);
       } catch (err) {
         console.error("Failed to fetch participant data", err);
       }
     };
     fetchData();
   }, []);
-
+const SUB_MENU_CONFIG = {
+  'Deputy Director General': { type: 'cluster', source: 'clusters', label: 'Clusters' },
+  'Executive Director': { type: 'office', source: 'offices', label: 'Offices' },
+  'Assistant Executive Director': { type: 'office', source: 'offices', label: 'Offices' }, // REUSABLE!
+  'Division Chief': { type: 'office', source: 'offices', label: 'Offices' }, 
+  'Regional Director': { type: 'region', source: 'regions', label: 'Regions' },
+  'Provincial Director': { type: 'prov_region', source: 'regions', label: 'Provinces' },
+  'District Director': { type: 'district_ncr', source: 'districts', label: 'Districts' }
+};
   const updateParticipantsText = useCallback((selPos, selFocals) => {
     const posNames = selPos.map(p => p.name);
     const focalNames = selFocals.map(f => `Focal: ${f}`);
@@ -58,17 +82,123 @@ const [newFocalName, setNewFocalName] = useState('');
       participants: combined.join(', ')
     }));
   }, []);
-  const handlePositionDropdownChange = (e) => {
-    const val = e.target.value;
+const handlePositionDropdownChange = (e) => {
+  const val = e.target.value;
+  setSubType(null);
+  setSelectedRegionId(null);
+
+  // DYNAMIC CHECK: Titingin lang sa config kung may sub-menu itong position na ito
+  const config = SUB_MENU_CONFIG[val];
+
+  if (config) {
+    setSubType(config.type); // Halimbawa: 'office' or 'cluster'
+    setHoveredPosition(val); // Para malaman ng UI kung sino ang naka-hover
+  } else {
+    // Normal position logic...
     const posObj = positions.find(p => p.name === val);
-    
     if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
-        const updated = [...selectedPositions, posObj];
-        setSelectedPositions(updated);
-        updateParticipantsText(updated, selectedFocals);
+      const updated = [...selectedPositions, posObj];
+      setSelectedPositions(updated);
+      updateParticipantsText(updated, selectedFocals);
     }
-    e.target.value = ""; 
+  }
 };
+const handleSubSelect = (subName, type, parentPos) => {
+  const config = SUB_MENU_CONFIG[parentPos];
+  if (!config) return;
+
+  const typeLabel = config.label;
+  const fullName = `${parentPos} - ${subName}`;
+  const allLabel = `${parentPos} - All ${typeLabel}`;
+
+  setSelectedPositions(prev => {
+    const isAllActive = prev.some(p => p.name === allLabel);
+    let updated;
+
+    if (isAllActive) {
+      // DYNAMIC SOURCE: Kunin ang listahan base sa config (e.g., 'offices', 'regions')
+      const sourceList = {
+        clusters, offices, regions, provinces
+      }[config.source] || [];
+
+      const remainingItems = sourceList
+        .filter(item => {
+           const compareValue = type === 'region' ? item.region : item.name;
+           return compareValue !== subName;
+        })
+        .map(item => ({
+          id: `${type}-${item.id}-${Date.now()}`,
+          name: `${parentPos} - ${type === 'region' ? item.region : item.name}`,
+          isSub: true
+        }));
+
+      updated = [...prev.filter(p => p.name !== allLabel), ...remainingItems];
+    } else {
+      const exists = prev.find(p => p.name === fullName);
+      if (exists) {
+        updated = prev.filter(p => p.name !== fullName);
+      } else {
+        const newEntry = { id: `${type}-${subName}-${Date.now()}`, name: fullName, isSub: true };
+        updated = [...prev, newEntry];
+      }
+    }
+
+    updateParticipantsText(updated, selectedFocals);
+    return updated;
+  });
+};
+const handleSelectAll = (items, type, parentPos) => {
+  const config = SUB_MENU_CONFIG[parentPos];
+  const typeLabel = config?.label || 'Items';
+  const allLabel = `${parentPos} - All ${typeLabel}`;
+  
+  // Gamitin ang Restriction Logic na ginawa natin kanina
+  const allowedItems = items.filter(item => {
+    if (type === 'cluster' || type === 'region') return item.id !== 1;
+    if (type === 'province') return item.region_id !== 2; 
+    if (type === 'district') return item.region_id === 2;
+    return true;
+  });
+
+  const currentViewFullNames = allowedItems.map(item => {
+    if (type === 'district') return `${parentPos} - National Capital Region - ${item.name}`;
+    if (type === 'region') return `${parentPos} - ${item.region}`;
+    return `${parentPos} - ${item.name}`;
+  });
+
+  setSelectedPositions(prev => {
+    const isAlreadyAll = prev.some(p => p.name === allLabel);
+    let updated;
+
+    if (isAlreadyAll) {
+      updated = prev.filter(p => p.name !== allLabel);
+    } else {
+      const filteredOthers = prev.filter(p => !currentViewFullNames.includes(p.name));
+      const allEntry = { 
+        id: `all-${type}-${Date.now()}`, 
+        name: allLabel, 
+        isSub: true,
+        isAll: true,
+        includedIds: allowedItems.map(i => i.id)
+      };
+      updated = [...filteredOthers, allEntry];
+    }
+    
+    updateParticipantsText(updated, selectedFocals);
+    return updated;
+  });
+};
+// BAGONG FUNCTION: Para i-load ang provinces kapag na-hover ang region sa ilalim ng PD
+const handleRegionHover = async (regionId) => {
+  setSelectedRegionId(regionId);
+  try {
+    const res = await scheduleAPI.getProvinces(regionId);
+    setProvinces(res || []);
+  } catch (err) {
+    console.error("Error fetching provinces", err);
+  }
+};
+
   const handleCheckboxChange = (pos) => {
     let updated;
     if (selectedPositions.find(p => p.id === pos.id)) {
@@ -623,19 +753,184 @@ if (response) {
     
 <div className="participants-inline-row">
   {/* Positions Group */}
-  <div className="input-group-inline">
-    <label>Heads</label>
-    <select 
-      className="simple-event-input modern-select" 
-      onChange={handlePositionDropdownChange}
-      defaultValue=""
-    >
-      <option value="" disabled>-- Select Participant--</option>
-      {positions.map(p => (
-        <option key={p.id} value={p.name}>{p.name}</option>
-      ))}
-    </select>
+{/* Heads Group with Custom Dropdown */}
+      <div className="input-group-inline" style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+        <label className="simple-event-label">Heads</label>
+        
+        {/* Custom Trigger - Pinagmumukhang Select Input */}
+        <div 
+          className="custom-dropdown-trigger" 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {hoveredPosition || "-- Select Participant --"}
+          <span className="arrow">{isMenuOpen ? '▲' : '▼'}</span>
+        </div>
+
+        {/* Ang Cascading Menu sa Gilid */}
+        {isMenuOpen && (
+          <div className="main-menu-container">
+            {/* Unang Listahan (Main Positions) */}
+<ul className="dropdown-list-main">
+  {positions.map((p) => {
+    // 1. Check kung ang position na ito ay nasa config natin
+    const config = SUB_MENU_CONFIG[p.name];
+    const hasSubMenu = !!config;
+
+    return (
+      <li 
+        key={p.id} 
+        className={hoveredPosition === p.name ? 'active-li' : ''}
+        onMouseEnter={() => {
+          setHoveredPosition(p.name);
+          
+          if (hasSubMenu) {
+            setSubType(config.type);
+            // Special trigger for District Director (NCR)
+            if (config.type === 'district_ncr') handleRegionHover(2);
+            else setSelectedRegionId(null);
+          } else {
+            setSubType(null);
+          }
+        }}
+        onClick={() => {
+          // Kung walang sub-menu, direct add (dynamic check)
+          if (!hasSubMenu) {
+            handlePositionDropdownChange({ target: { value: p.name } });
+            setIsMenuOpen(false);
+            setHoveredPosition(null);
+          }
+        }}
+      >
+        {p.name}
+        {/* Dynamic Chevron: Lalabas lang kung nasa config ang position */}
+        {hasSubMenu && <span className="chevron-right">▶</span>}
+      </li>
+    );
+  })}
+</ul>
+
+            {/* Pangalawang Listahan (Lilitaw sa tabi pag nag-hover sa may sub-type) */}
+            {subType && (
+              <ul className="dropdown-list-sub">
+{/* Render clusters, offices, or regions dynamically */}
+{['cluster', 'office', 'region'].includes(subType) && (
+  <ul className="dropdown-list-sub">
+    <li className="select-all-item">
+      <label className="checkbox-label">
+        <input 
+          type="checkbox" 
+          onChange={() => {
+            const config = SUB_MENU_CONFIG[hoveredPosition];
+            // Kunin ang tamang data source (offices vs clusters vs regions)
+            const items = { clusters, offices, regions }[config.source];
+            handleSelectAll(items, subType, hoveredPosition);
+          }}
+          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All ${SUB_MENU_CONFIG[hoveredPosition]?.label}`)}
+        />
+        <span className="item-text">All {SUB_MENU_CONFIG[hoveredPosition]?.label}</span>
+      </label>
+    </li>
+    <div className="scrollable-sub-list">
+      {({ clusters, offices, regions }[SUB_MENU_CONFIG[hoveredPosition]?.source] || [])
+        .filter(item => item.id !== 1) // Halimbawa: wag isama ang 'N/A'
+        .map(item => {
+          const itemName = subType === 'region' ? item.region : item.name;
+          const fullName = `${hoveredPosition} - ${itemName}`;
+          const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${SUB_MENU_CONFIG[hoveredPosition]?.label}`);
+          
+          return (
+            <li key={item.id} className="checkbox-item">
+              <label className="checkbox-label" onClick={() => handleSubSelect(itemName, subType, hoveredPosition)}>
+                <input type="checkbox" checked={isChecked} readOnly />
+                <span className="item-text">{itemName}</span>
+              </label>
+            </li>
+          );
+      })}
+    </div>
+  </ul>
+)}
+{subType === 'prov_region' && (
+  <div className="scrollable-sub-list" style={{ borderLeft: '1px solid #eee', minWidth: '180px' }}>
+    {regions.filter(r => r.id !== 1 && r.id !== 2).map(r => (
+      <li 
+        key={r.id} 
+        onMouseEnter={() => handleRegionHover(r.id)}
+        className={selectedRegionId === r.id ? 'active-li' : ''}
+        style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', cursor: 'default' }}
+      >
+        {r.region} <span className="chevron-right">▶</span>
+      </li>
+    ))}
   </div>
+)}
+
+{subType === 'district_ncr' && (
+  <ul className="dropdown-list-sub">
+    <li className="select-all-item">
+      <label className="checkbox-label">
+        <input 
+          type="checkbox" 
+          onChange={() => handleSelectAll(provinces, 'district', hoveredPosition)}
+          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Districts`)}
+        />
+        <span className="item-text">All NCR Districts</span>
+      </label>
+    </li>
+    <div className="scrollable-sub-list">
+      {provinces.map(pr => {
+        const fullName = `${hoveredPosition} - National Capital Region - ${pr.name}`;
+        const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
+        return (
+          <li key={pr.id} className="checkbox-item">
+            <label className="checkbox-label" onClick={() => handleSubSelect(`National Capital Region - ${pr.name}`, 'district', hoveredPosition)}>
+              <input type="checkbox" checked={isChecked} readOnly />
+              <span className="item-text">{pr.name}</span>
+            </label>
+          </li>
+        );
+      })}
+    </div>
+  </ul>
+)}
+              </ul>
+            )}
+{subType === 'prov_region' && selectedRegionId && (
+  <ul className="dropdown-list-sub">
+    <li className="select-all-item">
+      <label className="checkbox-label">
+        <input 
+          type="checkbox" 
+          onChange={() => {
+            const regName = regions.find(reg => reg.id === selectedRegionId)?.region || '';
+            handleSelectAll(provinces.map(p => ({...p, name: `${regName} - ${p.name}`})), 'province', hoveredPosition);
+          }}
+          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Provinces`)}
+        />
+        <span className="item-text">All in Region</span>
+      </label>
+    </li>
+    <div className="scrollable-sub-list">
+      {provinces.map(pr => {
+        const regName = regions.find(reg => reg.id === selectedRegionId)?.region || '';
+        const fullName = `${hoveredPosition} - ${regName} - ${pr.name}`;
+        const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Provinces`);
+        
+        return (
+          <li key={pr.id} className="checkbox-item">
+            <label className="checkbox-label" onClick={() => handleSubSelect(`${regName} - ${pr.name}`, 'province', hoveredPosition)}>
+              <input type="checkbox" checked={isChecked} readOnly />
+              <span className="item-text">{pr.name}</span>
+            </label>
+          </li>
+        );
+      })}
+    </div>
+  </ul>
+)}
+          </div>
+        )}
+
 
   {/* Focals Group */}
   <div className="input-group-inline">
@@ -671,6 +966,7 @@ if (response) {
       </div>
     </div>
   )}
+        </div>
 </div>
 <label className="simple-event-label">Final Participants List (Review)</label>
     {/* Unified Badge List (Always Sorted: Positions first) */}

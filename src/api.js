@@ -192,6 +192,7 @@ export const config = {
 
     getFocalships: () => api('/focalship'),
   getFocalship: (id) => api(`/focalship/${id}`),
+  getProvinces: (regionId) => api(`/provinces/${regionId}`),
   addFocalship: (body) => api('/focalship', { 
     method: 'POST', 
     body: JSON.stringify(body) 
@@ -203,4 +204,7 @@ export const config = {
   deleteFocalship: (id) => api(`/focalship/${id}`, { 
     method: 'DELETE' 
   }),
+
+  getClusters: () => api('/clusters'),
+  getRegions: () => api('/regions'),
 };

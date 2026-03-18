@@ -350,3 +350,171 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
+
+/* Container para sa dalawang listahan */
+.main-menu-container {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    display: flex;
+    z-index: 2000;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    border-radius: 12px;
+    overflow: hidden; /* Para sa border-radius */
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-list-main, .dropdown-list-sub {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+    width: 240px; /* Mas malapad para sa long names */
+    height: 380px; /* Fixed height para pantay lagi */
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+/* Custom Scrollbar para hindi pangit tignan */
+.dropdown-list-main::-webkit-scrollbar, 
+.dropdown-list-sub::-webkit-scrollbar {
+    width: 6px;
+}
+.dropdown-list-main::-webkit-scrollbar-thumb, 
+.dropdown-list-sub::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Border sa pagitan ng main at sub list */
+.dropdown-list-main {
+    border-right: 1px solid #f1f5f9;
+}
+
+.dropdown-list-main li, .dropdown-list-sub li {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.15s ease;
+}
+
+/* Modern Hover Effect */
+.dropdown-list-main li:hover, 
+.dropdown-list-main li.active-li {
+    background-color: #f1f5f9; /* Soft gray instead of harsh blue */
+    color: #1e40af;
+    font-weight: 600;
+}
+
+/* Kapag active/selected ang main item */
+.dropdown-list-main li.active-li {
+    background-color: #eff6ff;
+    border-right: 3px solid #1e40af;
+}
+
+.dropdown-list-sub li:hover {
+    background-color: #1e40af; /* Main accent color */
+    color: white;
+}
+
+/* Trigger Button Customization */
+.custom-dropdown-trigger {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    min-width: 200px;
+    transition: all 0.2s;
+}
+
+.custom-dropdown-trigger:hover {
+    border-color: #1d4ed8;
+    background: #f8fafc;
+}
+
+.chevron-right {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Container adjustment */
+.dropdown-list-sub {
+  min-width: 350px; /* Mas malapad para sa mahabang office names */
+  max-height: 450px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+}
+
+.scrollable-sub-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Eto ang papantay sa checkbox at text */
+.checkbox-label {
+  display: flex;
+  align-items: flex-start; /* Naka-align sa taas para kung 2 lines ang text, pantay pa rin ang box */
+  gap: 12px;               /* Space sa pagitan ng checkbox at text */
+  padding: 10px 15px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;  /* Siguradong hindi lalampas ang padding */
+}
+
+.checkbox-label:hover {
+  background-color: #f5faff;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  margin-top: 2px; /* Slight adjustment para pantay sa unang line ng text */
+  cursor: pointer;
+  flex-shrink: 0;  /* Pigilan ang checkbox na lumiit pag mahaba ang text */
+}
+
+.item-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #333;
+  text-align: left;
+}
+
+/* Alisin ang bullets at margin ng LI */
+.dropdown-list-sub li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.select-all-item {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+

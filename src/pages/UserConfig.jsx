@@ -30,6 +30,8 @@ export default function UserConfig() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
 const [focals, setFocals] = useState([]);
+const [clusters, setClusters] = useState([]);
+const [expandedCluster, setExpandedCluster] = useState(null);
   // Load Offices
   const loadOffices = useCallback(() => {
     setLoading(true);
@@ -40,6 +42,17 @@ const [focals, setFocals] = useState([]);
       })
       .catch(err => { console.error(err); setLoading(false); });
   }, []);
+
+  // Load Clusters
+const loadClusters = useCallback(() => {
+  setLoading(true);
+  configApi.getClusters()
+    .then(data => {
+      setClusters(data || []);
+      setLoading(false);
+    })
+    .catch(err => { console.error(err); setLoading(false); });
+}, []);
 
   // Load Divisions
   const loadDivisions = useCallback(() => {
@@ -72,7 +85,10 @@ const loadFocals = useCallback(() => {
 }, []);
 
   useEffect(() => {
-    if (activeTab === 'offices') loadOffices();
+if (activeTab === 'offices') {
+    loadOffices();
+    loadClusters(); // Idagdag ito
+  }
     if (activeTab === 'divisions') {
       loadDivisions();
       loadOffices(); // Kailangan natin ito para sa dropdown sa Divisions tab
@@ -89,7 +105,7 @@ const loadFocals = useCallback(() => {
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadDivisions, loadPositions, loadConfigPositions, loadFocals]);
+  }, [activeTab, loadOffices, loadClusters, loadDivisions, loadPositions, loadConfigPositions, loadFocals]);
 
   
   // Handle Save (Unified for Office and Division)
@@ -98,7 +114,8 @@ const handleSubmit = async (e) => {
     const payload = {
       ...formData,
       name: formData.name.trim(),
-      abbr: formData.abbr ? formData.abbr.trim() : ''
+      abbr: formData.abbr ? formData.abbr.trim() : '',
+      cluster_id: formData.cluster_id
     };
 
     try {
@@ -202,47 +219,104 @@ const handleSubmit = async (e) => {
 
       <div className="user-config-content">
         {/* OFFICES TAB */}
-        {activeTab === 'offices' && (
-          <section className="user-config-panel">
-            <div className="panel-header-inline">
-              <h2 className="user-config-panel-title">Offices</h2>
-              {!isFormOpen && (
-                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Office</button>
+       {activeTab === 'offices' && (
+  <section className="user-config-panel">
+    <h2 className="user-config-panel-title">Offices by Cluster</h2>
+    
+    {clusters.map(cluster => {
+      const isExpanded = expandedCluster === cluster.id;
+      const clusterOffices = offices.filter(off => off.cluster_id === cluster.id);
+
+      return (
+        <div key={cluster.id} className="cluster-group-container" style={{ marginBottom: '15px', border: '1px solid #ddd', borderRadius: '8px' }}>
+          {/* CLUSTER HEADER */}
+          <div 
+            className="cluster-header" 
+            onClick={() => setExpandedCluster(isExpanded ? null : cluster.id)}
+            style={{ padding: '15px', background: '#f8f9fa', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+               {cluster.name} <small style={{ color: '#666', fontWeight: 'normal' }}>({clusterOffices.length} Offices)</small>
+            </span>
+            <span>{isExpanded ? '▲' : '▼'}</span>
+          </div>
+
+          {/* ACCORDION CONTENT */}
+          {isExpanded && (
+            <div className="cluster-content" style={{ padding: '15px', background: '#fff' }}>
+              
+              {/* ADD OFFICE FORM INSIDE CLUSTER */}
+              {!isFormOpen ? (
+                <button 
+                  className="btn-add-toggle" 
+                  onClick={() => {
+                    setIsFormOpen(true);
+                    setFormData({ ...formData, cluster_id: cluster.id }); // Auto-set cluster_id
+                  }}
+                  style={{ marginBottom: '15px' }}
+                >
+                  + Add Office to {cluster.name}
+                </button>
+              ) : (
+                formData.cluster_id === cluster.id && (
+                  <form className="inline-config-form" onSubmit={handleSubmit} style={{ marginBottom: '20px', background: '#f0f4f8', padding: '15px', borderRadius: '5px' }}>
+                    <div className="inline-form-inputs">
+                      <input 
+                        type="text" placeholder="Office Name" className="input-name-wide"
+                        value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required
+                      />
+                      <input 
+                        type="text" placeholder="Abbr" className="input-abbr-small"
+                        value={formData.abbr} onChange={(e) => setFormData({...formData, abbr: e.target.value})} required
+                      />
+                      <div className="inline-form-btns">
+                        <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                        <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+                      </div>
+                    </div>
+                  </form>
+                )
               )}
+
+              {/* OFFICE LIST UNDER THIS CLUSTER */}
+              <ul className="modern-config-list">
+                {clusterOffices.map(off => (
+                  <li key={off.id} className="config-list-item">
+                    <span className="office-display-text">{off.name} <strong>({off.abbr})</strong></span>
+                    <div className="item-actions">
+                      <button className="btn-action-edit" onClick={() => {
+                        handleEdit(off);
+                        setFormData(prev => ({ ...prev, cluster_id: cluster.id }));
+                      }}>Edit</button>
+                      <button className="btn-action-delete" onClick={() => handleDelete(off.id)}>Delete</button>
+                    </div>
+                  </li>
+                ))}
+                {clusterOffices.length === 0 && <p style={{ color: '#999', fontStyle: 'italic' }}>No offices in this cluster yet.</p>}
+              </ul>
             </div>
+          )}
+        </div>
+      );
+    })}
 
-            {isFormOpen && (
-              <form className="inline-config-form" onSubmit={handleSubmit}>
-                <div className="inline-form-inputs">
-                  <input 
-                    type="text" placeholder="Office Name" className="input-name-wide"
-                    value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required
-                  />
-                  <input 
-                    type="text" placeholder="Abbr" className="input-abbr-small"
-                    value={formData.abbr} onChange={(e) => setFormData({...formData, abbr: e.target.value})} required
-                  />
-                  <div className="inline-form-btns">
-                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
-                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
-                  </div>
-                </div>
-              </form>
-            )}
-
-            <ul className="modern-config-list">
-              {offices.map(off => (
-                <li key={off.id} className="config-list-item">
-                  <span className="office-display-text">{off.name} <strong>({off.abbr})</strong></span>
-                  <div className="item-actions">
-                    <button className="btn-action-edit" onClick={() => handleEdit(off)}>Edit</button>
-                    <button className="btn-action-delete" onClick={() => handleDelete(off.id)}>Delete</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+    {/* Optional: Central Office Section (Offices without cluster_id) */}
+    <div style={{ marginTop: '30px' }}>
+      <h3 style={{ fontSize: '1rem', color: '#666' }}>Unassigned / Central Offices</h3>
+      <ul className="modern-config-list">
+        {offices.filter(off => !off.cluster_id).map(off => (
+          <li key={off.id} className="config-list-item">
+            <span className="office-display-text">{off.name} <strong>({off.abbr})</strong></span>
+            <div className="item-actions">
+              <button className="btn-action-edit" onClick={() => handleEdit(off)}>Edit</button>
+              <button className="btn-action-delete" onClick={() => handleDelete(off.id)}>Delete</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
 
         {/* DIVISIONS TAB */}
         {activeTab === 'divisions' && (
