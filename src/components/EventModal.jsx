@@ -406,297 +406,308 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
           </div>
         </div>
         <div className="modal-body">
-          <div className="modal-event-grid">
-            <div className="modal-event-col modal-event-col-left">
-              <div className="modal-event-card modal-event-card--date">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="14" r="1.5"/></svg>
+          <div className="modal-event-sections">
+            <section className="modal-event-section">
+              <div className="modal-event-section-title">Event Information</div>
+              <div className="modal-event-cards modal-event-cards--info">
+                <div className="modal-event-card modal-event-card--description">
+                  <div className="modal-event-card-body">
+                    <strong className="modal-event-desc-title">Description</strong>
+                    <p className="modal-event-desc-text">{descriptionText}</p>
+                  </div>
                 </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Date & Time</span>
-                  <span className="modal-event-card-date">{formatDateRange(eventDate, eventEndDate)}</span>
-                  <span className="modal-event-card-time">{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
-                </div>
-              </div>
-              <div className="modal-event-card modal-event-card--location">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Location</span>
-                  <span className="modal-event-card-value">{locationText}</span>
-                </div>
-              </div>
-              <div className="modal-event-desc-block">
-                <strong className="modal-event-desc-title">Description</strong>
-                <p className="modal-event-desc-text">{descriptionText}</p>
-              </div>
-              {(needsPostDoc || postDocs.length > 0) && (
-                <div className="modal-event-card modal-event-card--postdoc">
+                <div className="modal-event-card modal-event-card--date">
                   <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="14" r="1.5"/></svg>
                   </div>
                   <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">{requiredPostDocLabel}</span>
-                    {postDocs.length > 0 ? (
-                      <ul className="modal-event-attach-list">
-                        {postDocs.map((a) => (
-                          <li key={a.id} className="modal-event-attach-item">
-                            <span className="modal-event-attach-icon">PDF</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="modal-postdoc-empty">
-                        {isHost
-                          ? `Required after this event is done. Please upload ${requiredPostDocLabel}.`
-                          : `Pending host submission: ${requiredPostDocLabel}.`}
-                      </p>
-                    )}
-                    {isHost && isDone && (
-                      <div className="modal-postdoc-upload">
-                        <div className="modal-file-picker">
-                          <input
-                            id="modal-postdoc-file"
-                            className="modal-file-picker-input"
-                            type="file"
-                            onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
-                            disabled={supportingSaving}
-                          />
-                          <label className="modal-file-picker-button" htmlFor="modal-postdoc-file">
-                            Choose file
-                          </label>
-                          <span className="modal-file-picker-name" title={postDocFile?.name || ''}>
-                            {postDocFile?.name || 'No file chosen'}
-                          </span>
-                          {postDocFile ? (
-                            <button
-                              type="button"
-                              className="modal-file-picker-clear"
-                              onClick={() => setPostDocFile(null)}
-                              aria-label="Remove selected file"
-                              title="Remove selected file"
-                              disabled={supportingSaving}
-                            >
-                              ×
-                            </button>
-                          ) : null}
-                        </div>
-                        <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
-                      </div>
-                    )}
+                    <span className="modal-event-card-heading">Date & Time</span>
+                    <span className="modal-event-card-date">{formatDateRange(eventDate, eventEndDate)}</span>
+                    <span className="modal-event-card-time">{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
                   </div>
                 </div>
-              )}
-              {(needsPostDoc || attendanceSheets.length > 0) && (
-                <div className="modal-event-card modal-event-card--attendance">
+                <div className="modal-event-card modal-event-card--host">
                   <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
                   </div>
                   <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Attendance Sheet</span>
-                    {attendanceSheets.length > 0 ? (
-                      <ul className="modal-event-attach-list">
-                        {attendanceSheets.map((a) => (
-                          <li key={a.id} className="modal-event-attach-item">
-                            <span className="modal-event-attach-icon">PDF</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="modal-postdoc-empty">
-                        {isHost ? 'Please upload attendance sheet for this done event.' : 'Pending host submission: Attendance Sheet.'}
-                      </p>
-                    )}
-                    {isHost && isDone && (
-                      <div className="modal-postdoc-upload">
-                        <div className="modal-file-picker">
-                          <input
-                            id="modal-attendance-file"
-                            className="modal-file-picker-input"
-                            type="file"
-                            onChange={(e) => setAttendanceFile(e.target.files?.[0] || null)}
-                            disabled={supportingSaving}
-                          />
-                          <label className="modal-file-picker-button" htmlFor="modal-attendance-file">
-                            Choose file
-                          </label>
-                          <span className="modal-file-picker-name" title={attendanceFile?.name || ''}>
-                            {attendanceFile?.name || 'No file chosen'}
-                          </span>
-                          {attendanceFile ? (
-                            <button
-                              type="button"
-                              className="modal-file-picker-clear"
-                              onClick={() => setAttendanceFile(null)}
-                              aria-label="Remove selected file"
-                              title="Remove selected file"
-                              disabled={supportingSaving}
-                            >
-                              ×
-                            </button>
-                          ) : null}
-                        </div>
-                        <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
-                      </div>
+                    <span className="modal-event-card-heading">Event Host</span>
+                    <span className="modal-event-card-label modal-event-host-name">{event.creator_name || 'Unknown'}</span>
+                    {(event.creator_office || event.office_name) && (
+                      <span className="modal-event-card-sublabel">{event.creator_office || event.office_name}</span>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-            <div className="modal-event-col modal-event-col-right">
-              <div className="modal-event-card modal-event-card--host">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
-                </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Event Host</span>
-                  <span className="modal-event-card-label modal-event-host-name">{event.creator_name || 'Unknown'}</span>
-                  {(event.creator_office || event.office_name) && (
-                    <span className="modal-event-card-sublabel">{event.creator_office || event.office_name}</span>
-                  )}
-                </div>
-              </div>
-              <div className="modal-event-card modal-event-card--type">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Meeting Type</span>
-                  <span className="modal-event-card-value">{typeText}</span>
-                </div>
-              </div>
-              <div className="modal-event-card modal-event-card--participants">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Participants</span>
-                  <ul className="modal-event-participants-list">
-                    {participantLines.map((name, idx) => (
-                      <li key={idx}>{name}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              {locationIsUrl && (
-                <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
+                <div className="modal-event-card modal-event-card--location">
                   <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   </div>
                   <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Zoom Meeting Link</span>
-                    <a href={locationText} target="_blank" rel="noreferrer noopener" className="modal-event-join-btn">
-                      Join Zoom Meeting
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-                    </a>
-                    <span className="modal-event-join-url">{locationText}</span>
+                    <span className="modal-event-card-heading">Location</span>
+                    <span className="modal-event-card-value">{locationText}</span>
                   </div>
                 </div>
-              )}
-              <div className="modal-event-card modal-event-card--attach">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                <div className="modal-event-card modal-event-card--type">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Meeting Type</span>
+                    <span className="modal-event-card-value">{typeText}</span>
+                  </div>
                 </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
-                  {regularAttachments.length > 0 ? (
-                    <ul className="modal-event-attach-list">
-                      {regularAttachments.map((a) => (
-                        <li key={a.id} className="modal-event-attach-item">
-                          <span className="modal-event-attach-icon">PDF</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                        </li>
+                <div className="modal-event-card modal-event-card--participants">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Participants</span>
+                    <ul className="modal-event-participants-list">
+                      {participantLines.map((name, idx) => (
+                        <li key={idx}>{name}</li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="modal-postdoc-empty">No program references uploaded yet.</p>
-                  )}
+                  </div>
                 </div>
+                {locationIsUrl && (
+                  <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
+                    <div className="modal-event-card-icon" aria-hidden>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <div className="modal-event-card-body">
+                      <span className="modal-event-card-heading">Zoom Meeting Link</span>
+                      <a href={locationText} target="_blank" rel="noreferrer noopener" className="modal-event-join-btn">
+                        Join Zoom Meeting
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+                      </a>
+                      <span className="modal-event-join-url">{locationText}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-              {(needsPostDoc || photoAttachments.length > 0) && (
-                <div className="modal-event-card modal-event-card--photos">
+            </section>
+
+            <section className="modal-event-section">
+              <div className="modal-event-section-title">Documents & Reports</div>
+              <div className="modal-event-cards modal-event-cards--docs">
+                {(needsPostDoc || postDocs.length > 0) && (
+                  <div className="modal-event-card modal-event-card--postdoc">
+                    <div className="modal-event-card-icon" aria-hidden>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
+                    </div>
+                    <div className="modal-event-card-body">
+                      <span className="modal-event-card-heading">{requiredPostDocLabel}</span>
+                      {postDocs.length > 0 ? (
+                        <ul className="modal-event-attach-list">
+                          {postDocs.map((a) => (
+                            <li key={a.id} className="modal-event-attach-item">
+                              <span className="modal-event-attach-icon">PDF</span>
+                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                              <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="modal-postdoc-empty">
+                          {isHost
+                            ? `Required after this event is done. Please upload ${requiredPostDocLabel}.`
+                            : `Pending host submission: ${requiredPostDocLabel}.`}
+                        </p>
+                      )}
+                      {isHost && isDone && (
+                        <div className="modal-postdoc-upload">
+                          <div className="modal-file-picker">
+                            <input
+                              id="modal-postdoc-file"
+                              className="modal-file-picker-input"
+                              type="file"
+                              onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
+                              disabled={supportingSaving}
+                            />
+                            <label className="modal-file-picker-button" htmlFor="modal-postdoc-file">
+                              Choose file
+                            </label>
+                            <span className="modal-file-picker-name" title={postDocFile?.name || ''}>
+                              {postDocFile?.name || 'No file chosen'}
+                            </span>
+                            {postDocFile ? (
+                              <button
+                                type="button"
+                                className="modal-file-picker-clear"
+                                onClick={() => setPostDocFile(null)}
+                                aria-label="Remove selected file"
+                                title="Remove selected file"
+                                disabled={supportingSaving}
+                              >
+                                ×
+                              </button>
+                            ) : null}
+                          </div>
+                          <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div className="modal-event-card modal-event-card--attach">
                   <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
                   </div>
                   <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Event Photos (3 uploads)</span>
-                    {[1, 2, 3].map((slot) => {
-                      const existing = photoBySlot[slot];
-                      const selectedFile = slot === 1 ? photo1File : slot === 2 ? photo2File : photo3File;
-                      const setSelectedFile =
-                        slot === 1 ? setPhoto1File : slot === 2 ? setPhoto2File : setPhoto3File;
-                      return (
-                        <div key={slot} className="modal-photo-slot">
-                          <span className="modal-photo-slot-title">Photo {slot}</span>
-                          {existing ? (
-                            <div className="modal-photo-slot-existing">
-                              <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{existing.original_name}</a>
-                              <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                            </div>
-                          ) : (
-                            <p className="modal-postdoc-empty">No uploaded photo yet.</p>
-                          )}
-                          {isHost && isDone && (
-                            <div className="modal-postdoc-upload">
-                              <div className="modal-file-picker">
-                                <input
-                                  id={`modal-photo-file-${slot}`}
-                                  className="modal-file-picker-input"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                                  disabled={supportingSaving}
-                                />
-                                <label className="modal-file-picker-button" htmlFor={`modal-photo-file-${slot}`}>
-                                  Choose file
-                                </label>
-                                <span className="modal-file-picker-name" title={selectedFile?.name || ''}>
-                                  {selectedFile?.name || 'No file chosen'}
-                                </span>
-                                {selectedFile ? (
-                                  <button
-                                    type="button"
-                                    className="modal-file-picker-clear"
-                                    onClick={() => setSelectedFile(null)}
-                                    aria-label={`Remove selected Photo ${slot}`}
-                                    title={`Remove selected Photo ${slot}`}
-                                      disabled={supportingSaving}
-                                  >
-                                    ×
-                                  </button>
-                                ) : null}
-                              </div>
-                              <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {isHost && isDone && (
-                      <div className="modal-postdoc-upload">
-                        <button
-                          type="button"
-                          className="modal-btn modal-btn-edit"
-                          onClick={handleSaveSupportingDocuments}
-                          disabled={supportingSaving || !hasPendingSupportingFiles}
-                        >
-                          {supportingSaving ? 'Saving...' : 'Save Uploaded Files'}
-                        </button>
-                      </div>
+                    <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
+                    {regularAttachments.length > 0 ? (
+                      <ul className="modal-event-attach-list">
+                        {regularAttachments.map((a) => (
+                          <li key={a.id} className="modal-event-attach-item">
+                            <span className="modal-event-attach-icon">PDF</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="modal-postdoc-empty">No program references uploaded yet.</p>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
+                {(needsPostDoc || attendanceSheets.length > 0) && (
+                  <div className="modal-event-card modal-event-card--attendance">
+                    <div className="modal-event-card-icon" aria-hidden>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    </div>
+                    <div className="modal-event-card-body">
+                      <span className="modal-event-card-heading">Attendance Sheet</span>
+                      {attendanceSheets.length > 0 ? (
+                        <ul className="modal-event-attach-list">
+                          {attendanceSheets.map((a) => (
+                            <li key={a.id} className="modal-event-attach-item">
+                              <span className="modal-event-attach-icon">PDF</span>
+                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                              <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="modal-postdoc-empty">
+                          {isHost ? 'Please upload attendance sheet for this done event.' : 'Pending host submission: Attendance Sheet.'}
+                        </p>
+                      )}
+                      {isHost && isDone && (
+                        <div className="modal-postdoc-upload">
+                          <div className="modal-file-picker">
+                            <input
+                              id="modal-attendance-file"
+                              className="modal-file-picker-input"
+                              type="file"
+                              onChange={(e) => setAttendanceFile(e.target.files?.[0] || null)}
+                              disabled={supportingSaving}
+                            />
+                            <label className="modal-file-picker-button" htmlFor="modal-attendance-file">
+                              Choose file
+                            </label>
+                            <span className="modal-file-picker-name" title={attendanceFile?.name || ''}>
+                              {attendanceFile?.name || 'No file chosen'}
+                            </span>
+                            {attendanceFile ? (
+                              <button
+                                type="button"
+                                className="modal-file-picker-clear"
+                                onClick={() => setAttendanceFile(null)}
+                                aria-label="Remove selected file"
+                                title="Remove selected file"
+                                disabled={supportingSaving}
+                              >
+                                ×
+                              </button>
+                            ) : null}
+                          </div>
+                          <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {(needsPostDoc || photoAttachments.length > 0) && (
+                  <div className="modal-event-card modal-event-card--photos">
+                    <div className="modal-event-card-icon" aria-hidden>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    </div>
+                    <div className="modal-event-card-body">
+                      <span className="modal-event-card-heading">Event Photos (3 uploads)</span>
+                      <div className="modal-photo-slots-grid">
+                        {[1, 2, 3].map((slot) => {
+                          const existing = photoBySlot[slot];
+                          const selectedFile = slot === 1 ? photo1File : slot === 2 ? photo2File : photo3File;
+                          const setSelectedFile =
+                            slot === 1 ? setPhoto1File : slot === 2 ? setPhoto2File : setPhoto3File;
+                          return (
+                            <div key={slot} className="modal-photo-slot">
+                              <span className="modal-photo-slot-title">Photo {slot}</span>
+                              {existing ? (
+                                <div className="modal-photo-slot-existing">
+                                  <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{existing.original_name}</a>
+                                  <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                                </div>
+                              ) : (
+                                <p className="modal-postdoc-empty">No uploaded photo yet.</p>
+                              )}
+                              {isHost && isDone && (
+                                <div className="modal-postdoc-upload">
+                                  <div className="modal-file-picker">
+                                    <input
+                                      id={`modal-photo-file-${slot}`}
+                                      className="modal-file-picker-input"
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                      disabled={supportingSaving}
+                                    />
+                                    <label className="modal-file-picker-button" htmlFor={`modal-photo-file-${slot}`}>
+                                      Choose file
+                                    </label>
+                                    <span className="modal-file-picker-name" title={selectedFile?.name || ''}>
+                                      {selectedFile?.name || 'No file chosen'}
+                                    </span>
+                                    {selectedFile ? (
+                                      <button
+                                        type="button"
+                                        className="modal-file-picker-clear"
+                                        onClick={() => setSelectedFile(null)}
+                                        aria-label={`Remove selected Photo ${slot}`}
+                                        title={`Remove selected Photo ${slot}`}
+                                        disabled={supportingSaving}
+                                      >
+                                        ×
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                  <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {isHost && isDone && (
+                        <div className="modal-postdoc-upload">
+                          <button
+                            type="button"
+                            className="modal-btn modal-btn-edit"
+                            onClick={handleSaveSupportingDocuments}
+                            disabled={supportingSaving || !hasPendingSupportingFiles}
+                          >
+                            {supportingSaving ? 'Saving...' : 'Save Uploaded Files'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
           {isCancelled && event.cancel_reason ? (
             <div className="modal-row">

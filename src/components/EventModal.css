@@ -32,9 +32,9 @@
 
 /* Larger event details modal when opening calendar events - match reference image size */
 .modal.modal-event {
-  max-width: min(1480px, 98vw);
+  max-width: min(1220px, 96vw);
   width: 100%;
-  max-height: 84vh;
+  max-height: 82vh;
   border-radius: 22px;
 }
 
@@ -79,18 +79,46 @@
 }
 
 /* Two-column event body - same layout as reference image */
-.modal-event-grid {
+.modal-event-sections {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem 2rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
 }
 
-.modal-event-col {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  min-width: 0;
+.modal-event-section {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.9rem;
+}
+
+.modal-event-section-title {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.modal-event-cards {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.modal-event-cards--info {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-event-cards--docs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-event-card--description,
+.modal-event-card--zoom,
+.modal-event-card--photos {
+  grid-column: 1 / -1;
 }
 
 .modal-event-card {
@@ -987,9 +1015,9 @@
     grid-template-columns: 1fr;
   }
 
-  .modal-event-grid {
+  .modal-event-cards--info,
+  .modal-event-cards--docs {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
   .modal-event-title {
