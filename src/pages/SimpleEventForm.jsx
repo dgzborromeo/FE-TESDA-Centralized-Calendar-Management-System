@@ -874,7 +874,7 @@ if (response) {
           onChange={() => handleSelectAll(provinces, 'district', hoveredPosition)}
           checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Districts`)}
         />
-        <span className="item-text">All NCR Districts</span>
+        <span className="item-text">All Districts</span>
       </label>
     </li>
     <div className="scrollable-sub-list">
@@ -907,7 +907,7 @@ if (response) {
           }}
           checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Provinces`)}
         />
-        <span className="item-text">All in Region</span>
+        <span className="item-text">All Provinces</span>
       </label>
     </li>
     <div className="scrollable-sub-list">
