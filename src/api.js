@@ -86,6 +86,8 @@ export const profiles = {
 };
 
 export const config = {
+  getClusters: () => api('/clusters'),
+  getRegions: () => api('/regions'),
   // Offices
   getOffices: () => api('/get-offices'),
   getOffice: (id) => api(`/get-office${id}`),
@@ -185,7 +187,7 @@ export const config = {
     method: 'POST', 
     body: formData
   }),
-  deleteFocal: (id) => api(`/schedule/${id}`, { 
+  deleteSchedule: (id) => api(`/schedule/${id}`, { 
     method: 'DELETE' 
   }),
 
@@ -205,6 +207,5 @@ export const config = {
     method: 'DELETE' 
   }),
 
-  getClusters: () => api('/clusters'),
-  getRegions: () => api('/regions'),
+
 };
