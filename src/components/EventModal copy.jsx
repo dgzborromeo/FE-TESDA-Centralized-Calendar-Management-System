@@ -245,7 +245,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const isDone = eventStatus === 'done';
   const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone && !isCancelled;
   const canAdminCancel = isAdmin && !isCancelled;
-  const requiredPostDocLabel = event.required_post_document || (event.type === 'event' ? 'After Activity Report (AAR)' : 'Minutes of the Meeting');
+  const requiredPostDocLabel = 'After Activity Report (AAR)/Minutes of the Meeting';
   const postDocs = Array.isArray(event.attachments) ? event.attachments.filter((a) => Boolean(a.is_post_document)) : [];
   const regularAttachments = Array.isArray(event.attachments) ? event.attachments.filter((a) => !a.is_post_document) : [];
   const postDocRequired = Boolean(event.post_document_required || isDone);
@@ -420,13 +420,13 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                   </div>
                 </div>
               )}
-              {(regularAttachments.length > 0 || postDocs.length > 0) && (
+              {regularAttachments.length > 0 && (
                 <div className="modal-event-card modal-event-card--attach">
                   <div className="modal-event-card-icon" aria-hidden>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
                   </div>
                   <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Attachments ({regularAttachments.length + postDocs.length})</span>
+                    <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
                     <ul className="modal-event-attach-list">
                       {regularAttachments.map((a) => (
                         <li key={a.id} className="modal-event-attach-item">
@@ -436,15 +436,75 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                           <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                         </li>
                       ))}
-                      {postDocs.map((a) => (
-                        <li key={a.id} className="modal-event-attach-item">
-                          <span className="modal-event-attach-icon">PDF</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                        </li>
-                      ))}
                     </ul>
+                  </div>
+                </div>
+              )}
+              {(needsPostDoc || postDocs.length > 0) && (
+                <div className="modal-event-card modal-event-card--postdoc">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">{requiredPostDocLabel}</span>
+                    {postDocs.length > 0 ? (
+                      <ul className="modal-event-attach-list">
+                        {postDocs.map((a) => (
+                          <li key={a.id} className="modal-event-attach-item">
+                            <span className="modal-event-attach-icon">PDF</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="modal-postdoc-empty">
+                        {isHost
+                          ? `Required after this event is done. Please upload ${requiredPostDocLabel}.`
+                          : `Pending host submission: ${requiredPostDocLabel}.`}
+                      </p>
+                    )}
+                    {isHost && isDone && (
+                      <div className="modal-postdoc-upload">
+                        <div className="modal-file-picker">
+                          <input
+                            id="modal-postdoc-file"
+                            className="modal-file-picker-input"
+                            type="file"
+                            onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
+                            disabled={postDocUploading}
+                          />
+                          <label className="modal-file-picker-button" htmlFor="modal-postdoc-file">
+                            Choose file
+                          </label>
+                          <span className="modal-file-picker-name" title={postDocFile?.name || ''}>
+                            {postDocFile?.name || 'No file chosen'}
+                          </span>
+                          {postDocFile ? (
+                            <button
+                              type="button"
+                              className="modal-file-picker-clear"
+                              onClick={() => setPostDocFile(null)}
+                              aria-label="Remove selected file"
+                              title="Remove selected file"
+                              disabled={postDocUploading}
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          className="modal-btn modal-btn-edit"
+                          onClick={handleUploadPostDocument}
+                          disabled={postDocUploading || !postDocFile}
+                          title={missingPostDoc ? 'Upload required post-event document.' : 'Upload another file/version.'}
+                        >
+                          {postDocUploading ? 'Uploading...' : `Upload ${requiredPostDocLabel}`}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -573,40 +633,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
           )}
 
-          {needsPostDoc && (
-            <div className="modal-row modal-attachments">
-              <span className="modal-label">{requiredPostDocLabel}</span>
-              {postDocs.length === 0 ? (
-                <p className="modal-postdoc-empty">
-                  {isHost
-                    ? `Required after this ${event.type || 'event'} is done. Please upload ${requiredPostDocLabel}.`
-                    : `Pending host submission: ${requiredPostDocLabel}.`}
-                </p>
-              ) : (
-                <p className="modal-postdoc-empty">
-                  Submitted ({postDocs.length}). See attachments section above.
-                </p>
-              )}
-              {isHost && isDone && (
-                <div className="modal-postdoc-upload">
-                  <input
-                    type="file"
-                    onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
-                    disabled={postDocUploading}
-                  />
-                  <button
-                    type="button"
-                    className="modal-btn modal-btn-edit"
-                    onClick={handleUploadPostDocument}
-                    disabled={postDocUploading || !postDocFile}
-                    title={missingPostDoc ? 'Upload required post-event document.' : 'Upload another file/version.'}
-                  >
-                    {postDocUploading ? 'Uploading...' : `Upload ${requiredPostDocLabel}`}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           {event.conflicts?.length > 0 && (
             <div className="modal-conflicts">
               <span className="modal-label">⚠ Conflicts</span>

@@ -940,14 +940,35 @@ width: '100%'
             </label>
           )}
         </div>
-
+        
         {!isEdit && (
           <label>
-            Attachment (optional)
-            <input
-              type="file"
-              onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
-            />
+            Program References (optional)
+            <div className="file-picker">
+              <input
+                id="event-program-references"
+                className="file-picker-input"
+                type="file"
+                onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
+              />
+              <label className="file-picker-button" htmlFor="event-program-references">
+                Choose file
+              </label>
+              <span className="file-picker-name" title={attachmentFile?.name || ''}>
+                {attachmentFile?.name || 'No file chosen'}
+              </span>
+              {attachmentFile ? (
+                <button
+                  type="button"
+                  className="file-picker-clear"
+                  onClick={() => setAttachmentFile(null)}
+                  aria-label="Remove selected file"
+                  title="Remove selected file"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
           </label>
         )}
 

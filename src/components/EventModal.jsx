@@ -63,7 +63,11 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const [rescheduleEndDate, setRescheduleEndDate] = useState('');
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [postDocFile, setPostDocFile] = useState(null);
-  const [postDocUploading, setPostDocUploading] = useState(false);
+  const [attendanceFile, setAttendanceFile] = useState(null);
+  const [photo1File, setPhoto1File] = useState(null);
+  const [photo2File, setPhoto2File] = useState(null);
+  const [photo3File, setPhoto3File] = useState(null);
+  const [supportingSaving, setSupportingSaving] = useState(false);
   const [nowTick, setNowTick] = useState(0);
 
   // Update status periodically so it changes from Active -> Ongoing -> Done in real-time
@@ -86,6 +90,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
         setRescheduleDate('');
         setRescheduleEndDate('');
         setPostDocFile(null);
+        setAttendanceFile(null);
+        setPhoto1File(null);
+        setPhoto2File(null);
+        setPhoto3File(null);
       })
       .catch(() => onClose())
       .finally(() => setLoading(false));
@@ -181,18 +189,44 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     }
   };
 
-  const handleUploadPostDocument = async () => {
-    if (!postDocFile) return;
+  const handleSaveSupportingDocuments = async () => {
+    const hasSelectedFile = Boolean(postDocFile || attendanceFile || photo1File || photo2File || photo3File);
+    if (!hasSelectedFile) {
+      await dialog.alert('Please choose at least one file before saving.', { title: 'No Files Selected' });
+      return;
+    }
     try {
-      setPostDocUploading(true);
-      await eventsApi.uploadPostDocument(eventId, postDocFile);
+      setSupportingSaving(true);
+      if (postDocFile) {
+        await eventsApi.uploadPostDocument(eventId, postDocFile);
+      }
+      if (attendanceFile) {
+        await eventsApi.uploadSupportingDocument(eventId, attendanceFile, 'attendance_sheet');
+      }
+      if (photo1File) {
+        await eventsApi.uploadSupportingDocument(eventId, photo1File, 'photo_1');
+      }
+      if (photo2File) {
+        await eventsApi.uploadSupportingDocument(eventId, photo2File, 'photo_2');
+      }
+      if (photo3File) {
+        await eventsApi.uploadSupportingDocument(eventId, photo3File, 'photo_3');
+      }
       setPostDocFile(null);
+      setAttendanceFile(null);
+      setPhoto1File(null);
+      setPhoto2File(null);
+      setPhoto3File(null);
       await refreshEvent();
-      onDelete?.();
+      await dialog.alert('Files uploaded successfully.', { title: 'Upload Complete' });
     } catch (e) {
-      await dialog.alert(e.message || 'Failed to upload document.', { title: 'Upload Failed' });
+      const message = String(e?.message || 'Failed to upload selected files.');
+      const hint = /not found/i.test(message)
+        ? ' Upload endpoint not found. Please restart the backend server and try again.'
+        : '';
+      await dialog.alert(`${message}${hint}`, { title: 'Upload Failed' });
     } finally {
-      setPostDocUploading(false);
+      setSupportingSaving(false);
     }
   };
 
@@ -245,13 +279,28 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const isDone = eventStatus === 'done';
   const canEdit = !(isRomo || isPo || isSmo || isCo || isIcto || isAs || isPlo || isPio || isQso || isFms || isClgeo || isEbeto) && (isAdmin || isCreator) && !isDone && !isCancelled;
   const canAdminCancel = isAdmin && !isCancelled;
-  const requiredPostDocLabel = event.required_post_document || (event.type === 'event' ? 'After Activity Report (AAR)' : 'Minutes of the Meeting');
+  const requiredPostDocLabel = 'After Activity Report (AAR)/Minutes of the Meeting';
   const postDocs = Array.isArray(event.attachments) ? event.attachments.filter((a) => Boolean(a.is_post_document)) : [];
-  const regularAttachments = Array.isArray(event.attachments) ? event.attachments.filter((a) => !a.is_post_document) : [];
+  const attendanceSheets = Array.isArray(event.attachments)
+    ? event.attachments.filter((a) => Boolean(a.is_attendance_sheet))
+    : [];
+  const photoAttachments = Array.isArray(event.attachments)
+    ? event.attachments
+      .filter((a) => Number.isFinite(Number(a.photo_slot)) && Number(a.photo_slot) >= 1 && Number(a.photo_slot) <= 3)
+      .sort((a, b) => Number(a.photo_slot) - Number(b.photo_slot))
+    : [];
+  const regularAttachments = Array.isArray(event.attachments)
+    ? event.attachments.filter((a) => !a.is_post_document && !a.is_attendance_sheet && !a.photo_slot)
+    : [];
+  const photoBySlot = {
+    1: photoAttachments.find((a) => Number(a.photo_slot) === 1) || null,
+    2: photoAttachments.find((a) => Number(a.photo_slot) === 2) || null,
+    3: photoAttachments.find((a) => Number(a.photo_slot) === 3) || null,
+  };
   const postDocRequired = Boolean(event.post_document_required || isDone);
   const isHost = Number(event.created_by) === Number(user?.id);
   const needsPostDoc = !isCancelled && postDocRequired;
-  const missingPostDoc = needsPostDoc && postDocs.length === 0;
+  const hasPendingSupportingFiles = Boolean(postDocFile || attendanceFile || photo1File || photo2File || photo3File);
   const myRsvp = event.rsvps?.find((r) => Number(r.office_user_id) === Number(user?.id)) || null;
   const rsvpLocked = Number.isFinite(startAt.getTime()) ? new Date() >= startAt : false;
   const prettyStatus = (s) => (s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : '');
@@ -382,6 +431,124 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                 <strong className="modal-event-desc-title">Description</strong>
                 <p className="modal-event-desc-text">{descriptionText}</p>
               </div>
+              {(needsPostDoc || postDocs.length > 0) && (
+                <div className="modal-event-card modal-event-card--postdoc">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">{requiredPostDocLabel}</span>
+                    {postDocs.length > 0 ? (
+                      <ul className="modal-event-attach-list">
+                        {postDocs.map((a) => (
+                          <li key={a.id} className="modal-event-attach-item">
+                            <span className="modal-event-attach-icon">PDF</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="modal-postdoc-empty">
+                        {isHost
+                          ? `Required after this event is done. Please upload ${requiredPostDocLabel}.`
+                          : `Pending host submission: ${requiredPostDocLabel}.`}
+                      </p>
+                    )}
+                    {isHost && isDone && (
+                      <div className="modal-postdoc-upload">
+                        <div className="modal-file-picker">
+                          <input
+                            id="modal-postdoc-file"
+                            className="modal-file-picker-input"
+                            type="file"
+                            onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
+                            disabled={supportingSaving}
+                          />
+                          <label className="modal-file-picker-button" htmlFor="modal-postdoc-file">
+                            Choose file
+                          </label>
+                          <span className="modal-file-picker-name" title={postDocFile?.name || ''}>
+                            {postDocFile?.name || 'No file chosen'}
+                          </span>
+                          {postDocFile ? (
+                            <button
+                              type="button"
+                              className="modal-file-picker-clear"
+                              onClick={() => setPostDocFile(null)}
+                              aria-label="Remove selected file"
+                              title="Remove selected file"
+                              disabled={supportingSaving}
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </div>
+                        <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {(needsPostDoc || attendanceSheets.length > 0) && (
+                <div className="modal-event-card modal-event-card--attendance">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Attendance Sheet</span>
+                    {attendanceSheets.length > 0 ? (
+                      <ul className="modal-event-attach-list">
+                        {attendanceSheets.map((a) => (
+                          <li key={a.id} className="modal-event-attach-item">
+                            <span className="modal-event-attach-icon">PDF</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="modal-postdoc-empty">
+                        {isHost ? 'Please upload attendance sheet for this done event.' : 'Pending host submission: Attendance Sheet.'}
+                      </p>
+                    )}
+                    {isHost && isDone && (
+                      <div className="modal-postdoc-upload">
+                        <div className="modal-file-picker">
+                          <input
+                            id="modal-attendance-file"
+                            className="modal-file-picker-input"
+                            type="file"
+                            onChange={(e) => setAttendanceFile(e.target.files?.[0] || null)}
+                            disabled={supportingSaving}
+                          />
+                          <label className="modal-file-picker-button" htmlFor="modal-attendance-file">
+                            Choose file
+                          </label>
+                          <span className="modal-file-picker-name" title={attendanceFile?.name || ''}>
+                            {attendanceFile?.name || 'No file chosen'}
+                          </span>
+                          {attendanceFile ? (
+                            <button
+                              type="button"
+                              className="modal-file-picker-clear"
+                              onClick={() => setAttendanceFile(null)}
+                              aria-label="Remove selected file"
+                              title="Remove selected file"
+                              disabled={supportingSaving}
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </div>
+                        <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="modal-event-col modal-event-col-right">
               <div className="modal-event-card modal-event-card--host">
@@ -405,6 +572,19 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                   <span className="modal-event-card-value">{typeText}</span>
                 </div>
               </div>
+              <div className="modal-event-card modal-event-card--participants">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Participants</span>
+                  <ul className="modal-event-participants-list">
+                    {participantLines.map((name, idx) => (
+                      <li key={idx}>{name}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
               {locationIsUrl && (
                 <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
                   <div className="modal-event-card-icon" aria-hidden>
@@ -420,13 +600,13 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                   </div>
                 </div>
               )}
-              {(regularAttachments.length > 0 || postDocs.length > 0) && (
-                <div className="modal-event-card modal-event-card--attach">
-                  <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                  </div>
-                  <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Attachments ({regularAttachments.length + postDocs.length})</span>
+              <div className="modal-event-card modal-event-card--attach">
+                <div className="modal-event-card-icon" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                </div>
+                <div className="modal-event-card-body">
+                  <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
+                  {regularAttachments.length > 0 ? (
                     <ul className="modal-event-attach-list">
                       {regularAttachments.map((a) => (
                         <li key={a.id} className="modal-event-attach-item">
@@ -436,31 +616,86 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                           <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                         </li>
                       ))}
-                      {postDocs.map((a) => (
-                        <li key={a.id} className="modal-event-attach-item">
-                          <span className="modal-event-attach-icon">PDF</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                          <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                          <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                        </li>
-                      ))}
                     </ul>
+                  ) : (
+                    <p className="modal-postdoc-empty">No program references uploaded yet.</p>
+                  )}
+                </div>
+              </div>
+              {(needsPostDoc || photoAttachments.length > 0) && (
+                <div className="modal-event-card modal-event-card--photos">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Event Photos (3 uploads)</span>
+                    {[1, 2, 3].map((slot) => {
+                      const existing = photoBySlot[slot];
+                      const selectedFile = slot === 1 ? photo1File : slot === 2 ? photo2File : photo3File;
+                      const setSelectedFile =
+                        slot === 1 ? setPhoto1File : slot === 2 ? setPhoto2File : setPhoto3File;
+                      return (
+                        <div key={slot} className="modal-photo-slot">
+                          <span className="modal-photo-slot-title">Photo {slot}</span>
+                          {existing ? (
+                            <div className="modal-photo-slot-existing">
+                              <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{existing.original_name}</a>
+                              <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                            </div>
+                          ) : (
+                            <p className="modal-postdoc-empty">No uploaded photo yet.</p>
+                          )}
+                          {isHost && isDone && (
+                            <div className="modal-postdoc-upload">
+                              <div className="modal-file-picker">
+                                <input
+                                  id={`modal-photo-file-${slot}`}
+                                  className="modal-file-picker-input"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                  disabled={supportingSaving}
+                                />
+                                <label className="modal-file-picker-button" htmlFor={`modal-photo-file-${slot}`}>
+                                  Choose file
+                                </label>
+                                <span className="modal-file-picker-name" title={selectedFile?.name || ''}>
+                                  {selectedFile?.name || 'No file chosen'}
+                                </span>
+                                {selectedFile ? (
+                                  <button
+                                    type="button"
+                                    className="modal-file-picker-clear"
+                                    onClick={() => setSelectedFile(null)}
+                                    aria-label={`Remove selected Photo ${slot}`}
+                                    title={`Remove selected Photo ${slot}`}
+                                      disabled={supportingSaving}
+                                  >
+                                    ×
+                                  </button>
+                                ) : null}
+                              </div>
+                              <p className="modal-postdoc-empty">Selected file will be uploaded when you click Save Uploaded Files.</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {isHost && isDone && (
+                      <div className="modal-postdoc-upload">
+                        <button
+                          type="button"
+                          className="modal-btn modal-btn-edit"
+                          onClick={handleSaveSupportingDocuments}
+                          disabled={supportingSaving || !hasPendingSupportingFiles}
+                        >
+                          {supportingSaving ? 'Saving...' : 'Save Uploaded Files'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-              <div className="modal-event-card modal-event-card--participants">
-                <div className="modal-event-card-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                </div>
-                <div className="modal-event-card-body">
-                  <span className="modal-event-card-heading">Participants</span>
-                  <ul className="modal-event-participants-list">
-                    {participantLines.map((name, idx) => (
-                      <li key={idx}>{name}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
           {isCancelled && event.cancel_reason ? (
@@ -573,40 +808,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
             </div>
           )}
 
-          {needsPostDoc && (
-            <div className="modal-row modal-attachments">
-              <span className="modal-label">{requiredPostDocLabel}</span>
-              {postDocs.length === 0 ? (
-                <p className="modal-postdoc-empty">
-                  {isHost
-                    ? `Required after this ${event.type || 'event'} is done. Please upload ${requiredPostDocLabel}.`
-                    : `Pending host submission: ${requiredPostDocLabel}.`}
-                </p>
-              ) : (
-                <p className="modal-postdoc-empty">
-                  Submitted ({postDocs.length}). See attachments section above.
-                </p>
-              )}
-              {isHost && isDone && (
-                <div className="modal-postdoc-upload">
-                  <input
-                    type="file"
-                    onChange={(e) => setPostDocFile(e.target.files?.[0] || null)}
-                    disabled={postDocUploading}
-                  />
-                  <button
-                    type="button"
-                    className="modal-btn modal-btn-edit"
-                    onClick={handleUploadPostDocument}
-                    disabled={postDocUploading || !postDocFile}
-                    title={missingPostDoc ? 'Upload required post-event document.' : 'Upload another file/version.'}
-                  >
-                    {postDocUploading ? 'Uploading...' : `Upload ${requiredPostDocLabel}`}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           {event.conflicts?.length > 0 && (
             <div className="modal-conflicts">
               <span className="modal-label">⚠ Conflicts</span>

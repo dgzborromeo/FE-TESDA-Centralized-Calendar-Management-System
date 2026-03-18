@@ -32,9 +32,9 @@
 
 /* Larger event details modal when opening calendar events - match reference image size */
 .modal.modal-event {
-  max-width: min(1100px, 96vw);
+  max-width: min(1480px, 98vw);
   width: 100%;
-  max-height: 92vh;
+  max-height: 84vh;
   border-radius: 22px;
 }
 
@@ -153,6 +153,21 @@
 .modal-event-card--participants .modal-event-card-icon {
   color: #0d9488;
   background: rgba(13, 148, 136, 0.12);
+}
+
+.modal-event-card--postdoc .modal-event-card-icon {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.12);
+}
+
+.modal-event-card--attendance .modal-event-card-icon {
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.12);
+}
+
+.modal-event-card--photos .modal-event-card-icon {
+  color: #c2410c;
+  background: rgba(194, 65, 12, 0.12);
 }
 
 .modal-event-card-body {
@@ -690,8 +705,165 @@
   gap: 0.45rem;
 }
 
-.modal-postdoc-upload input[type='file'] {
+.modal-postdoc-upload .modal-btn-edit {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.72rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 45%, #3f8f8c 100%);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 24px rgba(31, 58, 95, 0.32);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease, background 120ms ease;
+}
+
+.modal-postdoc-upload .modal-btn-edit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #17304f 0%, #3f5f7f 45%, #327a77 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(31, 58, 95, 0.36);
+  filter: brightness(1.03);
+}
+
+.modal-postdoc-upload .modal-btn-edit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(31, 58, 95, 0.28);
+}
+
+.modal-postdoc-upload .modal-btn-edit:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
+.modal-postdoc-upload .modal-btn-edit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+
+.modal-photo-slot {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.modal-photo-slot + .modal-photo-slot {
+  margin-top: 0.75rem;
+}
+
+.modal-photo-slot-title {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-photo-slot-existing {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+}
+
+.modal-file-picker {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.modal-file-picker-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.modal-file-picker-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  font-weight: 700;
   font-size: 0.86rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+  white-space: nowrap;
+}
+
+.modal-file-picker-button:hover {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.5);
+}
+
+.modal-file-picker-button:active {
+  transform: translateY(1px);
+}
+
+.modal-file-picker-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 650;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+.modal-file-picker-clear {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.modal-file-picker-clear:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+}
+
+.modal-file-picker-clear:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .modal-status-pill {

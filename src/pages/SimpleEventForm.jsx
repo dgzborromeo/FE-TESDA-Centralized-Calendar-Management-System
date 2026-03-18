@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 import '../components/Header.css';
@@ -8,7 +8,7 @@ export default function SimpleEventForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const backTo = location?.state?.backTo || '/dashboard';
-
+  const attachmentInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState([]);
   const [focalships, setFocalships] = useState([]);
@@ -993,22 +993,47 @@ if (response) {
 </section>
 
           <section className="simple-event-section">
-            <h2 className="simple-event-section-title">Attachments</h2>
+            <h2 className="simple-event-section-title">Program References</h2>
             <div className="simple-event-grid">
               <div className="simple-event-field simple-event-field-full">
                 <label className="simple-event-label" htmlFor="attachment">
-                  Attach documents (optional)
+                  Program References (optional)
                 </label>
-                <input
-                  id="attachment"
-                  name="attachment"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="simple-event-input simple-event-input-file"
-                />
+                <div className="simple-file-picker">
+                  <input
+                    ref={attachmentInputRef}
+                    id="attachment"
+                    name="attachment"
+                    type="file"
+                    onChange={handleFileChange}
+                    className="simple-file-picker-input"
+                  />
+                  <label className="simple-file-picker-button" htmlFor="attachment">
+                    Choose file
+                  </label>
+                  <span className="simple-file-picker-name" title={form.attachment?.name || ''}>
+                    {form.attachment?.name || 'No file chosen'}
+                  </span>
+                  {form.attachment ? (
+                    <button
+                      type="button"
+                      className="simple-file-picker-clear"
+                      onClick={() => {
+                        if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+                        setForm((prev) => ({ ...prev, attachment: null }));
+                      }}
+                      aria-label="Remove selected file"
+                      title="Remove selected file"
+                      disabled={loading}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>
+          
 
           <div className="simple-event-actions">
 <button
