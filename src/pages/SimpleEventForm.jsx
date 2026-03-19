@@ -23,6 +23,7 @@ const [provinces, setProvinces] = useState([]);
 const [selectedRegionId, setSelectedRegionId] = useState(null); // Para sa Provincial Director logic
 const [isMenuOpen, setIsMenuOpen] = useState(false);
 const [hoveredPosition, setHoveredPosition] = useState(null);
+const [conflictError, setConflictError] = useState(null); // I-store dito ang JSON error
 // Para sa UI logic ng cascading
 const [subType, setSubType] = useState(null); // 'cluster', 'office', 'region', 'province'
 const [tempRegions, setTempRegions] = useState([]);
@@ -103,46 +104,33 @@ const handlePositionDropdownChange = (e) => {
     }
   }
 };
-const handleSubSelect = (subName, type, parentPos) => {
+const handleSubSelect = (subItem, type, parentPos) => {
   const config = SUB_MENU_CONFIG[parentPos];
   if (!config) return;
 
-  const typeLabel = config.label;
-  const fullName = `${parentPos} - ${subName}`;
-  const allLabel = `${parentPos} - All ${typeLabel}`;
+  // Hanapin ang actual object ng subItem (cluster/office/etc) para makuha ang ID
+  const sourceData = { clusters, offices, regions, provinces }[config.source] || [];
+  const actualItem = sourceData.find(item => (type === 'region' ? item.region : item.name) === subItem);
+
+  const parentPosObj = positions.find(p => p.name === parentPos);
+  const fullName = `${parentPos} - ${subItem}`;
 
   setSelectedPositions(prev => {
-    const isAllActive = prev.some(p => p.name === allLabel);
+    const exists = prev.find(p => p.name === fullName);
     let updated;
 
-    if (isAllActive) {
-      // DYNAMIC SOURCE: Kunin ang listahan base sa config (e.g., 'offices', 'regions')
-      const sourceList = {
-        clusters, offices, regions, provinces
-      }[config.source] || [];
-
-      const remainingItems = sourceList
-        .filter(item => {
-           const compareValue = type === 'region' ? item.region : item.name;
-           return compareValue !== subName;
-        })
-        .map(item => ({
-          id: `${type}-${item.id}-${Date.now()}`,
-          name: `${parentPos} - ${type === 'region' ? item.region : item.name}`,
-          isSub: true
-        }));
-
-      updated = [...prev.filter(p => p.name !== allLabel), ...remainingItems];
+    if (exists) {
+      updated = prev.filter(p => p.name !== fullName);
     } else {
-      const exists = prev.find(p => p.name === fullName);
-      if (exists) {
-        updated = prev.filter(p => p.name !== fullName);
-      } else {
-        const newEntry = { id: `${type}-${subName}-${Date.now()}`, name: fullName, isSub: true };
-        updated = [...prev, newEntry];
-      }
+      updated = [...prev, {
+        id: `${type}-${actualItem?.id}-${Date.now()}`,
+        name: fullName,
+        designationId: parentPosObj?.id, // ID ni "Director", "Chief", etc.
+        targetId: actualItem?.id,        // ID ni "NCR", "ROMO", etc.
+        targetType: type,                // 'office', 'region', etc.
+        isSub: true
+      }];
     }
-
     updateParticipantsText(updated, selectedFocals);
     return updated;
   });
@@ -151,6 +139,9 @@ const handleSelectAll = (items, type, parentPos) => {
   const config = SUB_MENU_CONFIG[parentPos];
   const typeLabel = config?.label || 'Items';
   const allLabel = `${parentPos} - All ${typeLabel}`;
+
+  // HANAPIN ANG ACTUAL POSITION ID (e.g. 6 para sa Executive Director)
+  const parentPosObj = positions.find(p => p.name === parentPos);
   
   // Gamitin ang Restriction Logic na ginawa natin kanina
   const allowedItems = items.filter(item => {
@@ -179,6 +170,8 @@ const handleSelectAll = (items, type, parentPos) => {
         name: allLabel, 
         isSub: true,
         isAll: true,
+        designationId: parentPosObj?.id, 
+        targetType: type,
         includedIds: allowedItems.map(i => i.id)
       };
       updated = [...filteredOthers, allEntry];
@@ -271,12 +264,13 @@ const removeParticipant = (item, type) => {
     return `${y}-${m}-${day}`;
   };
 
-  const isWeekendYMD = (ymd) => {
-    if (!ymd || String(ymd).length < 10) return false;
-    const d = new Date(`${String(ymd).slice(0, 10)}T12:00:00`);
+const isWeekendYMD = (ymd) => {
+    if (!ymd) return false;
+    // Pinalitan ang '-' ng '/' para iwas sa timezone shift ng JS Date
+    const d = new Date(ymd.replace(/-/g, '/'));
     const day = d.getDay();
-    return day === 0 || day === 6;
-  };
+    return day === 0 || day === 6; // 0=Sun, 6=Sat
+};
 
   const addBusinessDays = (date, businessDays) => {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
@@ -349,7 +343,8 @@ const handleContactChange = (e) => {
 
 const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
+    setConflictError(null);
     // Final Validations
     if (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) {
       alert('Please enter a valid Zoom link.');
@@ -366,37 +361,56 @@ const handleSubmit = async (e) => {
       // Prepare FormData for Backend (Supports File Upload)
       const formData = new FormData();
       
-      // Mapping to Backend Model (snake_case)
       formData.append('host_name', form.office);
       formData.append('host_division', form.division);
       formData.append('event_title', form.title);
       formData.append('description', form.description);
-      
-      // Map Type to ENUM
-      const typeMapping = {
-        'face-to-face': 'Face to Face',
-        'hybrid': 'Hybrid',
-        'virtual': 'Virtual/Zoom'
-      };
-      formData.append('type', typeMapping[form.meetingType]);
-
       formData.append('start_date', form.startDate);
       formData.append('end_date', form.endDate);
       formData.append('start_time', form.startTime);
       formData.append('end_time', form.endTime);
-      
-      // Handle Location & Zoom Link
+      formData.append('participants', form.participants); // String version para sa display
+
+      // IMPORTANT: Ito ang gagamitin ng backend para sa Conflict Checking
+      // I-map natin ang selectedPositions para magtugma sa expected columns sa DB
+// HANAPIN ITO SA IYONG CODE:
+const participantDetails = selectedPositions.map(p => {
+  // BAGUHIN ANG LOGIC DITO:
+  
+  // 1. Tukuyin kung ito ay isang "All" entry o regular sub-item
+  const isAllEntry = p.isAll === true;
+  
+  // 2. Kunin ang tamang Designation ID (Numeric ID ng Position)
+  // Kung p.designationId ay present, gamitin yun (para sa sub-items/all items)
+  // Kung wala, p.id ang gamitin (para sa mga basic positions)
+  const dId = p.designationId || p.id;
+
+  return {
+    // Siguraduhing integer ang designationId, wag hayaang maging string
+    designationId: (typeof dId === 'string') ? parseInt(p.designationId) : dId,
+    
+    // Kung 'All', dapat null ang targetId. Kung hindi, gamitin ang targetId
+    targetId: isAllEntry ? null : (p.targetId ? parseInt(p.targetId) : null),
+    
+    targetType: p.targetType || null,
+    isAll: isAllEntry // Dito natin kukunin yung true/false value
+  };
+});
+
+// I-filter ang mga entries na walang valid designationId (NaN)
+const finalPayload = participantDetails.filter(p => !isNaN(p.designationId));
+
+formData.append('selectedPositions', JSON.stringify(finalPayload));
+      // Meeting Type & Location Logic
+      const typeMapping = { 'face-to-face': 'Face to Face', 'hybrid': 'Hybrid', 'virtual': 'Virtual/Zoom' };
+      formData.append('type', typeMapping[form.meetingType]);
+
       let finalLocation = form.location;
       if (form.meetingType === 'virtual') finalLocation = `Zoom: ${form.zoomLink}`;
       if (form.meetingType === 'hybrid') finalLocation = `${form.location} | Zoom: ${form.zoomLink}`;
       formData.append('location', finalLocation);
 
-      formData.append('participants', form.participants);
-
-      // Attachment logic
-      if (form.attachment) {
-        formData.append('attachment_file', form.attachment);
-      }
+      if (form.attachment) formData.append('attachment_file', form.attachment);
 
       // API CALL
       const response = await scheduleAPI.addSchedule(formData);
@@ -429,7 +443,18 @@ if (response) {
     }
     } catch (err) {
       console.error('Submission error:', err);
-      alert('Failed to save event: ' + (err.response?.data?.error || err.message));
+
+      // Dito na natin mahuhuli yung JSON mula sa api.js
+      const errorData = err.response?.data;
+
+      if (errorData && errorData.conflicts) {
+        // Ipapakita nito ang pula na box sa UI
+        setConflictError(errorData);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Kung hindi conflict (halimbawa: Wrong URL o Server Down), alert ang lalabas
+        alert('Error: ' + (errorData?.error || err.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -458,6 +483,27 @@ if (response) {
       </header>
 
       <main className="simple-event-main">
+        {conflictError && (
+    <div className="conflict-error-container" style={{
+      background: '#fee2e2', 
+      border: '1px solid #ef4444', 
+      padding: '1rem', 
+      borderRadius: '8px', 
+      marginBottom: '20px',
+      marginTop: '20px' 
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ color: '#991b1b', margin: 0 }}>⚠️ {conflictError.error}</h3>
+        <button onClick={() => setConflictError(null)} style={{ cursor: 'pointer', border: 'none', background: 'none', fontSize: '1.2rem' }}>×</button>
+      </div>
+      <p style={{ color: '#b91c1c', margin: '10px 0' }}>{conflictError.message}</p>
+      <ul style={{ margin: 0, paddingLeft: '20px', color: '#7f1d1d' }}>
+        {conflictError.conflicts.map((msg, i) => (
+          <li key={i}>{msg}</li>
+        ))}
+      </ul>
+    </div>
+  )}
         <form className="simple-event-form" onSubmit={handleSubmit}>
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Host</h2>
@@ -1033,16 +1079,14 @@ if (response) {
               </div>
             </div>
           </section>
-          
-
           <div className="simple-event-actions">
-<button
-  type="submit"
-  className="simple-event-submit"
-  disabled={loading || (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
->
-  {loading ? 'Saving...' : 'Save Event'}
-</button>
+          <button
+            type="submit"
+            className="simple-event-submit"
+            disabled={loading || (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
+          >
+            {loading ? 'Saving...' : 'Save Event'}
+          </button>
           </div>
         </form>
       </main>

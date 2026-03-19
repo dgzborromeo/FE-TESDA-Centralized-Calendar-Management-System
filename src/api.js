@@ -16,7 +16,12 @@ export async function api(url, options = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}${url}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || res.statusText);
+  if (!res.ok) {
+  // Gawa tayo ng custom error object na may kasamang data
+  const error = new Error(data.error || res.statusText);
+  error.response = { data }; // I-attach ang JSON response dito
+  throw error;
+}
   return data;
 }
 
@@ -175,17 +180,17 @@ export const config = {
     method: 'DELETE' 
   }),
 
-      getSchedules: () => api('/schedules'),
-  getSchedule: (id) => api(`/schedule/${id}`),
-  addSchedule: (formData) => api('/schedule', { 
+      getSchedules: () => api('/getSchedules'),
+  getSchedule: (id) => api(`/getSchedule/${id}`),
+  addSchedule: (formData) => api('/add-schedule', { 
     method: 'POST', 
     body: formData
   }),
-  updateSchedule: (id, formData) => api(`/schdeule/${id}`, { 
+  updateSchedule: (id, formData) => api(`/update-schdeule/${id}`, { 
     method: 'POST', 
     body: formData
   }),
-  deleteSchedule: (id) => api(`/schedule/${id}`, { 
+  deleteSchedule: (id) => api(`/delete-schedule/${id}`, { 
     method: 'DELETE' 
   }),
 
