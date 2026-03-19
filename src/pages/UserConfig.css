@@ -1,7 +1,8 @@
 .user-config-page {
-  max-width: min(98vw, 1200px);
+  max-width: 100%;
+  width: 100%;
   margin-inline: auto;
-  padding: 1.5rem 1rem 2rem;
+  padding: 1.5rem 2rem 2rem;
 }
 
 .user-config-header {
@@ -416,4 +417,225 @@
 /* Adjustments para sa list item para malinis tingnan ang may sub-text */
 .config-list-item {
     align-items: flex-start; /* Align sa top para sa multiline text */
+}
+
+.user-config-table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 280px);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.user-config-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1400px;
+  font-size: 0.86rem;
+}
+
+.user-config-table th,
+.user-config-table td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.user-config-table th {
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.user-config-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.user-config-password-pill {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: default;
+  border: 1px solid #e2e8f0;
+}
+
+.user-config-users-tools {
+  margin-bottom: 0.8rem;
+}
+
+.user-config-users-search {
+  width: min(100%, 520px);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+.user-config-users-search:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Action cell */
+.user-config-action-cell {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Role / verified badges */
+.user-config-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.badge-admin    { background: #dbeafe; color: #1d4ed8; }
+.badge-user     { background: #f1f5f9; color: #475569; }
+.badge-verified { background: #dcfce7; color: #16a34a; }
+.badge-unverified { background: #fee2e2; color: #dc2626; }
+
+/* Modal overlay */
+.user-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.user-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 2rem;
+  width: min(480px, 95vw);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.18);
+}
+
+.user-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.4rem;
+}
+
+.user-modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.user-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  line-height: 1;
+}
+
+.user-modal-close:hover { color: #0f172a; }
+
+.user-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-modal-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.user-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.user-modal-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.user-modal-field label small {
+  font-weight: 400;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.user-modal-field input[type="text"],
+.user-modal-field input[type="email"],
+.user-modal-field input[type="password"],
+.user-modal-field select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+.user-modal-field input:focus,
+.user-modal-field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.user-modal-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.user-modal-row .user-modal-field { flex: 1; }
+
+.user-modal-field-check {
+  flex: 0 0 auto !important;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+}
+
+.user-modal-field-check label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.required { color: #ef4444; }
+
+.user-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 0.5rem;
 }

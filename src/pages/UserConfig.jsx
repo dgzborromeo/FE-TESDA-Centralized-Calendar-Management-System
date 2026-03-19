@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { config as configApi } from '../api'; 
+import { config as configApi, users as usersApi } from '../api';
 import './UserConfig.css';
 
 const TABS = [
@@ -32,6 +32,15 @@ export default function UserConfig() {
 const [focals, setFocals] = useState([]);
 const [clusters, setClusters] = useState([]);
 const [expandedCluster, setExpandedCluster] = useState(null);
+const [userAccounts, setUserAccounts] = useState([]);
+const [userSearch, setUserSearch] = useState('');
+const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+const [editingUserId, setEditingUserId] = useState(null);
+const [userFormData, setUserFormData] = useState({
+  name: '', email: '', password: '', role: 'user', is_verified: false,
+});
+const [userFormError, setUserFormError] = useState('');
+const [userFormLoading, setUserFormLoading] = useState(false);
   // Load Offices
   const loadOffices = useCallback(() => {
     setLoading(true);
@@ -84,6 +93,136 @@ const loadFocals = useCallback(() => {
     .catch(err => { console.error(err); setLoading(false); });
 }, []);
 
+const loadUserAccounts = useCallback(() => {
+  setLoading(true);
+  usersApi
+    .list()
+    .then((data) => {
+      const normalizedUsers = (data || []).map((item) => ({
+        ...item,
+        profile: item.profile || {
+          first_name: item.first_name,
+          middle_name: item.middle_name,
+          last_name: item.last_name,
+          designation: item.designation,
+          phone_number: item.phone_number,
+          office: item.office,
+          division: item.division,
+          cluster: item.cluster,
+          region: item.region,
+          province_district: item.province_district,
+        },
+      }));
+      setUserAccounts(normalizedUsers);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error(err);
+      setLoading(false);
+    });
+}, []);
+
+const openAddUser = () => {
+  setEditingUserId(null);
+  setUserFormData({ name: '', email: '', password: '', role: 'user', is_verified: false });
+  setUserFormError('');
+  setIsUserModalOpen(true);
+};
+
+const openEditUser = (item) => {
+  setEditingUserId(item.id);
+  setUserFormData({
+    name: item.name || '',
+    email: item.email || '',
+    password: '',
+    role: item.role || 'user',
+    is_verified: !!item.email_verified_at || !!item.is_verified,
+  });
+  setUserFormError('');
+  setIsUserModalOpen(true);
+};
+
+const handleSaveUser = async (e) => {
+  e.preventDefault();
+  setUserFormError('');
+  setUserFormLoading(true);
+  try {
+    const payload = {
+      name: userFormData.name.trim(),
+      email: userFormData.email.trim(),
+      role: userFormData.role,
+      is_verified: userFormData.is_verified,
+    };
+    if (userFormData.password.trim()) {
+      payload.password = userFormData.password.trim();
+    }
+    if (editingUserId) {
+      await usersApi.update(editingUserId, payload);
+    } else {
+      if (!userFormData.password.trim()) {
+        setUserFormError('Password is required for new users.');
+        setUserFormLoading(false);
+        return;
+      }
+      payload.password = userFormData.password.trim();
+      await usersApi.create(payload);
+    }
+    setIsUserModalOpen(false);
+    loadUserAccounts();
+  } catch (err) {
+    setUserFormError(err.message || 'Failed to save user.');
+  } finally {
+    setUserFormLoading(false);
+  }
+};
+
+const handleDeleteUser = async (id, name) => {
+  if (!window.confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+  try {
+    await usersApi.remove(id);
+    loadUserAccounts();
+  } catch (err) {
+    alert(err.message || 'Failed to delete user.');
+  }
+};
+
+const displayValue = (value) => {
+  if (value === null || value === undefined) return '-';
+  const text = String(value).trim();
+  return text.length ? text : '-';
+};
+
+const buildUserSearchText = (item) => {
+  const values = [
+    item?.name,
+    item?.email,
+    item?.role,
+    item?.password,
+    item?.is_verified ? 'verified' : 'not verified',
+    item?.profile?.first_name,
+    item?.profile?.middle_name,
+    item?.profile?.last_name,
+    item?.profile?.designation,
+    item?.profile?.phone_number,
+    item?.profile?.office,
+    item?.profile?.division,
+    item?.profile?.cluster,
+    item?.profile?.region,
+    item?.profile?.province_district,
+  ];
+
+  return values
+    .filter((v) => v !== null && v !== undefined)
+    .map((v) => String(v).toLowerCase())
+    .join(' ');
+};
+
+const filteredUserAccounts = userAccounts.filter((item) => {
+  const query = userSearch.trim().toLowerCase();
+  if (!query) return true;
+  return buildUserSearchText(item).includes(query);
+});
+
   useEffect(() => {
 if (activeTab === 'offices') {
     loadOffices();
@@ -101,11 +240,12 @@ if (activeTab === 'offices') {
         loadPositions(); 
     }
     if (activeTab === 'focals') loadFocals();
+    if (activeTab === 'users') loadUserAccounts();
     // I-reset ang form state paglipat ng tab
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadClusters, loadDivisions, loadPositions, loadConfigPositions, loadFocals]);
+  }, [activeTab, loadOffices, loadClusters, loadDivisions, loadPositions, loadConfigPositions, loadFocals, loadUserAccounts]);
 
   
   // Handle Save (Unified for Office and Division)
@@ -489,8 +629,175 @@ const handleSubmit = async (e) => {
         )}
         {activeTab === 'users' && (
           <section className="user-config-panel">
-            <h2 className="user-config-panel-title">Users</h2>
-            <p className="user-config-empty">Content will be loaded from the database.</p>
+            <div className="panel-header-inline">
+              <h2 className="user-config-panel-title">Users</h2>
+              <button className="btn-add-toggle" onClick={openAddUser}>+ Add User</button>
+            </div>
+
+            <div className="user-config-users-tools">
+              <input
+                type="text"
+                className="user-config-users-search"
+                placeholder="Search name, email, role, office, division, cluster, region..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+              />
+            </div>
+
+            {loading && <p className="user-config-empty">Loading users...</p>}
+            {!loading && userAccounts.length === 0 && (
+              <p className="user-config-empty">No users found in database.</p>
+            )}
+            {!loading && userAccounts.length > 0 && filteredUserAccounts.length === 0 && (
+              <p className="user-config-empty">No users matched your search.</p>
+            )}
+
+            {!loading && userAccounts.length > 0 && filteredUserAccounts.length > 0 && (
+              <>
+                <p className="user-config-panel-desc">
+                  Showing {filteredUserAccounts.length} of {userAccounts.length} account(s).
+                </p>
+                <div className="user-config-table-wrap">
+                  <table className="user-config-table">
+                    <thead>
+                      <tr>
+                        <th>Actions</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Password</th>
+                        <th>Email Verified</th>
+                        <th>Role</th>
+                        <th>Firstname</th>
+                        <th>Middlename</th>
+                        <th>Lastname</th>
+                        <th>Designation</th>
+                        <th>Phone Number</th>
+                        <th>Office</th>
+                        <th>Division</th>
+                        <th>Cluster</th>
+                        <th>Region</th>
+                        <th>Province/District</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUserAccounts.map((item) => (
+                        <tr key={item.id}>
+                          <td className="user-config-action-cell">
+                            <button className="btn-action-edit" onClick={() => openEditUser(item)}>Edit</button>
+                            <button className="btn-action-delete" onClick={() => handleDeleteUser(item.id, item.name)}>Delete</button>
+                          </td>
+                          <td>{displayValue(item.name)}</td>
+                          <td>{displayValue(item.email)}</td>
+                          <td>
+                            {item.password
+                              ? <span className="user-config-password-pill" title={item.password}>
+                                  {item.password.slice(0, 20)}…
+                                </span>
+                              : <span className="user-config-password-pill">-</span>
+                            }
+                          </td>
+                          <td>
+                            <span className={`user-config-badge ${item.email_verified_at || item.is_verified ? 'badge-verified' : 'badge-unverified'}`}>
+                              {item.email_verified_at || item.is_verified ? 'Verified' : 'Not Verified'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`user-config-badge ${item.role === 'admin' ? 'badge-admin' : 'badge-user'}`}>
+                              {displayValue(item.role)}
+                            </span>
+                          </td>
+                          <td>{displayValue(item.profile?.first_name)}</td>
+                          <td>{displayValue(item.profile?.middle_name)}</td>
+                          <td>{displayValue(item.profile?.last_name)}</td>
+                          <td>{displayValue(item.profile?.designation)}</td>
+                          <td>{displayValue(item.profile?.phone_number)}</td>
+                          <td>{displayValue(item.profile?.office)}</td>
+                          <td>{displayValue(item.profile?.division)}</td>
+                          <td>{displayValue(item.profile?.cluster)}</td>
+                          <td>{displayValue(item.profile?.region)}</td>
+                          <td>{displayValue(item.profile?.province_district)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {/* ADD / EDIT USER MODAL */}
+            {isUserModalOpen && (
+              <div className="user-modal-overlay" onClick={() => setIsUserModalOpen(false)}>
+                <div className="user-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="user-modal-header">
+                    <h3>{editingUserId ? 'Edit User' : 'Add New User'}</h3>
+                    <button className="user-modal-close" onClick={() => setIsUserModalOpen(false)}>✕</button>
+                  </div>
+                  <form className="user-modal-form" onSubmit={handleSaveUser}>
+                    {userFormError && <p className="user-modal-error">{userFormError}</p>}
+                    <div className="user-modal-field">
+                      <label>Name <span className="required">*</span></label>
+                      <input
+                        type="text"
+                        value={userFormData.name}
+                        onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
+                        placeholder="Full name"
+                        required
+                      />
+                    </div>
+                    <div className="user-modal-field">
+                      <label>Email <span className="required">*</span></label>
+                      <input
+                        type="email"
+                        value={userFormData.email}
+                        onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
+                        placeholder="email@example.com"
+                        required
+                      />
+                    </div>
+                    <div className="user-modal-field">
+                      <label>Password {editingUserId && <small>(leave blank to keep current)</small>}</label>
+                      <input
+                        type="password"
+                        value={userFormData.password}
+                        onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
+                        placeholder={editingUserId ? 'Leave blank to keep current' : 'Min. 6 characters'}
+                        {...(!editingUserId && { required: true, minLength: 6 })}
+                      />
+                    </div>
+                    <div className="user-modal-row">
+                      <div className="user-modal-field">
+                        <label>Role <span className="required">*</span></label>
+                        <select
+                          value={userFormData.role}
+                          onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div className="user-modal-field user-modal-field-check">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={userFormData.is_verified}
+                            onChange={(e) => setUserFormData({ ...userFormData, is_verified: e.target.checked })}
+                          />
+                          Email Verified
+                        </label>
+                      </div>
+                    </div>
+                    <div className="user-modal-footer">
+                      <button type="button" className="btn-inline-cancel" onClick={() => setIsUserModalOpen(false)}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn-inline-save" disabled={userFormLoading}>
+                        {userFormLoading ? 'Saving...' : editingUserId ? 'Update' : 'Add User'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </section>
         )}
         {/* FOCALSHIPS TAB */}

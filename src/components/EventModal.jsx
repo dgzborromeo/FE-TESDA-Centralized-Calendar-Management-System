@@ -469,6 +469,28 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                     </ul>
                   </div>
                 </div>
+                <div className="modal-event-card modal-event-card--attach">
+                  <div className="modal-event-card-icon" aria-hidden>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  </div>
+                  <div className="modal-event-card-body">
+                    <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
+                    {regularAttachments.length > 0 ? (
+                      <ul className="modal-event-attach-list">
+                        {regularAttachments.map((a) => (
+                          <li key={a.id} className="modal-event-attach-item">
+                            <span className="modal-event-attach-icon">PDF</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
+                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="modal-postdoc-empty">No program references uploaded yet.</p>
+                    )}
+                  </div>
+                </div>
                 {locationIsUrl && (
                   <div className="modal-event-card modal-event-card-join modal-event-card--zoom">
                     <div className="modal-event-card-icon" aria-hidden>
@@ -487,9 +509,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
               </div>
             </section>
 
-            <section className="modal-event-section">
-              <div className="modal-event-section-title">Documents & Reports</div>
-              <div className="modal-event-cards modal-event-cards--docs">
+            {isDone && (
+              <section className="modal-event-section">
+                <div className="modal-event-section-title">Documents & Reports</div>
+                <div className="modal-event-cards modal-event-cards--docs">
                 {(needsPostDoc || postDocs.length > 0) && (
                   <div className="modal-event-card modal-event-card--postdoc">
                     <div className="modal-event-card-icon" aria-hidden>
@@ -550,28 +573,6 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                     </div>
                   </div>
                 )}
-                <div className="modal-event-card modal-event-card--attach">
-                  <div className="modal-event-card-icon" aria-hidden>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                  </div>
-                  <div className="modal-event-card-body">
-                    <span className="modal-event-card-heading">Program References ({regularAttachments.length})</span>
-                    {regularAttachments.length > 0 ? (
-                      <ul className="modal-event-attach-list">
-                        {regularAttachments.map((a) => (
-                          <li key={a.id} className="modal-event-attach-item">
-                            <span className="modal-event-attach-icon">PDF</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
-                            <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="modal-postdoc-empty">No program references uploaded yet.</p>
-                    )}
-                  </div>
-                </div>
                 {(needsPostDoc || attendanceSheets.length > 0) && (
                   <div className="modal-event-card modal-event-card--attendance">
                     <div className="modal-event-card-icon" aria-hidden>
@@ -706,8 +707,9 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                     </div>
                   </div>
                 )}
-              </div>
-            </section>
+                </div>
+              </section>
+            )}
           </div>
           {isCancelled && event.cancel_reason ? (
             <div className="modal-row">

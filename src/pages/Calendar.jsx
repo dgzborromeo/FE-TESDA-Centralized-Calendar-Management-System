@@ -177,6 +177,75 @@ function isWeekendYMD(ymd) {
   return day === 0 || day === 6;
 }
 
+function getMultiDayProgressMeta(eventLike, now = new Date()) {
+  const ext = eventLike?.extendedProps || {};
+  if (!ext?.is_multi_day) return null;
+
+  const startDate = normalizeDateValue(ext.start_date || eventLike?.start);
+  const endDate = normalizeDateValue(ext.end_date);
+  if (!startDate || !endDate) return null;
+
+  const startAt = new Date(`${startDate}T00:00:00`);
+  const endAt = new Date(`${endDate}T23:59:59`);
+  if (!Number.isFinite(startAt.getTime()) || !Number.isFinite(endAt.getTime()) || endAt < startAt) {
+    return null;
+  }
+
+  const totalMs = Math.max(1, endAt.getTime() - startAt.getTime());
+  const elapsedMs = now.getTime() - startAt.getTime();
+  const percent = Math.max(0, Math.min(100, Math.round((elapsedMs / totalMs) * 100)));
+
+  const startNoon = new Date(`${startDate}T12:00:00`);
+  const endNoon = new Date(`${endDate}T12:00:00`);
+  const totalDays = Math.max(1, Math.round((endNoon.getTime() - startNoon.getTime()) / 86400000) + 1);
+  const todayYmd = toLocalDateString(now);
+  const todayNoon = new Date(`${todayYmd}T12:00:00`);
+
+  let dayLabel = `Day 1 of ${totalDays}`;
+  if (now < startAt) {
+    const daysUntilStart = Math.max(
+      0,
+      Math.round((startNoon.getTime() - todayNoon.getTime()) / 86400000)
+    );
+    dayLabel = daysUntilStart <= 0
+      ? 'Starts today'
+      : `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
+  } else if (now > endAt) {
+    dayLabel = `Completed (${totalDays}/${totalDays} days)`;
+  } else {
+    const dayNumber = Math.max(
+      1,
+      Math.min(totalDays, Math.round((todayNoon.getTime() - startNoon.getTime()) / 86400000) + 1)
+    );
+    dayLabel = `Day ${dayNumber} of ${totalDays}`;
+  }
+
+  return { percent, dayLabel };
+}
+
+function getEventStartReminder(eventLike, now = new Date()) {
+  const ext = eventLike?.extendedProps || {};
+  if (ext?.isHoliday) return '';
+
+  const startDate = normalizeDateValue(ext.start_date || eventLike?.start);
+  if (!startDate) return '';
+
+  const startTimeRaw = normalizeTime(ext.start_time_raw || '00:00:00');
+  const startAt = new Date(`${startDate}T${startTimeRaw}`);
+  if (!Number.isFinite(startAt.getTime()) || now >= startAt) return '';
+
+  const todayYmd = toLocalDateString(now);
+  const todayNoon = new Date(`${todayYmd}T12:00:00`);
+  const startNoon = new Date(`${startDate}T12:00:00`);
+  const daysUntilStart = Math.max(
+    0,
+    Math.round((startNoon.getTime() - todayNoon.getTime()) / 86400000)
+  );
+
+  if (daysUntilStart <= 0) return 'Starts today';
+  return `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
+}
+
 function clusterShortLabel(name) {
   const raw = String(name || '').trim();
   if (!raw) return 'CLUSTER';
@@ -864,6 +933,7 @@ return parsedEvents
             is_tentative: tentativeMeta.isTentative,
             tentative_note: tentativeMeta.note || '',
             is_multi_day: isMultiDay,
+            start_date: date,
             end_date: endDate,
             start_time_raw,
             end_time_raw,
@@ -1556,6 +1626,11 @@ return parsedEvents
               const endRaw = arg.event.extendedProps?.end_time_raw || '';
               const startLabel = formatTimeShort(startRaw);
               const endLabel = formatTimeShort(endRaw);
+              const progressMeta = getMultiDayProgressMeta(arg.event);
+              const startsInReminder = getEventStartReminder(arg.event);
+              const progressColor = activeTab === 'participants' ? participantColor : hostColor;
+              const showProgress = Boolean(progressMeta && !isHoliday && !cancelled);
+              const showStartsInReminder = Boolean(startsInReminder && !showProgress && !cancelled);
               const timeLabel =
                 startLabel && endLabel && startLabel !== endLabel
                   ? `${startLabel}–${endLabel}`
@@ -1583,6 +1658,24 @@ return parsedEvents
                           {timeLabel}
                         </span>
                         {done && <span className="fc-event-done-badge">Done</span>}
+                      </div>
+                    )}
+                    {showProgress && (
+                      <div className={`fc-event-progress ${done ? 'is-done' : ''}`} title={`Progress: ${progressMeta.percent}%`}>
+                        <div className="fc-event-progress-track">
+                          <span
+                            className="fc-event-progress-fill"
+                            style={{ width: `${progressMeta.percent}%`, backgroundColor: progressColor }}
+                          />
+                        </div>
+                        <span className="fc-event-progress-text" style={{ color: statusTextColor }}>
+                          {progressMeta.dayLabel} · {progressMeta.percent}%
+                        </span>
+                      </div>
+                    )}
+                    {showStartsInReminder && (
+                      <div className="fc-event-starts-in" style={{ color: statusTextColor }}>
+                        {startsInReminder}
                       </div>
                     )}
                     <div className={`fc-event-title-wrap fc-event-title-wrap--participants ${conflict ? 'fc-event-conflict' : ''}`}>
@@ -1629,6 +1722,24 @@ return parsedEvents
                         {timeLabel}
                       </span>
                       {done && <span className="fc-event-done-badge">Done</span>}
+                    </div>
+                  )}
+                  {showProgress && (
+                    <div className={`fc-event-progress ${done ? 'is-done' : ''}`} title={`Progress: ${progressMeta.percent}%`}>
+                      <div className="fc-event-progress-track">
+                        <span
+                          className="fc-event-progress-fill"
+                          style={{ width: `${progressMeta.percent}%`, backgroundColor: progressColor }}
+                        />
+                      </div>
+                      <span className="fc-event-progress-text" style={{ color: statusTextColor }}>
+                        {progressMeta.dayLabel} · {progressMeta.percent}%
+                      </span>
+                    </div>
+                  )}
+                  {showStartsInReminder && (
+                    <div className="fc-event-starts-in" style={{ color: statusTextColor }}>
+                      {startsInReminder}
                     </div>
                   )}
                   <div className={`fc-event-title-wrap ${conflict ? 'fc-event-conflict' : ''}`}>
