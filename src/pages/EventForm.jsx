@@ -943,7 +943,7 @@ width: '100%'
         
         {!isEdit && (
           <label>
-            Program References (optional)
+            Program References (e.g., TESDA Order, Notice of Meeting, Terms of Reference)
             <div className="file-picker">
               <input
                 id="event-program-references"

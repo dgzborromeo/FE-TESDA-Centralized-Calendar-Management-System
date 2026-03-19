@@ -997,7 +997,7 @@ if (response) {
             <div className="simple-event-grid">
               <div className="simple-event-field simple-event-field-full">
                 <label className="simple-event-label" htmlFor="attachment">
-                  Program References (optional)
+                  Program References (e.g., TESDA Order, Notice of Meeting, Terms of Reference)
                 </label>
                 <div className="simple-file-picker">
                   <input
