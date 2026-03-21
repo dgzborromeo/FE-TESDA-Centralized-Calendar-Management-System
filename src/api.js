@@ -66,6 +66,23 @@ export const invitations = {
 
 export const users = {
   list: () => api('/users'),
+  // Para sa handleSaveUser (Create)
+  create: (payload) => api('/users', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  // Para sa handleSaveUser (Update)
+  // Tandaan: Sa routes mo, POST ang gamit sa update '/users/:id'
+  update: (id, payload) => api(`/users/${id}`, {
+    method: 'POST', 
+    body: JSON.stringify(payload)
+  }),
+
+  // Para sa handleDeleteUser
+  remove: (id) => api(`/users/${id}`, {
+    method: 'DELETE'
+  }),
   legend: () => api('/users/legend'),
   legendClusters: () => api('/users/legend/clusters'),
 };
@@ -198,6 +215,7 @@ export const config = {
     getFocalships: () => api('/focalship'),
   getFocalship: (id) => api(`/focalship/${id}`),
   getProvinces: (regionId) => api(`/provinces/${regionId}`),
+  getAllProvinces: () => api(`/provinces`),
   addFocalship: (body) => api('/focalship', { 
     method: 'POST', 
     body: JSON.stringify(body) 

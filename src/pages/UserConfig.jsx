@@ -37,8 +37,28 @@ const [userSearch, setUserSearch] = useState('');
 const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 const [editingUserId, setEditingUserId] = useState(null);
 const [userFormData, setUserFormData] = useState({
-  name: '', email: '', password: '', role: 'user', is_verified: false,
+  name: '', 
+  email: '', 
+  password: '', 
+  role: 'user',
+  first_name: '',
+  last_name: '',
+  middle_name: '',
+  phone_number: '',
+  // MGA BAGONG ID FIELDS:
+  designation_id: '', 
+  designation: '',
+  office_id: '',
+  office: '',
+  cluster_id: '',
+  cluster: '',
+  region_id: '',
+  region: '',
+  province_id: '',
+  province_district: ''
 });
+const [regions, setRegions] = useState([]);
+const [provinces, setProvinces] = useState([]);
 const [userFormError, setUserFormError] = useState('');
 const [userFormLoading, setUserFormLoading] = useState(false);
   // Load Offices
@@ -82,6 +102,27 @@ const loadConfigPositions = useCallback(() => {
     setLoading(true);
     configApi.getConfigPositions().then(data => { setConfigPositions(data || []); setLoading(false); }).catch(console.error);
   }, []);
+  // Load Regions
+const loadRegions = useCallback(() => {
+  setLoading(true);
+  configApi.getRegions() // Siguraduhing may endpoint ka rito sa api/index.js
+    .then(data => {
+      setRegions(data || []);
+      setLoading(false);
+    })
+    .catch(err => { console.error(err); setLoading(false); });
+}, []);
+
+// Load Provinces
+const loadProvinces = useCallback(() => {
+  setLoading(true);
+  configApi.getAllProvinces() // Siguraduhing may endpoint ka rito sa api/index.js
+    .then(data => {
+      setProvinces(data || []);
+      setLoading(false);
+    })
+    .catch(err => { console.error(err); setLoading(false); });
+}, []);
 
 const loadFocals = useCallback(() => {
   setLoading(true);
@@ -124,19 +165,47 @@ const loadUserAccounts = useCallback(() => {
 
 const openAddUser = () => {
   setEditingUserId(null);
-  setUserFormData({ name: '', email: '', password: '', role: 'user', is_verified: false });
+  setUserFormData({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    role: 'user', 
+    // DAPAT KASAMA ITO:
+    first_name: '',
+    last_name: '',
+    middle_name: '',
+    designation: '',
+    phone_number: '',
+    office_id: '' // Idagdag na rin natin ito para sa Office
+  });
   setUserFormError('');
   setIsUserModalOpen(true);
 };
-
 const openEditUser = (item) => {
   setEditingUserId(item.id);
+  const p = item.profile || {};
   setUserFormData({
     name: item.name || '',
     email: item.email || '',
-    password: '',
+    password: '', 
     role: item.role || 'user',
-    is_verified: !!item.email_verified_at || !!item.is_verified,
+    // Kuhanin ang data mula sa profile
+    first_name: item.profile?.first_name || '',
+    last_name: item.profile?.last_name || '',
+    middle_name: item.profile?.middle_name || '',
+    phone_number: item.profile?.phone_number || '',
+    // Gamitin ang tamang variable (p)
+    designation_id: p.designation_id ? String(p.designation_id) : '',
+    designation: p.designation || '',
+    office_id: p.office_id ? String(p.office_id) : '',
+    office: p.office || '',
+    
+    cluster_id: p.cluster_id ? String(p.cluster_id) : '',
+    cluster: p.cluster || '',
+    region_id: p.region_id ? String(p.region_id) : '',
+    region: p.region || '',
+    province_id: p.province_id ? String(p.province_id) : '',
+    province_district: p.province_district || '',
   });
   setUserFormError('');
   setIsUserModalOpen(true);
@@ -146,36 +215,55 @@ const handleSaveUser = async (e) => {
   e.preventDefault();
   setUserFormError('');
   setUserFormLoading(true);
+
+  const payload = {
+    name: (userFormData.name || '').trim(),
+    email: (userFormData.email || '').trim(),
+    password: userFormData.password.trim(), // REQUIRED dahil Create ito
+    role: userFormData.role,
+    first_name: (userFormData.first_name || '').trim(),
+    last_name: (userFormData.last_name || '').trim(),
+    middle_name: (userFormData.middle_name || '').trim(),
+    designation: (userFormData.designation || '').trim(),
+    phone_number: (userFormData.phone_number || '').trim(),
+   // ETO ANG KAILANGAN: Ipadala ang string name para sa column display
+    designation: userFormData.designation, 
+    office: userFormData.office, // <--- Siguraduhin na ito ay string (e.g. "Administrative Service")
+    office_id: userFormData.office_id ? parseInt(userFormData.office_id) : null,
+    
+    // Isama rin ang iba pa para sa table display
+    cluster: userFormData.cluster,
+    region: userFormData.region,
+    province_district: userFormData.province_district,
+    
+    cluster_id: userFormData.cluster_id ? parseInt(userFormData.cluster_id) : null,
+    region_id: userFormData.region_id ? parseInt(userFormData.region_id) : null,
+    province_id: userFormData.province_id ? parseInt(userFormData.province_id) : null,
+  };
+
+  console.log("Payload to be sent:", payload);
+
   try {
-    const payload = {
-      name: userFormData.name.trim(),
-      email: userFormData.email.trim(),
-      role: userFormData.role,
-      is_verified: userFormData.is_verified,
-    };
-    if (userFormData.password.trim()) {
-      payload.password = userFormData.password.trim();
-    }
-    if (editingUserId) {
-      await usersApi.update(editingUserId, payload);
-    } else {
-      if (!userFormData.password.trim()) {
-        setUserFormError('Password is required for new users.');
-        setUserFormLoading(false);
-        return;
-      }
-      payload.password = userFormData.password.trim();
-      await usersApi.create(payload);
-    }
+    const response = await usersApi.create(payload);
+    console.log("Success:", response);
     setIsUserModalOpen(false);
     loadUserAccounts();
   } catch (err) {
-    setUserFormError(err.message || 'Failed to save user.');
+    // TINGNAN NATIN KUNG ANONG SPECIFIC FIELD ANG MAY ERROR
+    console.error("Backend Error Details:", err.response?.data);
+    
+    // Kung ang error ay object (e.g. {email: ["Already taken"]}), i-convert natin sa string
+    const errorData = err.response?.data;
+    if (errorData && typeof errorData === 'object') {
+       // I-display ang message kung meron, kung wala, ipakita ang buong error object as string
+       setUserFormError(errorData.error || JSON.stringify(errorData));
+    } else {
+       setUserFormError(err.message || "Something went wrong");
+    }
   } finally {
     setUserFormLoading(false);
   }
 };
-
 const handleDeleteUser = async (id, name) => {
   if (!window.confirm(`Delete user "${name}"? This cannot be undone.`)) return;
   try {
@@ -198,7 +286,7 @@ const buildUserSearchText = (item) => {
     item?.email,
     item?.role,
     item?.password,
-    item?.is_verified ? 'verified' : 'not verified',
+    item?.email_verified_at ? 'verified' : 'not verified',
     item?.profile?.first_name,
     item?.profile?.middle_name,
     item?.profile?.last_name,
@@ -240,12 +328,19 @@ if (activeTab === 'offices') {
         loadPositions(); 
     }
     if (activeTab === 'focals') loadFocals();
-    if (activeTab === 'users') loadUserAccounts();
+    if (activeTab === 'users') {
+        loadUserAccounts();
+        loadOffices();    // Para sa Office dropdown
+        loadPositions();  // Para sa Designation/Position dropdown
+        loadClusters();   // Kung may cluster dropdown din
+        loadRegions();   // <-- Dagdag ito
+        loadProvinces(); // <-- Dagdag ito
+      }
     // I-reset ang form state paglipat ng tab
     setIsFormOpen(false);
     setEditingId(null);
     setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadClusters, loadDivisions, loadPositions, loadConfigPositions, loadFocals, loadUserAccounts]);
+  }, [activeTab, loadOffices, loadClusters,loadRegions,loadProvinces, loadDivisions, loadPositions, loadConfigPositions, loadFocals, loadUserAccounts]);
 
   
   // Handle Save (Unified for Office and Division)
@@ -697,8 +792,8 @@ const handleSubmit = async (e) => {
                             }
                           </td>
                           <td>
-                            <span className={`user-config-badge ${item.email_verified_at || item.is_verified ? 'badge-verified' : 'badge-unverified'}`}>
-                              {item.email_verified_at || item.is_verified ? 'Verified' : 'Not Verified'}
+                            <span className={`user-config-badge ${item.email_verified_at ? 'badge-verified' : 'badge-unverified'}`}>
+                              {item.email_verified_at ? 'Verified' : 'Not Verified'}
                             </span>
                           </td>
                           <td>
@@ -725,79 +820,210 @@ const handleSubmit = async (e) => {
             )}
 
             {/* ADD / EDIT USER MODAL */}
-            {isUserModalOpen && (
-              <div className="user-modal-overlay" onClick={() => setIsUserModalOpen(false)}>
-                <div className="user-modal" onClick={(e) => e.stopPropagation()}>
-                  <div className="user-modal-header">
-                    <h3>{editingUserId ? 'Edit User' : 'Add New User'}</h3>
-                    <button className="user-modal-close" onClick={() => setIsUserModalOpen(false)}>✕</button>
-                  </div>
-                  <form className="user-modal-form" onSubmit={handleSaveUser}>
-                    {userFormError && <p className="user-modal-error">{userFormError}</p>}
-                    <div className="user-modal-field">
-                      <label>Name <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        value={userFormData.name}
-                        onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
-                        placeholder="Full name"
-                        required
-                      />
-                    </div>
-                    <div className="user-modal-field">
-                      <label>Email <span className="required">*</span></label>
-                      <input
-                        type="email"
-                        value={userFormData.email}
-                        onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
-                        placeholder="email@example.com"
-                        required
-                      />
-                    </div>
-                    <div className="user-modal-field">
-                      <label>Password {editingUserId && <small>(leave blank to keep current)</small>}</label>
-                      <input
-                        type="password"
-                        value={userFormData.password}
-                        onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
-                        placeholder={editingUserId ? 'Leave blank to keep current' : 'Min. 6 characters'}
-                        {...(!editingUserId && { required: true, minLength: 6 })}
-                      />
-                    </div>
-                    <div className="user-modal-row">
-                      <div className="user-modal-field">
-                        <label>Role <span className="required">*</span></label>
-                        <select
-                          value={userFormData.role}
-                          onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value })}
-                        >
-                          <option value="user">User</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </div>
-                      <div className="user-modal-field user-modal-field-check">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={userFormData.is_verified}
-                            onChange={(e) => setUserFormData({ ...userFormData, is_verified: e.target.checked })}
-                          />
-                          Email Verified
-                        </label>
-                      </div>
-                    </div>
-                    <div className="user-modal-footer">
-                      <button type="button" className="btn-inline-cancel" onClick={() => setIsUserModalOpen(false)}>
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn-inline-save" disabled={userFormLoading}>
-                        {userFormLoading ? 'Saving...' : editingUserId ? 'Update' : 'Add User'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
+{/* ADD / EDIT USER MODAL */}
+{isUserModalOpen && (
+  <div className="user-modal-overlay" onClick={() => setIsUserModalOpen(false)}>
+    <div className="user-modal" onClick={(e) => e.stopPropagation()}>
+      
+      {/* 1. FIXED HEADER */}
+      <div className="user-modal-header">
+        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>
+          {editingUserId ? 'Edit User' : 'Add New User'}
+        </h3>
+        <button className="user-modal-close" onClick={() => setIsUserModalOpen(false)}>✕</button>
+      </div>
+
+      {/* IMPORTANT: Ang form ay dapat naka-flex para gumana ang scrolling sa loob */}
+      <form 
+        className="user-modal-form" 
+        onSubmit={handleSaveUser}
+        style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 60px)', overflow: 'hidden' }}
+      >
+        
+        {/* 2. SCROLLABLE BODY - Dito lang ang may scrollbar */}
+        <div className="user-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '24px', background: '#f8fafc' }}>
+          {userFormError && <p className="user-modal-error" style={{ color: '#ef4444', marginBottom: '15px' }}>{userFormError}</p>}
+          
+          <div className="user-modal-field">
+            <label>Name <span className="required">*</span></label>
+            <input 
+              type="text" 
+              value={userFormData.name} 
+              onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })} 
+              placeholder="Full name" 
+              required 
+            />
+          </div>
+
+          <div className="user-modal-field">
+            <label>Email <span className="required">*</span></label>
+            <input 
+              type="email" 
+              value={userFormData.email} 
+              onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })} 
+              placeholder="email@example.com" 
+              required 
+            />
+          </div>
+
+          <div className="user-modal-field">
+            <label>Password {editingUserId && <small>(leave blank to keep current)</small>}</label>
+            <input 
+              type="password" 
+              value={userFormData.password} 
+              onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })} 
+              placeholder={editingUserId ? 'Leave blank to keep current' : 'Min. 6 characters'} 
+              {...(!editingUserId && { required: true, minLength: 6 })} 
+            />
+          </div>
+
+          <div className="user-modal-row" style={{ display: 'flex', gap: '15px' }}>
+            <div className="user-modal-field" style={{ flex: 1 }}>
+              <label>First Name <span className="required">*</span></label>
+              <input 
+                type="text" 
+                value={userFormData.first_name} 
+                onChange={(e) => setUserFormData({ ...userFormData, first_name: e.target.value })} 
+                placeholder="Juan" 
+                required 
+              />
+            </div>
+            <div className="user-modal-field" style={{ flex: 1 }}>
+              <label>Last Name <span className="required">*</span></label>
+              <input 
+                type="text" 
+                value={userFormData.last_name} 
+                onChange={(e) => setUserFormData({ ...userFormData, last_name: e.target.value })} 
+                placeholder="Dela Cruz" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div className="user-modal-field">
+            <label>Designation <span className="required">*</span></label>
+            <select 
+              value={userFormData.designation_id} 
+              onChange={(e) => {
+                const selectedPos = positions.find(p => p.id === parseInt(e.target.value));
+                setUserFormData({ 
+                  ...userFormData, 
+                  designation_id: e.target.value, 
+                  designation: selectedPos ? selectedPos.name : '' 
+                });
+              }} 
+              required
+            >
+              <option value="">-- Select Designation --</option>
+              {positions.map(pos => <option key={pos.id} value={pos.id}>{pos.name}</option>)}
+            </select>
+          </div>
+
+          <hr style={{ border: '0', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
+
+          <div className="user-modal-field">
+            <label>Office</label>
+            <select 
+              value={userFormData.office_id} 
+              onChange={(e) => {
+                const id = e.target.value;
+                const obj = offices.find(o => String(o.id) === String(id));
+                setUserFormData({ 
+                  ...userFormData, 
+                  office_id: id, 
+                  office: obj ? obj.name : '',
+                  cluster_id: obj?.cluster_id || userFormData.cluster_id,
+                  cluster: obj?.cluster?.name || userFormData.cluster,
+                  region_id: obj?.region_id || userFormData.region_id,
+                  region: obj?.region?.name || userFormData.region,
+                  province_id: obj?.province_id || userFormData.province_id,
+                  province_district: obj?.province?.name || userFormData.province_district
+                });
+              }}
+            >
+              <option value="">-- Select Office (Optional) --</option>
+              {offices.map(off => <option key={off.id} value={off.id}>{off.name}</option>)}
+            </select>
+          </div>
+
+          <div className="user-modal-field">
+            <label>Cluster</label>
+            <select 
+              value={userFormData.cluster_id || ''} 
+              onChange={(e) => {
+                const id = e.target.value;
+                const found = clusters.find(c => String(c.id) === id);
+                setUserFormData({ ...userFormData, cluster_id: id, cluster: found ? found.name : '' });
+              }}
+            >
+              <option value="">-- Select Cluster (Optional) --</option>
+              {clusters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+
+          <div className="user-modal-field">
+            <label>Region</label>
+            <select 
+              value={userFormData.region_id || ''} 
+              onChange={(e) => {
+                const id = e.target.value;
+                const found = regions?.find(r => String(r.id) === id);
+                setUserFormData({ ...userFormData, region_id: id, region: found ? found.name : '' });
+              }}
+            >
+              <option value="">-- Select Region (Optional) --</option>
+              {regions?.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          </div>
+
+          <div className="user-modal-field">
+            <label>Province/District</label>
+            <select 
+              value={userFormData.province_id || ''} 
+              onChange={(e) => {
+                const id = e.target.value;
+                const foundProvince = provinces?.find(p => String(p.id) === String(id));
+                
+                // Hanapin din ang region object kung ang province ay may region_id
+                let autoRegionId = userFormData.region_id;
+                let autoRegionName = userFormData.region;
+
+                if (foundProvince && foundProvince.region_id) {
+                  const foundRegion = regions?.find(r => String(r.id) === String(foundProvince.region_id));
+                  if (foundRegion) {
+                    autoRegionId = String(foundRegion.id);
+                    autoRegionName = foundRegion.name;
+                  }
+                }
+
+                setUserFormData({ 
+                  ...userFormData, 
+                  province_id: id, 
+                  province_district: foundProvince ? foundProvince.name : '',
+                  // AUTO-FILL REGION pag pumili ng Province
+                  region_id: autoRegionId,
+                  region: autoRegionName
+                });
+              }}
+            >
+              <option value="">-- Select Province (Optional) --</option>
+              {provinces?.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+        </div> 
+
+        {/* 3. FIXED FOOTER */}
+        <div className="user-modal-footer" style={{ flexShrink: 0, padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <button type="button" className="btn-inline-cancel" onClick={() => setIsUserModalOpen(false)}>Cancel</button>
+          <button type="submit" className="btn-inline-save" disabled={userFormLoading} style={{ background: '#2563eb', color: 'white', padding: '8px 20px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+            {userFormLoading ? 'Saving...' : editingUserId ? 'Update' : 'Add User'}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+)}
           </section>
         )}
         {/* FOCALSHIPS TAB */}

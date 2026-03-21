@@ -639,3 +639,37 @@
   gap: 10px;
   margin-top: 0.5rem;
 }
+
+.user-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Limit modal height to 90% of screen */
+  width: 550px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden; /* Important to keep header/footer fixed */
+}
+
+.user-modal-header, 
+.user-modal-footer {
+  flex-shrink: 0; /* Prevents header/footer from shrinking */
+  padding: 16px 24px;
+  background: white;
+  z-index: 10;
+}
+
+.user-modal-body {
+  flex: 1; /* Takes up all remaining space */
+  overflow-y: auto; /* Enables scrolling for fields only */
+  padding: 24px;
+  background: #f8fafc; /* Subtle contrast to separate from header/footer */
+}
+
+/* Para hindi dikit ang scrollbar sa inputs */
+.user-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.user-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
