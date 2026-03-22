@@ -226,7 +226,6 @@ const handleSaveUser = async (e) => {
     first_name: (userFormData.first_name || '').trim(),
     last_name: (userFormData.last_name || '').trim(),
     middle_name: (userFormData.middle_name || '').trim(),
-    designation: (userFormData.designation || '').trim(),
     phone_number: (userFormData.phone_number || '').trim(),
    // ETO ANG KAILANGAN: Ipadala ang string name para sa column display
     designation: userFormData.designation, 
