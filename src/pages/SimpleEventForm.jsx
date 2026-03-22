@@ -64,15 +64,6 @@ const [newFocalName, setNewFocalName] = useState('');
     };
     fetchData();
   }, []);
-const SUB_MENU_CONFIG = {
-  'Deputy Director General': { type: 'cluster', source: 'clusters', label: 'Clusters' },
-  'Executive Director': { type: 'office', source: 'offices', label: 'Offices' },
-  'Assistant Executive Director': { type: 'office', source: 'offices', label: 'Offices' }, // REUSABLE!
-  'Division Chief': { type: 'office', source: 'offices', label: 'Offices' }, 
-  'Regional Director': { type: 'region', source: 'regions', label: 'Regions' },
-  'Provincial Director': { type: 'prov_region', source: 'regions', label: 'Provinces' },
-  'District Director': { type: 'district_ncr', source: 'districts', label: 'Districts' }
-};
   const updateParticipantsText = useCallback((selPos, selFocals) => {
     const posNames = selPos.map(p => p.name);
     const focalNames = selFocals.map(f => `Focal: ${f}`);
@@ -83,19 +74,27 @@ const SUB_MENU_CONFIG = {
       participants: combined.join(', ')
     }));
   }, []);
+const getPosConfig = (posName) => {
+  const pos = positions.find(p => p.name === posName);
+  if (!pos || !pos.has_sub_menu) return null;
+  return {
+    type: pos.sub_menu_type,      // e.g., 'cluster', 'office'
+    source: pos.sub_menu_source,  // e.g., 'clusters', 'offices'
+    label: pos.sub_menu_type?.charAt(0).toUpperCase() + pos.sub_menu_type?.slice(1) + 's' // Auto label
+  };
+};
+
 const handlePositionDropdownChange = (e) => {
   const val = e.target.value;
   setSubType(null);
   setSelectedRegionId(null);
 
-  // DYNAMIC CHECK: Titingin lang sa config kung may sub-menu itong position na ito
-  const config = SUB_MENU_CONFIG[val];
+  const config = getPosConfig(val);
 
   if (config) {
-    setSubType(config.type); // Halimbawa: 'office' or 'cluster'
-    setHoveredPosition(val); // Para malaman ng UI kung sino ang naka-hover
+    setSubType(config.type);
+    setHoveredPosition(val);
   } else {
-    // Normal position logic...
     const posObj = positions.find(p => p.name === val);
     if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
       const updated = [...selectedPositions, posObj];
@@ -105,80 +104,91 @@ const handlePositionDropdownChange = (e) => {
   }
 };
 const handleSubSelect = (subItem, type, parentPos) => {
-  const config = SUB_MENU_CONFIG[parentPos];
-  if (!config) return;
+  const labelMap = { 'district_ncr': 'Districts', 'prov_region': 'Provinces', 'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions' };
+  const allLabel = `${parentPos} - All ${labelMap[type] || 'Participants'}`;
 
-  // Hanapin ang actual object ng subItem (cluster/office/etc) para makuha ang ID
-  const sourceData = { clusters, offices, regions, provinces }[config.source] || [];
-  const actualItem = sourceData.find(item => (type === 'region' ? item.region : item.name) === subItem);
+  if (selectedPositions.some(p => p.name === allLabel)) return;
 
-  const parentPosObj = positions.find(p => p.name === parentPos);
-  const fullName = `${parentPos} - ${subItem}`;
+  const posObj = positions.find(p => p.name === parentPos);
+  if (!posObj) return;
+
+  // ITEM NAME ONLY: Kunin lang yung dulo (e.g., "Manila" imbes na "NCR - Manila")
+  // Ito ang magiging text sa badge: "Position - Item"
+  const itemNameOnly = subItem.includes(' - ') ? subItem.split(' - ').pop() : subItem;
+  const fullName = `${parentPos} - ${itemNameOnly}`;
 
   setSelectedPositions(prev => {
     const exists = prev.find(p => p.name === fullName);
-    let updated;
+    if (exists) return prev.filter(p => p.name !== fullName);
 
-    if (exists) {
-      updated = prev.filter(p => p.name !== fullName);
-    } else {
-      updated = [...prev, {
-        id: `${type}-${actualItem?.id}-${Date.now()}`,
-        name: fullName,
-        designationId: parentPosObj?.id, // ID ni "Director", "Chief", etc.
-        targetId: actualItem?.id,        // ID ni "NCR", "ROMO", etc.
-        targetType: type,                // 'office', 'region', etc.
-        isSub: true
-      }];
-    }
+    const dataSources = { clusters, offices, regions, provinces };
+    const sourceData = dataSources[posObj.sub_menu_source] || provinces;
+    const actualItem = sourceData.find(item => (type === 'region' ? item.region : item.name) === itemNameOnly);
+
+    const updated = [...prev, {
+      id: `${type}-${actualItem?.id || Date.now()}`,
+      name: fullName,
+      designationId: posObj.id, 
+      targetId: actualItem?.id,
+      targetType: type.replace('_ncr', '').replace('_region', ''),
+      isSub: true,
+      isAll: false
+    }];
     updateParticipantsText(updated, selectedFocals);
     return updated;
   });
 };
 const handleSelectAll = (items, type, parentPos) => {
-  const config = SUB_MENU_CONFIG[parentPos];
-  const typeLabel = config?.label || 'Items';
-  const allLabel = `${parentPos} - All ${typeLabel}`;
+  const labelMap = { 
+    'district_ncr': 'Districts', 
+    'prov_region': 'Provinces', 
+    'cluster': 'Clusters', 
+    'office': 'Offices', 
+    'region': 'Regions',
+    'district': 'Districts',
+    'province': 'Provinces'
+  };
 
-  // HANAPIN ANG ACTUAL POSITION ID (e.g. 6 para sa Executive Director)
-  const parentPosObj = positions.find(p => p.name === parentPos);
-  
-  // Gamitin ang Restriction Logic na ginawa natin kanina
-  const allowedItems = items.filter(item => {
-    if (type === 'cluster' || type === 'region') return item.id !== 1;
-    if (type === 'province') return item.region_id !== 2; 
-    if (type === 'district') return item.region_id === 2;
-    return true;
-  });
+  const displayLabel = labelMap[type] || 'Participants';
+  const allLabel = `${parentPos} - All ${displayLabel}`;
+  const posObj = positions.find(p => p.name === parentPos);
 
-  const currentViewFullNames = allowedItems.map(item => {
-    if (type === 'district') return `${parentPos} - National Capital Region - ${item.name}`;
-    if (type === 'region') return `${parentPos} - ${item.region}`;
-    return `${parentPos} - ${item.name}`;
+  // MATCHING LOGIC
+  const currentViewFullNames = items.map(item => {
+    // Siguraduhin na 'name' o 'region' lang ang kinukuha para tugma sa handleSubSelect badges
+    const itemName = type === 'region' ? item.region : item.name;
+    return `${parentPos} - ${itemName}`;
   });
 
   setSelectedPositions(prev => {
     const isAlreadyAll = prev.some(p => p.name === allLabel);
-    let updated;
-
-    if (isAlreadyAll) {
-      updated = prev.filter(p => p.name !== allLabel);
-    } else {
-      const filteredOthers = prev.filter(p => !currentViewFullNames.includes(p.name));
-      const allEntry = { 
-        id: `all-${type}-${Date.now()}`, 
-        name: allLabel, 
-        isSub: true,
-        isAll: true,
-        designationId: parentPosObj?.id, 
-        targetType: type,
-        includedIds: allowedItems.map(i => i.id)
-      };
-      updated = [...filteredOthers, allEntry];
-    }
     
-    updateParticipantsText(updated, selectedFocals);
-    return updated;
+    if (isAlreadyAll) {
+      const updated = prev.filter(p => p.name !== allLabel);
+      updateParticipantsText(updated, selectedFocals);
+      return updated;
+    } else {
+      // 1. Alisin ang individual badges na sakop ng "Select All" view na ito
+      const filtered = prev.filter(p => !currentViewFullNames.includes(p.name));
+      
+      // 2. I-set ang tamang targetType para sa database (e.g., 'prov_region' -> 'province')
+      let finalTargetType = type;
+      if (type === 'prov_region') finalTargetType = 'province';
+      if (type === 'district_ncr') finalTargetType = 'district';
+
+      const allEntry = {
+        id: `all-${type}-${Date.now()}`,
+        name: allLabel,
+        designationId: posObj?.id,
+        targetType: finalTargetType, // Ito ang papasok sa target_type column sa DB
+        isSub: true,
+        isAll: true // Ito ang magiging is_all = 1
+      };
+      
+      const updated = [...filtered, allEntry];
+      updateParticipantsText(updated, selectedFocals);
+      return updated;
+    }
   });
 };
 // BAGONG FUNCTION: Para i-load ang provinces kapag na-hover ang region sa ilalim ng PD
@@ -374,28 +384,12 @@ const handleSubmit = async (e) => {
       // IMPORTANT: Ito ang gagamitin ng backend para sa Conflict Checking
       // I-map natin ang selectedPositions para magtugma sa expected columns sa DB
 // HANAPIN ITO SA IYONG CODE:
-const participantDetails = selectedPositions.map(p => {
-  // BAGUHIN ANG LOGIC DITO:
-  
-  // 1. Tukuyin kung ito ay isang "All" entry o regular sub-item
-  const isAllEntry = p.isAll === true;
-  
-  // 2. Kunin ang tamang Designation ID (Numeric ID ng Position)
-  // Kung p.designationId ay present, gamitin yun (para sa sub-items/all items)
-  // Kung wala, p.id ang gamitin (para sa mga basic positions)
-  const dId = p.designationId || p.id;
-
-  return {
-    // Siguraduhing integer ang designationId, wag hayaang maging string
-    designationId: (typeof dId === 'string') ? parseInt(p.designationId) : dId,
-    
-    // Kung 'All', dapat null ang targetId. Kung hindi, gamitin ang targetId
-    targetId: isAllEntry ? null : (p.targetId ? parseInt(p.targetId) : null),
-    
-    targetType: p.targetType || null,
-    isAll: isAllEntry // Dito natin kukunin yung true/false value
-  };
-});
+const participantDetails = selectedPositions.map(p => ({
+  designationId: parseInt(p.designationId || p.id),
+  targetId: p.isAll ? null : (p.targetId ? parseInt(p.targetId) : null),
+  targetType: p.targetType || null,
+  isAll: !!p.isAll // Force boolean
+}));
 
 // I-filter ang mga entries na walang valid designationId (NaN)
 const finalPayload = participantDetails.filter(p => !isNaN(p.designationId));
@@ -817,42 +811,37 @@ if (response) {
           <div className="main-menu-container">
             {/* Unang Listahan (Main Positions) */}
 <ul className="dropdown-list-main">
-  {positions.map((p) => {
-    // 1. Check kung ang position na ito ay nasa config natin
-    const config = SUB_MENU_CONFIG[p.name];
-    const hasSubMenu = !!config;
-
-    return (
-      <li 
-        key={p.id} 
-        className={hoveredPosition === p.name ? 'active-li' : ''}
-        onMouseEnter={() => {
-          setHoveredPosition(p.name);
-          
-          if (hasSubMenu) {
-            setSubType(config.type);
-            // Special trigger for District Director (NCR)
-            if (config.type === 'district_ncr') handleRegionHover(2);
-            else setSelectedRegionId(null);
-          } else {
-            setSubType(null);
-          }
-        }}
-        onClick={() => {
-          // Kung walang sub-menu, direct add (dynamic check)
-          if (!hasSubMenu) {
-            handlePositionDropdownChange({ target: { value: p.name } });
-            setIsMenuOpen(false);
-            setHoveredPosition(null);
-          }
-        }}
-      >
-        {p.name}
-        {/* Dynamic Chevron: Lalabas lang kung nasa config ang position */}
-        {hasSubMenu && <span className="chevron-right">▶</span>}
-      </li>
-    );
-  })}
+{positions.map((p) => {
+  const hasSubMenu = p.has_sub_menu; // Direct from DB column
+  
+  return (
+    <li 
+      key={p.id} 
+      className={hoveredPosition === p.name ? 'active-li' : ''}
+      onMouseEnter={() => {
+        setHoveredPosition(p.name);
+        if (hasSubMenu) {
+          setSubType(p.sub_menu_type);
+          // Special cases handle
+          if (p.sub_menu_type === 'district_ncr') handleRegionHover(2);
+          else if (p.sub_menu_type !== 'prov_region') setSelectedRegionId(null);
+        } else {
+          setSubType(null);
+        }
+      }}
+      onClick={() => {
+        if (!hasSubMenu) {
+          handlePositionDropdownChange({ target: { value: p.name } });
+          setIsMenuOpen(false);
+          setHoveredPosition(null);
+        }
+      }}
+    >
+      {p.name}
+      {hasSubMenu && <span className="chevron-right">▶</span>}
+    </li>
+  );
+})}
 </ul>
 
             {/* Pangalawang Listahan (Lilitaw sa tabi pag nag-hover sa may sub-type) */}
@@ -864,25 +853,40 @@ if (response) {
     <li className="select-all-item">
       <label className="checkbox-label">
         <input 
-          type="checkbox" 
-          onChange={() => {
-            const config = SUB_MENU_CONFIG[hoveredPosition];
-            // Kunin ang tamang data source (offices vs clusters vs regions)
-            const items = { clusters, offices, regions }[config.source];
-            handleSelectAll(items, subType, hoveredPosition);
-          }}
-          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All ${SUB_MENU_CONFIG[hoveredPosition]?.label}`)}
-        />
-        <span className="item-text">All {SUB_MENU_CONFIG[hoveredPosition]?.label}</span>
+  type="checkbox" 
+  onChange={() => {
+    const config = getPosConfig(hoveredPosition);
+    const items = { 
+      'cluster': clusters, 
+      'office': offices, 
+      'region': regions,
+      'district_ncr': provinces,
+      'prov_region': provinces 
+    }[subType];
+    handleSelectAll(items, subType, hoveredPosition);
+  }}
+  checked={selectedPositions.some(p => {
+    const labelMap = { 'district_ncr': 'Districts', 'prov_region': 'Provinces', 'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions' };
+    return p.name === `${hoveredPosition} - All ${labelMap[subType] || 'Participants'}`;
+  })}
+/>
+<span className="item-text">
+  All {
+    subType === 'district_ncr' ? 'Districts' : 
+    subType === 'prov_region' ? 'Provinces' : 
+    (subType.charAt(0).toUpperCase() + subType.slice(1) + 's')
+  }
+</span>
       </label>
     </li>
     <div className="scrollable-sub-list">
-      {({ clusters, offices, regions }[SUB_MENU_CONFIG[hoveredPosition]?.source] || [])
-        .filter(item => item.id !== 1) // Halimbawa: wag isama ang 'N/A'
+      {( { clusters, offices, regions }[getPosConfig(hoveredPosition)?.source] || [])
+        .filter(item => item.id !== 1)
         .map(item => {
           const itemName = subType === 'region' ? item.region : item.name;
           const fullName = `${hoveredPosition} - ${itemName}`;
-          const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${SUB_MENU_CONFIG[hoveredPosition]?.label}`);
+          const currentConfig = getPosConfig(hoveredPosition);
+          const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${currentConfig?.label}`);
           
           return (
             <li key={item.id} className="checkbox-item">
@@ -924,18 +928,20 @@ if (response) {
       </label>
     </li>
     <div className="scrollable-sub-list">
-      {provinces.map(pr => {
-        const fullName = `${hoveredPosition} - National Capital Region - ${pr.name}`;
-        const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
-        return (
-          <li key={pr.id} className="checkbox-item">
-            <label className="checkbox-label" onClick={() => handleSubSelect(`National Capital Region - ${pr.name}`, 'district', hoveredPosition)}>
-              <input type="checkbox" checked={isChecked} readOnly />
-              <span className="item-text">{pr.name}</span>
-            </label>
-          </li>
-        );
-      })}
+{provinces.map(pr => {
+  const fullName = `${hoveredPosition} - ${pr.name}`; // Tinanggal ang "National Capital Region" sa name
+  // Dito tinitingnan kung dapat bang naka-check ang box (kung yung individual name o yung "All Districts" ay selected)
+  const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
+  
+  return (
+    <li key={pr.id} className="checkbox-item">
+      <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'district_ncr', hoveredPosition)}>
+        <input type="checkbox" checked={isChecked} readOnly />
+        <span className="item-text">{pr.name}</span>
+      </label>
+    </li>
+  );
+})}
     </div>
   </ul>
 )}
@@ -948,8 +954,8 @@ if (response) {
         <input 
           type="checkbox" 
           onChange={() => {
-            const regName = regions.find(reg => reg.id === selectedRegionId)?.region || '';
-            handleSelectAll(provinces.map(p => ({...p, name: `${regName} - ${p.name}`})), 'province', hoveredPosition);
+            // TANGGALIN ang regName mapping dito para mag-match sa individual badges
+            handleSelectAll(provinces, 'prov_region', hoveredPosition);
           }}
           checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Provinces`)}
         />
@@ -958,13 +964,13 @@ if (response) {
     </li>
     <div className="scrollable-sub-list">
       {provinces.map(pr => {
-        const regName = regions.find(reg => reg.id === selectedRegionId)?.region || '';
-        const fullName = `${hoveredPosition} - ${regName} - ${pr.name}`;
+        // Ang fullName dito ay "Position - Province" (wala nang Region name)
+        const fullName = `${hoveredPosition} - ${pr.name}`; 
         const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Provinces`);
         
         return (
           <li key={pr.id} className="checkbox-item">
-            <label className="checkbox-label" onClick={() => handleSubSelect(`${regName} - ${pr.name}`, 'province', hoveredPosition)}>
+            <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'prov_region', hoveredPosition)}>
               <input type="checkbox" checked={isChecked} readOnly />
               <span className="item-text">{pr.name}</span>
             </label>

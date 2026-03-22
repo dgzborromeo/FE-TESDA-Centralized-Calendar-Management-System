@@ -28,7 +28,9 @@ export default function UserConfig() {
   // Shared Form States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
+  const [formData, setFormData] = useState({ name: '', abbr: '',has_sub_menu: false, 
+  sub_menu_type: '', 
+  sub_menu_source: '', office_id: '', division_id: '', position_id: '' });
 const [focals, setFocals] = useState([]);
 const [clusters, setClusters] = useState([]);
 const [expandedCluster, setExpandedCluster] = useState(null);
@@ -365,9 +367,17 @@ const handleSubmit = async (e) => {
         loadDivisions();
       } else if (activeTab === 'positions') {
         // Position Master List logic
-        if (editingId) await configApi.updatePosition(editingId, { name: payload.name });
-        else await configApi.addPosition({ name: payload.name });
-        loadPositions();
+        const positionPayload = {
+                name: payload.name,
+                has_sub_menu: formData.has_sub_menu,
+                // Kunin lang ang values kung true ang has_sub_menu, else null
+                sub_menu_type: formData.has_sub_menu ? formData.sub_menu_type : null,
+                sub_menu_source: formData.has_sub_menu ? formData.sub_menu_source : null
+              };
+
+              if (editingId) await configApi.updatePosition(editingId, positionPayload);
+              else await configApi.addPosition(positionPayload);
+              loadPositions();
       } else if (activeTab === 'focals') {
         if (editingId) await configApi.updateFocalship(editingId, { name: payload.name });
         else await configApi.addFocalship({ name: payload.name });
@@ -393,7 +403,7 @@ const handleSubmit = async (e) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', abbr: '', office_id: '', division_id: '', position_id: '' });
+    setFormData({ name: '', abbr: '', has_sub_menu: false, sub_menu_type: '', sub_menu_source: '', office_id: '', division_id: '', position_id: '' });
     setIsFormOpen(false);
     setEditingId(null);
   };
@@ -407,7 +417,9 @@ const handleSubmit = async (e) => {
             position_id: item.position_id || ''
         });
     } else {
-        setFormData({ name: item.name, abbr: item.abbr || '', office_id: item.office_id || '' });
+        setFormData({ name: item.name, abbr: item.abbr || '',has_sub_menu: !!item.has_sub_menu,
+    sub_menu_type: item.sub_menu_type || '',
+    sub_menu_source: item.sub_menu_source || '', office_id: item.office_id || '' });
     }
     setIsFormOpen(true);
   };
@@ -611,48 +623,99 @@ const handleSubmit = async (e) => {
             </ul>
           </section>
         )}
-        {activeTab === 'positions' && (
-          <section className="user-config-panel">
-            <div className="panel-header-inline">
-              <h2 className="user-config-panel-title">Positions</h2>
-              {!isFormOpen && (
-                <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Position</button>
-              )}
-            </div>
+       {activeTab === 'positions' && (
+      <section className="user-config-panel">
+        <div className="panel-header-inline">
+          <h2 className="user-config-panel-title">Positions</h2>
+          {!isFormOpen && (
+            <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add Position</button>
+          )}
+        </div>
 
-            {isFormOpen && (
-              <form className="inline-config-form" onSubmit={handleSubmit}>
-                <div className="inline-form-inputs">
+        {isFormOpen && (
+          <form className="inline-config-form" onSubmit={handleSubmit}>
+            <div className="inline-form-inputs" style={{ flexDirection: 'column', gap: '10px' }}>
+              {/* Main Name Input */}
+              <input 
+                type="text" 
+                placeholder="Position Name (e.g. Regional Director)" 
+                className="input-name-wide"
+                value={formData.name} 
+                onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                required
+              />
+
+              {/* Configuration Row */}
+              <div className="submenu-config-row" style={{ display: 'flex', gap: '15px', alignItems: 'center', background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem', color: '#475569', cursor: 'pointer' }}>
                   <input 
-                    type="text" 
-                    placeholder="Position Name (e.g. Administrative Officer V)" 
-                    className="input-name-wide"
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                    required
+                    type="checkbox" 
+                    checked={formData.has_sub_menu}
+                    onChange={(e) => setFormData({...formData, has_sub_menu: e.target.checked})}
                   />
-                  <div className="inline-form-btns">
-                    <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
-                    <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
-                  </div>
-                </div>
-              </form>
-            )}
+                  Has Sub-type Dropdown?
+                </label>
 
-            <ul className="modern-config-list">
-              {loading ? <p>Loading...</p> : positions.map(pos => (
-                <li key={pos.id} className="config-list-item">
-                  <span className="office-display-text">{pos.name}</span>
-                  <div className="item-actions">
-                    <button className="btn-action-edit" onClick={() => handleEdit(pos)}>Edit</button>
-                    <button className="btn-action-delete" onClick={() => handleDelete(pos.id)}>Delete</button>
-                  </div>
-                </li>
-              ))}
-              {!loading && positions.length === 0 && <p className="user-config-empty">No positions found.</p>}
-            </ul>
-          </section>
+                {formData.has_sub_menu && (
+                  <>
+                    <select 
+                      className="config-select-small"
+                      value={formData.sub_menu_type}
+                      onChange={(e) => setFormData({...formData, sub_menu_type: e.target.value})}
+                      required
+                    >
+                      <option value="">-- Sub-type --</option>
+                      <option value="cluster">Cluster</option>
+                      <option value="office">Office</option>
+                      <option value="region">Region</option>
+                      <option value="prov_region">Provinces (Region-based)</option>
+                      <option value="district_ncr">Districts (NCR)</option>
+                    </select>
+
+                    <select 
+                      className="config-select-small"
+                      value={formData.sub_menu_source}
+                      onChange={(e) => setFormData({...formData, sub_menu_source: e.target.value})}
+                      required
+                    >
+                      <option value="">-- Data Source --</option>
+                      <option value="clusters">Clusters</option>
+                      <option value="offices">Offices</option>
+                      <option value="regions">Regions</option>
+                      <option value="districts">Districts</option>
+                    </select>
+                  </>
+                )}
+              </div>
+
+              <div className="inline-form-btns">
+                <button type="submit" className="btn-inline-save">{editingId ? 'Update' : 'Save'}</button>
+                <button type="button" className="btn-inline-cancel" onClick={resetForm}>Cancel</button>
+              </div>
+            </div>
+          </form>
         )}
+
+        <ul className="modern-config-list">
+          {loading ? <p>Loading...</p> : positions.map(pos => (
+            <li key={pos.id} className="config-list-item">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="office-display-text">{pos.name}</span>
+                {pos.has_sub_menu && (
+                  <small style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                    Type: <strong>{pos.sub_menu_type}</strong> | Source: <strong>{pos.sub_menu_source}</strong>
+                  </small>
+                )}
+              </div>
+              <div className="item-actions">
+                <button className="btn-action-edit" onClick={() => handleEdit(pos)}>Edit</button>
+                <button className="btn-action-delete" onClick={() => handleDelete(pos.id)}>Delete</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
         {activeTab === 'pos-setup' && (
           <section className="user-config-panel">
             <div className="panel-header-inline">
