@@ -11,6 +11,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import './Calendar.css';
 import ParticipantsCalendarView from '../components/ParticipantsCalendarView';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 
 // Calendar color palette (aligned with design brief)
 // Deep Navy    #1F3A5F - primary / headers
@@ -413,6 +414,7 @@ export default function Calendar() {
   const [clusterLegend, setClusterLegend] = useState([]);
   const [legendLoading, setLegendLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [eventHover, setEventHover] = useState(null);
   const eventHoverLeaveRef = useRef(null);
   const hoverRafRef = useRef(null);
@@ -516,7 +518,11 @@ const [filterHost, setFilterHost] = useState('');
       }
       e.preventDefault();
       e.stopPropagation();
-      navigate(`/events/new?date=${d}`);
+      if (isViewerLike) {
+        setShowLoginModal(true);
+        return;
+      }
+      navigate('/simple-event-form', { state: { backTo: '/calendar' } });
     };
 
     el.addEventListener('click', onClickCapture, true);
@@ -1088,8 +1094,21 @@ return parsedEvents
                     </>
                   );
                 })() : null}
-                {!isViewerLike && (
-                  <Link to="/events/new" className="calendar-legend-add">+ Add Schedule</Link>
+                {!isViewerLike ? (
+                  <Link
+                    to="/simple-event-form"
+                    state={{ backTo: '/calendar' }}
+                    className="calendar-legend-add"
+                  >
+                    + Add Schedule
+                  </Link>
+                ) : (
+                  <button
+                    className="calendar-legend-add"
+                    onClick={() => setShowLoginModal(true)}
+                  >
+                    + Add Schedule
+                  </button>
                 )}
                 <button
                   type="button"
@@ -1352,10 +1371,12 @@ return parsedEvents
                 text: 'Participants',
                 click: () => setActiveTab('participants'),
               },
-              addSchedule: {
-                text: 'Add Schedule',
-                click: () => navigate('/simple-event-form', { state: { backTo: '/calendar' } }),
-              },
+              ...(!isViewerLike && {
+                addSchedule: {
+                  text: 'Add Schedule',
+                  click: () => navigate('/simple-event-form', { state: { backTo: '/calendar' } }),
+                },
+              }),
             }}
             dayHeaderContent={(arg) => {
               const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
@@ -1367,7 +1388,7 @@ return parsedEvents
             headerToolbar={{
               left: 'prev,next today officesTab,participantsTab',
               center: 'title',
-              right: isPublicView ? 'addSchedule dayGridMonth,timeGridWeek,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay',
             }}
             viewDidMount={() => {
               syncToolbarTabs();
@@ -1422,11 +1443,12 @@ return parsedEvents
                 await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
                 return;
               }
-              if (!isViewerLike) {
-                navigate(`/events/new?date=${ymd}`);
+                      if (!isViewerLike) {
+                navigate('/simple-event-form', { state: { backTo: '/calendar' } });
                 return;
               }
-              navigate(`/calendar/day/${ymd}`);
+              setShowLoginModal(true);
+              return;
             }}
             eventClick={async (info) => {
               info.jsEvent.preventDefault();
@@ -2013,6 +2035,13 @@ return parsedEvents
             </div>
           </div>
         </div>
+      )}
+
+      {showLoginModal && (
+        <LoginRequiredModal
+          onClose={() => setShowLoginModal(false)}
+          redirectTo={{ path: '/simple-event-form', state: { backTo: '/calendar' } }}
+        />
       )}
     </div>
   );

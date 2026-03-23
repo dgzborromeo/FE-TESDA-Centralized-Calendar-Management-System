@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Logo from '../components/Logo';
+import { useAuth } from '../context/AuthContext';
 import '../components/Header.css';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
 export default function SimpleEventForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading: authLoading, logout } = useAuth();
   const backTo = location?.state?.backTo || '/dashboard';
   const attachmentInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [positions, setPositions] = useState([]);
   const [focalships, setFocalships] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
@@ -36,8 +39,8 @@ const [newFocalName, setNewFocalName] = useState('');
     meetingType: 'face-to-face',
     startDate: '',
     endDate: '',
-    startTime: '',
-    endTime: '',
+    startTime: '08:00',
+    endTime: '17:00',
     location: '',
     zoomLink: '',
     participants: '',
@@ -410,7 +413,7 @@ formData.append('selectedPositions', JSON.stringify(finalPayload));
       const response = await scheduleAPI.addSchedule(formData);
 
 if (response) {
-      alert('Event saved successfully!');
+      setShowSuccessModal(true);
       
       // RESET FORM (Para hindi na kailangan mag-reload)
       setForm({
@@ -424,8 +427,8 @@ if (response) {
         meetingType: 'face-to-face',
         startDate: '',
         endDate: '',
-        startTime: '',
-        endTime: '',
+        startTime: '08:00',
+        endTime: '17:00',
         location: '',
         zoomLink: '',
         participants: '',
@@ -454,6 +457,11 @@ if (response) {
     }
   };
 
+  // Guard: all hooks done — now safe to redirect if not logged in
+  if (!authLoading && !user) {
+    return <Navigate to="/dashboard" replace state={{ showLoginModal: true }} />;
+  }
+
   return (
     <div className="simple-event-page">
       <header className="header">
@@ -464,19 +472,43 @@ if (response) {
               <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
             </div>
           </div>
-          <div className="simple-event-header-actions">
-            <button
-              type="button"
-              className="simple-event-back-btn"
-              onClick={() => navigate(backTo)}
-            >
-              Back
-            </button>
-          </div>
+          {user && (
+            <div className="sef-header-right">
+              <div className="sef-user-badge">
+                <div className="sef-user-avatar">
+                  {String(user.name || user.email || '?')[0].toUpperCase()}
+                </div>
+                <div className="sef-user-info">
+                  <span className="sef-user-name">{user.name || user.email}</span>
+                  <span className="sef-user-role">{user.role === 'admin' ? 'Admin' : 'User'}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="sef-logout-btn"
+                onClick={() => { logout(); navigate('/dashboard'); }}
+                title="Log out"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="simple-event-main">
+        <div className="simple-event-page-heading">
+          <button
+            type="button"
+            className="simple-event-back-btn"
+            onClick={() => navigate(backTo)}
+            title="Back"
+          >
+            ←
+          </button>
+          <h1 className="simple-event-page-title">Event Form</h1>
+        </div>
         {conflictError && (
     <div className="conflict-error-container" style={{
       background: '#fee2e2', 
@@ -499,95 +531,6 @@ if (response) {
     </div>
   )}
         <form className="simple-event-form" onSubmit={handleSubmit}>
-          <section className="simple-event-section">
-            <h2 className="simple-event-section-title">Host</h2>
-            <div className="simple-event-grid">
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="office">
-                  Office
-                </label>
-                <input
-                  id="office"
-                  name="office"
-                  type="text"
-                  value={form.office}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  placeholder="e.g. ROMO, PLO"
-                  required
-                />
-              </div>
-
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="division">
-                  Division <span className="simple-optional">(optional)</span>
-                </label>
-                <input
-                  id="division"
-                  name="division"
-                  type="text"
-                  value={form.division}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  placeholder="e.g. ROMD, HRMD"
-                />
-                </div>
-            </div>
-
-            <div className="simple-event-grid-3">
-
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="email">
-                    Email
-                </label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="simple-event-input"
-                    placeholder="Enter email"
-                />
-            </div>
-
-            <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="contactPerson">
-                    Contact Person
-                </label>
-                <input
-                    id="contactPerson"
-                    name="contactPerson"
-                    type="text"
-                    value={form.contactPerson}
-                    onChange={handleChange}
-                    className="simple-event-input"
-                    placeholder="Enter contact person"
-                />
-            </div>
-
-            <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="contactNumber">
-                    Contact Number
-                </label>
-                  <input
-                      id="contactNumber"
-                      name="contactNumber"
-                      type="tel"
-                      // Binago ang pattern para tanggapin ang format na may dash
-                      pattern="[0-9]{4}-[0-9]{3}-[0-9]{4}" 
-                      value={form.contactNumber}
-                      onChange={handleContactChange}
-                      className="simple-event-input"
-                      placeholder="09XX-XXX-XXXX" // Mas mainam na placeholder para sa user
-                      required
-                      title="Format: 09XX-XXX-XXXX" // Lalabas ito kapag mali ang format
-                  />
-                </div>
-            </div>
-          
-          </section>
-
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Activities Details</h2>
             <div className="simple-event-grid">
@@ -641,72 +584,76 @@ if (response) {
 
               
 
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="startDate">
-                  Start Date
-                </label>
-                <input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  value={form.startDate}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  min={minStartDateYmd}
-                  required
-                />
-                {dateErrors.startDate && (
-                  <span className="simple-event-hint simple-event-hint-error">{dateErrors.startDate}</span>
-                )}
+              {/* Date row */}
+              <div className="simple-event-field-pair simple-event-field-full">
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="startDate">
+                    Start Date
+                  </label>
+                  <input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    value={form.startDate}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    min={minStartDateYmd}
+                    required
+                  />
+                  {dateErrors.startDate && (
+                    <span className="simple-event-hint simple-event-hint-error">{dateErrors.startDate}</span>
+                  )}
+                </div>
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="endDate">
+                    End Date
+                  </label>
+                  <input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    value={form.endDate}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    min={form.startDate || minStartDateYmd}
+                    required
+                  />
+                  {dateErrors.endDate && (
+                    <span className="simple-event-hint simple-event-hint-error">{dateErrors.endDate}</span>
+                  )}
+                </div>
               </div>
 
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="endDate">
-                  End Date
-                </label>
-                <input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
-                  value={form.endDate}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  min={form.startDate || minStartDateYmd}
-                  required
-                />
-                {dateErrors.endDate && (
-                  <span className="simple-event-hint simple-event-hint-error">{dateErrors.endDate}</span>
-                )}
-              </div>
-
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="startTime">
-                  Start Time
-                </label>
-                <input
-                  id="startTime"
-                  name="startTime"
-                  type="time"
-                  value={form.startTime}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  required
-                />
-              </div>
-
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="endTime">
-                  End Time
-                </label>
-                <input
-                  id="endTime"
-                  name="endTime"
-                  type="time"
-                  value={form.endTime}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                  required
-                />
+              {/* Time row */}
+              <div className="simple-event-field-pair simple-event-field-full">
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="startTime">
+                    Start Time
+                  </label>
+                  <input
+                    id="startTime"
+                    name="startTime"
+                    type="time"
+                    value={form.startTime}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    required
+                  />
+                </div>
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="endTime">
+                    End Time
+                  </label>
+                  <input
+                    id="endTime"
+                    name="endTime"
+                    type="time"
+                    value={form.endTime}
+                    onChange={handleChange}
+                    className="simple-event-input"
+                    required
+                  />
+                </div>
               </div>
 
               {form.meetingType === 'face-to-face' && (
@@ -1096,6 +1043,26 @@ if (response) {
           </div>
         </form>
       </main>
+
+      {showSuccessModal && (
+        <div className="sef-success-overlay">
+          <div className="sef-success-modal">
+            <div className="sef-success-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            </div>
+            <h2 className="sef-success-title">Submitted!</h2>
+            <p className="sef-success-message">
+              Your schedule has been successfully submitted for validation. It will be reflected on the calendar upon approval.
+            </p>
+            <button
+              className="sef-success-btn"
+              onClick={() => { setShowSuccessModal(false); navigate(backTo); }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

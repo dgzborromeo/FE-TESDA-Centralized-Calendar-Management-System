@@ -15,38 +15,118 @@
   pointer-events: auto;
 }
 
-.simple-event-header-actions {
+/* Logged-in user badge in header */
+.sef-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sef-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 40px;
+  padding: 0.35rem 0.85rem 0.35rem 0.35rem;
+  flex-shrink: 0;
+}
+
+.sef-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sef-logout-btn:hover {
+  background: rgba(255, 80, 80, 0.55);
+  border-color: rgba(255, 100, 100, 0.6);
+}
+
+.sef-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1d4ed8;
+  font-size: 0.92rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sef-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.sef-user-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.sef-user-role {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.simple-event-page-heading {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 0 0 auto;
+  padding: 1.25rem 0 1rem;
+}
+
+.simple-event-page-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .simple-event-back-btn {
   appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  background: rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.96);
-  font-weight: 700;
-  padding: 0.55rem 0.85rem;
-  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 1.6rem;
+  font-weight: 900;
+  padding: 0;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 120ms ease, transform 80ms ease;
 }
 
 .simple-event-back-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.45);
+  color: #2563eb;
 }
 
 .simple-event-back-btn:active {
-  transform: translateY(1px);
-}
-
-.simple-event-back-btn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.9);
-  outline-offset: 2px;
+  transform: translateX(-3px);
 }
 
 .simple-event-main {
@@ -118,6 +198,12 @@
 
 .simple-event-field-full {
   grid-column: 1 / -1;
+}
+
+.simple-event-field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
 .simple-event-label {
@@ -650,4 +736,80 @@
     font-size: 1.5rem;
     cursor: pointer;
     color: #a0aec0;
+}
+
+/* Success Modal */
+.sef-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: sef-fade-in 0.2s ease;
+}
+
+@keyframes sef-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.sef-success-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  animation: sef-slide-up 0.25s ease;
+}
+
+@keyframes sef-slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.sef-success-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.sef-success-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.75rem;
+}
+
+.sef-success-message {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+}
+
+.sef-success-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.sef-success-btn:hover {
+  background: #1d4ed8;
 }

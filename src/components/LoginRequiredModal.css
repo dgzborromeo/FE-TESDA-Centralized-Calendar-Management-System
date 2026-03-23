@@ -1,0 +1,177 @@
+.lrm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.35);
+  animation: lrm-fade-in 180ms ease;
+}
+
+@keyframes lrm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lrm-card {
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  padding: 2.2rem 2rem 2rem;
+  width: min(420px, 92vw);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
+  text-align: center;
+  animation: lrm-slide-up 200ms ease;
+}
+
+@keyframes lrm-slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.lrm-back-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.lrm-back-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.lrm-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.6rem;
+  line-height: 1;
+}
+
+.lrm-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.lrm-desc {
+  font-size: 0.93rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+/* ── Login Form ── */
+.lrm-form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.lrm-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 7px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.86rem;
+  margin: 0;
+}
+
+.lrm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lrm-field label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.lrm-field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #0f172a;
+  background: #fff;
+  transition: border-color 150ms;
+}
+
+.lrm-field input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.lrm-remember {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+/* ── Buttons ── */
+.lrm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.lrm-actions-form {
+  margin-top: 0.4rem;
+}
+
+.lrm-btn-cancel {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.lrm-btn-cancel:hover {
+  background: #f1f5f9;
+}
+
+.lrm-btn-login {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.lrm-btn-login:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.lrm-btn-login:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

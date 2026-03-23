@@ -124,13 +124,35 @@ export default function Header() {
             </button>
             {helpOpen && (
               <div className="header-dropdown header-dropdown-left">
-                <Link to="/help" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Help / User Guide</Link>
-                <Link to="/faq" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>FAQ</Link>
-                <Link to="/support" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Contact / Support</Link>
-                <Link to="/about" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>About</Link>
+                <div className="header-dropdown-section-label">System</div>
+                <Link to="/about" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  About COROPOTI
+                </Link>
+                <Link to="/help" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  User Guide
+                </Link>
+                <Link to="/faq" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  FAQs
+                </Link>
                 <div className="header-dropdown-sep" />
-                <Link to="/terms" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Terms of Use</Link>
-                <Link to="/privacy" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>Privacy Policy</Link>
+                <div className="header-dropdown-section-label">Navigation</div>
+                <Link to="/dashboard" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link to="/calendar" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  Calendar
+                </Link>
+                <Link to="/upcoming" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  Upcoming Events
+                </Link>
+                <Link to="/year-events" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  Year Events / Meetings
+                </Link>
+                <div className="header-dropdown-sep" />
+                <div className="header-dropdown-section-label">Support</div>
+                <Link to="/support" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  Contact / Report Issue
+                </Link>
               </div>
             )}
           </div>

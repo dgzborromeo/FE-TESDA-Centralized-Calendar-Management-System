@@ -1,11 +1,12 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { events as eventsApi } from '../api';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import './Dashboard.css';
 
 function toLocalYMD(d) {
@@ -191,11 +192,15 @@ function getEventParticipants(e) {
 export default function Dashboard() {
   const UPCOMING_PAGE_SIZE = 3;
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [miniMonthEvents, setMiniMonthEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(
+    () => !!location.state?.showLoginModal
+  );
   const [upcomingPage, setUpcomingPage] = useState(0);
   const [miniMonthDate, setMiniMonthDate] = useState(() => {
     const d = new Date();
@@ -419,16 +424,21 @@ export default function Dashboard() {
             </div>
             <div className="dashboard-actions">
               {user && user.role !== 'viewer' && (
-                <Link to="/events/new" className="dashboard-btn dashboard-btn-primary">+ Create Event</Link>
-              )}
-              {!user && (
                 <Link
                   to="/simple-event-form"
                   state={{ backTo: '/dashboard' }}
                   className="dashboard-btn dashboard-btn-primary"
                 >
-                  Add Schedule
+                  + Add Schedule
                 </Link>
+              )}
+              {!user && (
+                <button
+                  className="dashboard-btn dashboard-btn-primary"
+                  onClick={() => setShowLoginModal(true)}
+                >
+                  + Add Schedule
+                </button>
               )}
               <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
             </div>
@@ -608,6 +618,13 @@ export default function Dashboard() {
           onClose={() => { setSelectedEvent(null); refresh(); }}
           onEdit={() => { setSelectedEvent(null); }}
           onDelete={refresh}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginRequiredModal
+          onClose={() => setShowLoginModal(false)}
+          redirectTo={{ path: '/simple-event-form', state: { backTo: '/dashboard' } }}
         />
       )}
     </div>
