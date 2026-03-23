@@ -1,26 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { config as scheduleAPI } from '../api'; 
 import './ListOfActivity.css';
-
-/* Offices under clusters (tabs show office only, not cluster name) */
-const PLACEHOLDER_CLUSTERS_OFFICES = [
-  { clusterName: 'OSEC', offices: ['PIO', 'SMO', 'TBS', 'IAD', 'PMO'] },
-  { clusterName: 'ODDG-PP', offices: ['PO', 'QSO', 'NITESD'] },
-  { clusterName: 'ODDG-AI', offices: ['AS', 'ICTO'] },
-  { clusterName: 'ODDG-SC', offices: ['CLGEO', 'EBETO'] },
-  { clusterName: 'ODDG-PL', offices: ['PLO'] },
-  { clusterName: 'ODDG-FLA', offices: ['FMS'] },
-  { clusterName: 'ODDG-TESDO', offices: ['ROMO'] },
-];
-const TABS_OFFICES = PLACEHOLDER_CLUSTERS_OFFICES.flatMap((c) =>
-  c.offices.map((office) => ({ officeName: office, clusterName: c.clusterName }))
-);
 
 export default function ListOfActivity() {
   const { user } = useAuth();
-  const [activeCard, setActiveCard] = useState(null);
-  const [activeTab, setActiveTab] = useState(0);
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCard, setActiveCard] = useState('all');
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // FILTER STATES
+  const [searchTerm, setSearchTerm] = useState('');
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+
+  // MODAL STATES
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // PDF VIEWER STATE
+  const [viewingPdf, setViewingPdf] = useState(null);
+
+  const fetchSchedules = async () => {
+    try {
+      setLoading(true);
+      const data = await scheduleAPI.getSchedules();
+      setSchedules(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this activity?")) {
+      try {
+        await scheduleAPI.deleteSchedule(id);
+        alert("Deleted successfully!");
+        fetchSchedules(); 
+      } catch (error) {
+        console.error("Delete error:", error);
+      }
+    }
+  };
+
+  const handleEditClick = (item) => {
+    setEditingItem({ ...item }); 
+    setIsModalOpen(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await scheduleAPI.updateSchedule(editingItem.id, editingItem);
+      alert("Activity updated successfully!");
+      setIsModalOpen(false);
+      fetchSchedules(); 
+    } catch (error) {
+      console.error("Update error:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const filteredData = useMemo(() => {
+    return schedules.filter(item => {
+      const hostInfo = `${item.host_name} ${item.host_division}`.toLowerCase();
+      const matchesSearch = hostInfo.includes(searchTerm.toLowerCase());
+      const matchesStatus = activeCard === 'all' || item.status?.toLowerCase() === activeCard.toLowerCase();
+      const itemDate = new Date(item.start_date);
+      const start = startDateFilter ? new Date(startDateFilter) : null;
+      const end = endDateFilter ? new Date(endDateFilter) : null;
+      let matchesDate = true;
+      if (start && end) matchesDate = itemDate >= start && itemDate <= end;
+      else if (start) matchesDate = itemDate >= start;
+      else if (end) matchesDate = itemDate <= end;
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [schedules, searchTerm, activeCard, startDateFilter, endDateFilter]);
+
+  const counts = useMemo(() => ({
+    all: schedules.length,
+    final: schedules.filter(s => s.status?.toLowerCase() === 'final').length,
+    tentative: schedules.filter(s => s.status?.toLowerCase() === 'tentative').length
+  }), [schedules]);
 
   if (!user) return <Navigate to="/login" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
@@ -28,102 +99,183 @@ export default function ListOfActivity() {
   return (
     <div className="list-of-activity-page">
       <header className="list-of-activity-header">
-        <h1 className="list-of-activity-title">List of Activity</h1>
-        <p className="list-of-activity-subtitle">
-          View activities by status.
-        </p>
+        <h1 className="list-of-activity-title">Activity Validation List</h1>
+        <p className="list-of-activity-subtitle">Filter and manage all office schedules efficiently.</p>
       </header>
 
+      {/* Summary Cards */}
       <div className="list-of-activity-cards">
-        <button
-          type="button"
-          className={`list-of-activity-card ${activeCard === 'all' ? 'is-active' : ''}`}
-          onClick={() => setActiveCard(activeCard === 'all' ? null : 'all')}
-        >
+        <button className={`list-of-activity-card ${activeCard === 'all' ? 'is-active' : ''}`} onClick={() => setActiveCard('all')}>
           <span className="list-of-activity-card-label">All Activity</span>
-          <span className="list-of-activity-card-value">—</span>
-          <span className="list-of-activity-card-sublabel">All activities</span>
+          <span className="list-of-activity-card-value">{counts.all}</span>
         </button>
-
-        <button
-          type="button"
-          className={`list-of-activity-card list-of-activity-card-final ${activeCard === 'final' ? 'is-active' : ''}`}
-          onClick={() => setActiveCard(activeCard === 'final' ? null : 'final')}
-        >
+        <button className={`list-of-activity-card list-of-activity-card-final ${activeCard === 'final' ? 'is-active' : ''}`} onClick={() => setActiveCard('final')}>
           <span className="list-of-activity-card-label">Final</span>
-          <span className="list-of-activity-card-value">—</span>
-          <span className="list-of-activity-card-sublabel">Final schedule</span>
+          <span className="list-of-activity-card-value">{counts.final}</span>
         </button>
-
-        <button
-          type="button"
-          className={`list-of-activity-card list-of-activity-card-tentative ${activeCard === 'tentative' ? 'is-active' : ''}`}
-          onClick={() => setActiveCard(activeCard === 'tentative' ? null : 'tentative')}
-        >
+        <button className={`list-of-activity-card list-of-activity-card-tentative ${activeCard === 'tentative' ? 'is-active' : ''}`} onClick={() => setActiveCard('tentative')}>
           <span className="list-of-activity-card-label">Tentative</span>
-          <span className="list-of-activity-card-value">—</span>
-          <span className="list-of-activity-card-sublabel">Tentative schedule</span>
+          <span className="list-of-activity-card-value">{counts.tentative}</span>
         </button>
       </div>
 
-      {activeCard && (
-        <div className="list-of-activity-placeholder">
-          <p>
-            <strong>{activeCard === 'all' ? 'All Activity' : activeCard === 'final' ? 'Final' : 'Tentative'}</strong> filter. Table below shows data per office tab.
-          </p>
-        </div>
-      )}
-
       <section className="list-of-activity-sheet">
-        <div className="list-of-activity-filters">
+        <div className="filter-toolbar">
+            <div className="filter-group host-search">
+                <label>Host Office Filter</label>
+                <input type="text" placeholder="Search Office / Division..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <div className="filter-group date-range">
+                <label>Date Range</label>
+                <div className="date-inputs">
+                    <input type="date" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
+                    <span>to</span>
+                    <input type="date" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
+                </div>
+            </div>
+            <button className="btn-reset" onClick={() => {setSearchTerm(''); setStartDateFilter(''); setEndDateFilter('');}}>Reset Filters</button>
+        </div>
+
+        <div className="list-of-activity-table-wrapper">
           <table className="list-of-activity-filters-table">
             <thead>
               <tr>
-                <th className="list-of-activity-filter-th">Programs/Activities</th>
+                <th className="list-of-activity-filter-th">Host Office</th>
+                <th className="list-of-activity-filter-th">Activities & Details</th>
                 <th className="list-of-activity-filter-th">Participants</th>
-                <th className="list-of-activity-filter-th">Mode</th>
-                <th className="list-of-activity-filter-th">Schedule</th>
-              </tr>
-              <tr className="list-of-activity-filter-subrow">
-                <th className="list-of-activity-filter-th list-of-activity-filter-th-sub" />
-                <th className="list-of-activity-filter-th list-of-activity-filter-th-sub" />
-                <th className="list-of-activity-filter-th list-of-activity-filter-th-sub" />
-                <th className="list-of-activity-filter-th list-of-activity-filter-th-sub" />
+                <th className="list-of-activity-filter-th">Schedule & Time</th>
+                <th className="list-of-activity-filter-th">Status</th>
+                <th className="list-of-activity-filter-th">Attachment</th>
+                <th className="list-of-activity-filter-th">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 10 }, (_, rowIndex) => (
-                <tr key={rowIndex}>
-                  <td className="list-of-activity-filter-td">
-                    <input type="text" className="list-of-activity-filter-input" placeholder="—" />
-                  </td>
-                  <td className="list-of-activity-filter-td">
-                    <input type="text" className="list-of-activity-filter-input" placeholder="—" />
-                  </td>
-                  <td className="list-of-activity-filter-td">
-                    <input type="text" className="list-of-activity-filter-input" placeholder="—" />
-                  </td>
-                  <td className="list-of-activity-filter-td">
-                    <input type="text" className="list-of-activity-filter-input" placeholder="—" />
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan="7" className="text-center">Loading data...</td></tr>
+              ) : filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id}>
+                    <td className="list-of-activity-filter-td">
+                      <div className="host-cell">
+                        <span className="host-name">{item.host_name}</span>
+                        <span className="host-div">{item.host_division}</span>
+                      </div>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <div className="activity-cell">
+                        <strong className="event-title">{item.event_title}</strong>
+                        <div className="meta-info">
+                            <span className="tag-mode">{item.type}</span>
+                            <span className="tag-loc">📍 {item.location}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <div className="participants-list">
+                        {item.participantDetails?.map((pd, idx) => (
+                            <div key={idx} className="pd-badge">{pd.designation} {pd.location}</div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <div className="schedule-cell">
+                        <div className="date-val">{new Date(item.start_date).toLocaleDateString()}</div>
+                        <div className="time-val">{item.start_time?.substring(0,5)} - {item.end_time?.substring(0,5)}</div>
+                      </div>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <span className={`status-pill ${item.status?.toLowerCase()}`}>{item.status}</span>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      {item.attachment_path ? (
+                      <button 
+                        className="btn-view-pdf"
+                        onClick={() => {
+                          // 1. Linisin ang path: palitan ang \ ng /
+                          let cleanPath = item.attachment_path.replace(/\\/g, '/');
+
+                          // 2. Siguraduhin na walang extra slash sa unahan
+                          if (cleanPath.startsWith('/')) {
+                            cleanPath = cleanPath.substring(1);
+                          }
+
+                          // 3. I-construct ang URL gamit ang Root URL (hindi yung may /api)
+                          // Kung ang BASE_URL mo sa .env ay may /api, i-remove natin manually:
+                          const rootUrl = BASE_URL.replace('/api', '');
+                          const finalUrl = `${rootUrl}/${cleanPath}`;
+
+                          console.log("Final PDF Link:", finalUrl);
+                          setViewingPdf(finalUrl);
+                        }}
+                      >
+                        👁️ View PDF
+                      </button>
+                      ) : (
+                        <span className="no-file">None</span>
+                      )}
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <div className="action-buttons">
+                        <button className="btn-edit" onClick={() => handleEditClick(item)}>Edit</button>
+                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan="7" className="no-data-cell">No matching records found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
-        <div className="list-of-activity-tabs">
-          {TABS_OFFICES.map(({ officeName }, i) => (
-            <button
-              key={`${officeName}-${i}`}
-              type="button"
-              className={`list-of-activity-tab ${activeTab === i ? 'is-active' : ''}`}
-              onClick={() => setActiveTab(i)}
-            >
-              {officeName}
-            </button>
-          ))}
-        </div>
       </section>
+
+      {/* PDF VIEWER MODAL */}
+      {viewingPdf && (
+        <div className="pdf-modal-overlay" onClick={() => setViewingPdf(null)}>
+          <div className="pdf-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="pdf-modal-header">
+              <h3>Document Viewer</h3>
+              <button className="close-pdf" onClick={() => setViewingPdf(null)}>&times;</button>
+            </div>
+            <div className="pdf-body">
+              <iframe 
+                src={viewingPdf} 
+                title="PDF Viewer" 
+                width="100%" 
+                height="100%"
+                style={{ border: 'none' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {isModalOpen && editingItem && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-title">Edit Activity</h2>
+            <form onSubmit={handleUpdate} className="modal-form">
+              <div className="form-group">
+                <label>Event Title</label>
+                <input type="text" value={editingItem.event_title || ''} onChange={(e) => setEditingItem({...editingItem, event_title: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Status</label>
+                <select value={editingItem.status} onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}>
+                    <option value="Final">Final</option>
+                    <option value="Tentative">Tentative</option>
+                </select>
+              </div>
+              <div className="modal-actions">
+                <button type="submit" className="btn-save">{isSaving ? "Saving..." : "Update"}</button>
+                <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
