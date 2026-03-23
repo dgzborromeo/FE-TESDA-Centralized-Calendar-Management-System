@@ -198,6 +198,7 @@ export const config = {
   }),
 
       getSchedules: () => api('/getSchedules'),
+  checkScheduleConflict: (body) => api('/check-schedule-conflict', { method: 'POST', body: JSON.stringify(body) }),
   getSchedule: (id) => api(`/getSchedule/${id}`),
   addSchedule: (formData) => api('/add-schedule', { 
     method: 'POST', 

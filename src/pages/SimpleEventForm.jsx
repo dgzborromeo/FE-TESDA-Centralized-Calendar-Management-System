@@ -13,6 +13,10 @@ export default function SimpleEventForm() {
   const attachmentInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [dateSchedules, setDateSchedules] = useState([]);
+  const [dateSchedulesLoading, setDateSchedulesLoading] = useState(false);
+  const [conflictMap, setConflictMap] = useState({});
+  const [liveConflicts, setLiveConflicts] = useState([]);
   const [positions, setPositions] = useState([]);
   const [focalships, setFocalships] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
@@ -67,6 +71,74 @@ const [newFocalName, setNewFocalName] = useState('');
     };
     fetchData();
   }, []);
+
+  // Fetch existing schedules whenever startDate changes
+  useEffect(() => {
+    if (!form.startDate) {
+      setDateSchedules([]);
+      return;
+    }
+    let cancelled = false;
+    const fetchDateSchedules = async () => {
+      setDateSchedulesLoading(true);
+      try {
+        const data = await scheduleAPI.getSchedules();
+        console.log('[DateSchedules] raw response:', data);
+        const all = Array.isArray(data) ? data : [];
+        // Filter: start_date <= selected <= end_date (or start_date == selected if no end_date)
+        const filtered = all.filter((s) => {
+          const sd = String(s.start_date || '').slice(0, 10);
+          const ed = String(s.end_date || s.start_date || '').slice(0, 10);
+          return form.startDate >= sd && form.startDate <= ed;
+        });
+        console.log('[DateSchedules] filtered for', form.startDate, ':', filtered);
+        if (!cancelled) setDateSchedules(filtered);
+      } catch (err) {
+        console.error('[DateSchedules] fetch error:', err);
+        if (!cancelled) setDateSchedules([]);
+      } finally {
+        if (!cancelled) setDateSchedulesLoading(false);
+      }
+    };
+    fetchDateSchedules();
+    return () => { cancelled = true; };
+  }, [form.startDate]);
+
+  // Live conflict check via backend — triggers on participant/date/time change
+  useEffect(() => {
+    if (!selectedPositions.length || !form.startDate || !form.startTime || !form.endTime) {
+      setLiveConflicts([]);
+      setConflictMap({});
+      return;
+    }
+    let cancelled = false;
+    const payload = selectedPositions.map(p => ({
+      designationId: parseInt(p.designationId ?? p.id, 10),
+      targetId: p.targetId ? parseInt(p.targetId, 10) : null,
+      targetType: p.targetType || null,
+      isAll: !!p.isAll,
+    })).filter(p => !isNaN(p.designationId));
+
+    if (!payload.length) return;
+
+    scheduleAPI.checkScheduleConflict({
+      selectedPositions: payload,
+      start_date: form.startDate,
+      end_date: form.endDate || form.startDate,
+      start_time: form.startTime,
+      end_time: form.endTime,
+    }).then(result => {
+      if (cancelled) return;
+      setLiveConflicts(result.messages || []);
+      const map = {};
+      (result.scheduleIds || []).forEach(id => { map[id] = 'time'; });
+      setConflictMap(map);
+    }).catch(() => {
+      if (!cancelled) { setLiveConflicts([]); setConflictMap({}); }
+    });
+    return () => { cancelled = true; };
+  }, [selectedPositions, form.startDate, form.endDate, form.startTime, form.endTime]);
+
   const updateParticipantsText = useCallback((selPos, selFocals) => {
     const posNames = selPos.map(p => p.name);
     const focalNames = selFocals.map(f => `Focal: ${f}`);
@@ -509,27 +581,29 @@ if (response) {
           </button>
           <h1 className="simple-event-page-title">Event Form</h1>
         </div>
-        {conflictError && (
-    <div className="conflict-error-container" style={{
-      background: '#fee2e2', 
-      border: '1px solid #ef4444', 
-      padding: '1rem', 
-      borderRadius: '8px', 
-      marginBottom: '20px',
-      marginTop: '20px' 
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ color: '#991b1b', margin: 0 }}>⚠️ {conflictError.error}</h3>
-        <button onClick={() => setConflictError(null)} style={{ cursor: 'pointer', border: 'none', background: 'none', fontSize: '1.2rem' }}>×</button>
-      </div>
-      <p style={{ color: '#b91c1c', margin: '10px 0' }}>{conflictError.message}</p>
-      <ul style={{ margin: 0, paddingLeft: '20px', color: '#7f1d1d' }}>
-        {conflictError.conflicts.map((msg, i) => (
-          <li key={i}>{msg}</li>
-        ))}
-      </ul>
-    </div>
-  )}
+        <div className="simple-event-body">
+          <div className="simple-event-left">
+            {conflictError && (
+              <div className="conflict-error-container" style={{
+                background: '#fee2e2',
+                border: '1px solid #ef4444',
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                marginTop: '20px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ color: '#991b1b', margin: 0 }}>⚠️ {conflictError.error}</h3>
+                  <button onClick={() => setConflictError(null)} style={{ cursor: 'pointer', border: 'none', background: 'none', fontSize: '1.2rem' }}>×</button>
+                </div>
+                <p style={{ color: '#b91c1c', margin: '10px 0' }}>{conflictError.message}</p>
+                <ul style={{ margin: 0, paddingLeft: '20px', color: '#7f1d1d' }}>
+                  {conflictError.conflicts.map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
         <form className="simple-event-form" onSubmit={handleSubmit}>
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Activities Details</h2>
@@ -736,6 +810,19 @@ if (response) {
           </section>
 <section className="simple-event-section">
   <h2 className="simple-event-section-title">Participants</h2>
+
+  {liveConflicts.length > 0 && (
+    <div className="sef-live-conflict-box">
+      <div className="sef-live-conflict-header">
+        <span className="sef-live-conflict-icon">⚠</span>
+        <strong>Schedule Conflict Detected ({liveConflicts.length})</strong>
+      </div>
+      <ul className="sef-live-conflict-list">
+        {liveConflicts.map((msg, i) => <li key={i}>{msg}</li>)}
+      </ul>
+    </div>
+  )}
+
   <div className="participants-container">
     
 <div className="participants-inline-row">
@@ -1042,6 +1129,84 @@ if (response) {
           </button>
           </div>
         </form>
+          </div>{/* end .simple-event-left */}
+
+          <aside className="simple-event-right-panel">
+            <div className="sef-panel-header">
+              <h3 className="sef-panel-title">
+                {form.startDate
+                  ? `Schedules on ${new Date(form.startDate + 'T12:00:00').toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                  : 'Schedules on Selected Date'}
+              </h3>
+              {form.startDate && !dateSchedulesLoading && (
+                <span className="sef-panel-count">{dateSchedules.length}</span>
+              )}
+            </div>
+
+            {!form.startDate && (
+              <p className="sef-panel-empty">Pick a start date to see existing schedules on that day.</p>
+            )}
+
+            {form.startDate && dateSchedulesLoading && (
+              <p className="sef-panel-empty">Loading...</p>
+            )}
+
+            {form.startDate && !dateSchedulesLoading && dateSchedules.length === 0 && (
+              <p className="sef-panel-empty">No schedules found on this date.</p>
+            )}
+
+            {form.startDate && !dateSchedulesLoading && dateSchedules.length > 0 && (() => {
+              const fmt = (t) => {
+                if (!t) return '';
+                const [h, m] = String(t).slice(0, 5).split(':');
+                const hr = parseInt(h, 10);
+                return `${hr % 12 || 12}:${m} ${hr < 12 ? 'AM' : 'PM'}`;
+              };
+              return (
+                <>
+                  {/* Conflict summary banner */}
+                  {Object.values(conflictMap).some(v => v === 'time') && (
+                    <div className="sef-conflict-summary sef-conflict-summary--time">
+                      <span className="sef-conflict-summary-icon">⚠</span>
+                      <div>
+                        <strong>Time conflict detected on this date</strong>
+                        <p>Highlighted events below have conflicting participants.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <ul className="sef-panel-list">
+                    {dateSchedules.map((ev) => {
+                      const conflict = conflictMap[ev.id];
+                      return (
+                        <li key={`${ev.id}-${conflict ?? 'none'}`} className={`sef-panel-item${conflict === 'time' ? ' sef-panel-item--conflict' : conflict === 'date' ? ' sef-panel-item--warn' : ''}`}>
+                          <div className="sef-panel-item-row">
+                            <span className="sef-panel-item-title">{ev.event_title || '(No title)'}</span>
+                            {conflict === 'time' && (
+                              <span className="sef-conflict-badge sef-conflict-time">⚠ Time Conflict</span>
+                            )}
+                            {conflict === 'date' && (
+                              <span className="sef-conflict-badge sef-conflict-date">ℹ Date Overlap</span>
+                            )}
+                          </div>
+                          {(ev.start_time || ev.end_time) && (
+                            <span className="sef-panel-item-meta">{fmt(ev.start_time)} – {fmt(ev.end_time)}</span>
+                          )}
+                          {ev.host_name && (
+                            <span className="sef-panel-item-host">{ev.host_name}</span>
+                          )}
+                          {ev.status && (
+                            <span className={`sef-panel-item-status sef-status-${String(ev.status).toLowerCase()}`}>{ev.status}</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              );
+            })()}
+          </aside>
+        </div>{/* end .simple-event-body */}
       </main>
 
       {showSuccessModal && (
@@ -1056,7 +1221,7 @@ if (response) {
             </p>
             <button
               className="sef-success-btn"
-              onClick={() => { setShowSuccessModal(false); navigate(backTo); }}
+              onClick={() => { setShowSuccessModal(false); navigate('/dashboard'); }}
             >
               OK
             </button>
