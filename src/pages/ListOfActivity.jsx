@@ -56,36 +56,61 @@ export default function ListOfActivity() {
     setIsModalOpen(true);
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      await scheduleAPI.updateSchedule(editingItem.id, editingItem);
-      alert("Activity updated successfully!");
-      setIsModalOpen(false);
-      fetchSchedules(); 
-    } catch (error) {
-      console.error("Update error:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+const handleUpdate = async (e) => {
+  e.preventDefault();
+  setIsSaving(true);
+  try {
+    // 1. LINISIN ANG DATA:
+    // Gumamit ng 'destructuring' para kunin lang ang columns na kailangan ng DB.
+    // Tinatanggal natin ang 'user', 'host_name', at 'participantDetails' 
+    // dahil galing lang ang mga ito sa JOIN at hindi sa table columns.
+    const { 
+      user, 
+      host_name, 
+      participantDetails, 
+      createdAt, 
+      updatedAt, 
+      ...cleanData 
+    } = editingItem;
 
-  const filteredData = useMemo(() => {
-    return schedules.filter(item => {
-      const hostInfo = `${item.host_name} ${item.host_division}`.toLowerCase();
-      const matchesSearch = hostInfo.includes(searchTerm.toLowerCase());
-      const matchesStatus = activeCard === 'all' || item.status?.toLowerCase() === activeCard.toLowerCase();
-      const itemDate = new Date(item.start_date);
-      const start = startDateFilter ? new Date(startDateFilter) : null;
-      const end = endDateFilter ? new Date(endDateFilter) : null;
-      let matchesDate = true;
-      if (start && end) matchesDate = itemDate >= start && itemDate <= end;
-      else if (start) matchesDate = itemDate >= start;
-      else if (end) matchesDate = itemDate <= end;
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [schedules, searchTerm, activeCard, startDateFilter, endDateFilter]);
+    // 2. I-SEND BILANG JSON STRING:
+    // Siguraduhin na ang api wrapper mo ay tumatanggap ng string o kaya i-convert ito rito.
+    // Kung ang api() wrapper mo ay hindi nagse-set ng Headers, dagdagan ito.
+    await scheduleAPI.updateSchedule(editingItem.id, JSON.stringify(cleanData));
+
+    alert("Activity updated successfully!");
+    setIsModalOpen(false);
+    fetchSchedules(); 
+  } catch (error) {
+    console.error("Update error:", error);
+    alert("Update failed. Check console for details.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+const filteredData = useMemo(() => {
+  return schedules.filter(item => {
+    // 1. Search Logic: Tumingin sa host_name at event_title
+    const searchString = `${item.host_name || ''} ${item.event_title || ''}`.toLowerCase();
+    const matchesSearch = searchString.includes(searchTerm.toLowerCase());
+
+    // 2. Status Logic
+    const matchesStatus = activeCard === 'all' || item.status?.toLowerCase() === activeCard.toLowerCase();
+
+    // 3. Date Logic
+    const itemDate = new Date(item.start_date);
+    const start = startDateFilter ? new Date(startDateFilter) : null;
+    const end = endDateFilter ? new Date(endDateFilter) : null;
+    let matchesDate = true;
+
+    if (start && end) matchesDate = itemDate >= start && itemDate <= end;
+    else if (start) matchesDate = itemDate >= start;
+    else if (end) matchesDate = itemDate <= end;
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+}, [schedules, searchTerm, activeCard, startDateFilter, endDateFilter]);
 
   const counts = useMemo(() => ({
     all: schedules.length,
@@ -156,10 +181,11 @@ export default function ListOfActivity() {
                 filteredData.map((item) => (
                   <tr key={item.id}>
                     <td className="list-of-activity-filter-td">
-                      <div className="host-cell">
-                        <span className="host-name">{item.host_name}</span>
-                        <span className="host-div">{item.host_division}</span>
-                      </div>
+                    <div className="host-cell">
+                        <span className="host-name">
+                          {item.host_name || "Unknown Host"}
+                        </span>
+                    </div>
                     </td>
                     <td className="list-of-activity-filter-td">
                       <div className="activity-cell">

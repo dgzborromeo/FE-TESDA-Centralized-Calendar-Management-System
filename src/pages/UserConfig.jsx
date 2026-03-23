@@ -17,7 +17,7 @@ export default function UserConfig() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('offices');
   const [loading, setLoading] = useState(false);
-  
+  const [showPassword, setShowPassword] = useState(false);
   // States para sa Offices
   const [offices, setOffices] = useState([]);
   
@@ -167,6 +167,7 @@ const loadUserAccounts = useCallback(() => {
 
 const openAddUser = () => {
   setEditingUserId(null);
+  setShowPassword(false);
   setUserFormData({ 
     name: '', 
     email: '', 
@@ -185,6 +186,7 @@ const openAddUser = () => {
 };
 const openEditUser = (item) => {
   setEditingUserId(item.id);
+  setShowPassword(false);
   const p = item.profile || {};
   setUserFormData({
     name: item.name || '',
@@ -242,25 +244,35 @@ const handleSaveUser = async (e) => {
     province_id: userFormData.province_id ? parseInt(userFormData.province_id) : null,
   };
 
-  console.log("Payload to be sent:", payload);
+  if (userFormData.password && userFormData.password.trim() !== "") {
+    payload.password = userFormData.password.trim();
+  }
 
-  try {
-    const response = await usersApi.create(payload);
+ try {
+    let response;
+    
+    if (editingUserId) {
+      // --- EDIT MODE ---
+      console.log("Updating User ID:", editingUserId);
+      response = await usersApi.update(editingUserId, payload); // Ito dapat ay PUT request
+    } else {
+      // --- CREATE MODE ---
+      // Pag create, dapat siguradong may password
+      if (!payload.password) {
+        throw new Error("Password is required for new users.");
+      }
+      console.log("Creating New User...");
+      response = await usersApi.create(payload); // Ito ay POST request
+    }
+
     console.log("Success:", response);
     setIsUserModalOpen(false);
     loadUserAccounts();
+    setEditingUserId(null); // I-reset ang ID pagkatapos
   } catch (err) {
-    // TINGNAN NATIN KUNG ANONG SPECIFIC FIELD ANG MAY ERROR
-    console.error("Backend Error Details:", err.response?.data);
-    
-    // Kung ang error ay object (e.g. {email: ["Already taken"]}), i-convert natin sa string
+    console.error("Error saving user:", err.response?.data || err.message);
     const errorData = err.response?.data;
-    if (errorData && typeof errorData === 'object') {
-       // I-display ang message kung meron, kung wala, ipakita ang buong error object as string
-       setUserFormError(errorData.error || JSON.stringify(errorData));
-    } else {
-       setUserFormError(err.message || "Something went wrong");
-    }
+    setUserFormError(errorData?.error || err.message || "Something went wrong");
   } finally {
     setUserFormLoading(false);
   }
@@ -929,14 +941,37 @@ const handleSubmit = async (e) => {
           </div>
 
           <div className="user-modal-field">
-            <label>Password {editingUserId && <small>(leave blank to keep current)</small>}</label>
-            <input 
-              type="password" 
-              value={userFormData.password} 
-              onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })} 
-              placeholder={editingUserId ? 'Leave blank to keep current' : 'Min. 6 characters'} 
-              {...(!editingUserId && { required: true, minLength: 6 })} 
-            />
+          <label>Password {editingUserId && <small>(Leave blank if not changing)</small>}</label>
+  <div style={{ position: 'relative' }}>
+    <input
+      type={showPassword ? "text" : "password"} // Ito ang nagpapakita/tago ng text
+      className="user-config-input"
+      placeholder={editingUserId ? "••••••••" : "Enter password"}
+      value={userFormData.password}
+      onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
+      required={!editingUserId} 
+      style={{ width: '100%', paddingRight: '60px' }} // Mag-iwan ng space para sa button
+    />
+    <button
+      type="button" // KRITIKAL: Dapat "button" para hindi mag-submit ang form
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: 'absolute',
+        right: '10px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: '#e2e8f0', // Nilagyan ko ng kulay para makita mo kung napindot
+        border: 'none',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '0.7rem',
+        zIndex: 5
+      }}
+    >
+      {showPassword ? "Hide" : "Show"}
+    </button>
+  </div>
           </div>
 
           <div className="user-modal-row" style={{ display: 'flex', gap: '15px' }}>

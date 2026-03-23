@@ -137,8 +137,7 @@
   vertical-align: top;
 }
 
-.host-name { font-weight: 700; display: block; color: #1e293b; }
-.host-div { font-size: 0.8rem; color: #64748b; }
+.host-name { font-weight: 500; display: block; color: #1e293b; }
 
 .pd-badge {
   display: inline-block;

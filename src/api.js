@@ -203,7 +203,7 @@ export const config = {
     method: 'POST', 
     body: formData
   }),
-  updateSchedule: (id, formData) => api(`/update-schdeule/${id}`, { 
+  updateSchedule: (id, formData) => api(`/update-schedule/${id}`, { 
     method: 'POST', 
     body: formData
   }),
