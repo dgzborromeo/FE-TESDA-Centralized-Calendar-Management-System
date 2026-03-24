@@ -369,12 +369,6 @@
   backdrop-filter: blur(4px);
   transition: background 0.2s, border-color 0.2s, transform 0.1s;
 }
-
-.header-login-btn::before {
-  content: '→';
-  font-size: 0.9rem;
-}
-
 .header-login-btn:hover {
   background: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.85);
