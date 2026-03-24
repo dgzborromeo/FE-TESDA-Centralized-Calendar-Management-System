@@ -141,6 +141,9 @@ export default function Header() {
           </div>
         </nav>
         <div className="header-user" ref={accountRef}>
+          {!user && (
+            <Link to="/login" className="header-login-btn">Log In</Link>
+          )}
           {user ? (
             <>
               <button

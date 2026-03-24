@@ -2535,3 +2535,26 @@
 .calendar-event-hover-card-footer:hover {
   color: #1f3a5f;
 }
+
+/* Add Schedule button in FullCalendar toolbar */
+.fc .fc-addSchedule-button {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  border-color: #15803d !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 20px !important;
+  padding: 5px 14px !important;
+  margin-left: 8px !important;
+  box-shadow: 0 2px 6px rgba(21, 128, 61, 0.35) !important;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s !important;
+}
+
+.fc .fc-addSchedule-button:hover {
+  background: linear-gradient(135deg, #15803d, #166534) !important;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+
+.fc .fc-addSchedule-button:active {
+  transform: translateY(0) !important;
+}

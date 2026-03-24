@@ -352,3 +352,36 @@
     padding: 0.35rem 0.6rem;
   }
 }
+
+.header-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.header-login-btn::before {
+  content: '→';
+  font-size: 0.9rem;
+}
+
+.header-login-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+}
+
+.header-login-btn:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.2);
+}

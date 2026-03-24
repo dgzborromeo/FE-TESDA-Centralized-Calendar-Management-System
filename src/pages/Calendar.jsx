@@ -1094,22 +1094,7 @@ return parsedEvents
                     </>
                   );
                 })() : null}
-                {!isViewerLike ? (
-                  <Link
-                    to="/simple-event-form"
-                    state={{ backTo: '/calendar' }}
-                    className="calendar-legend-add"
-                  >
-                    + Add Schedule
-                  </Link>
-                ) : (
-                  <button
-                    className="calendar-legend-add"
-                    onClick={() => setShowLoginModal(true)}
-                  >
-                    + Add Schedule
-                  </button>
-                )}
+
                 <button
                   type="button"
                   className="calendar-legend-toggle"
@@ -1371,12 +1356,16 @@ return parsedEvents
                 text: 'Participants',
                 click: () => setActiveTab('participants'),
               },
-              ...(!isViewerLike && {
-                addSchedule: {
-                  text: 'Add Schedule',
-                  click: () => navigate('/simple-event-form', { state: { backTo: '/calendar' } }),
+              addSchedule: {
+                text: '+ Add Schedule',
+                click: () => {
+                  if (isViewerLike) {
+                    setShowLoginModal(true);
+                  } else {
+                    navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+                  }
                 },
-              }),
+              },
             }}
             dayHeaderContent={(arg) => {
               const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
@@ -1388,7 +1377,7 @@ return parsedEvents
             headerToolbar={{
               left: 'prev,next today officesTab,participantsTab',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay',
+              right: 'addSchedule dayGridMonth,timeGridWeek,timeGridDay',
             }}
             viewDidMount={() => {
               syncToolbarTabs();

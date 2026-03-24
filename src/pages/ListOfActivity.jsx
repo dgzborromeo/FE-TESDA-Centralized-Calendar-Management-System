@@ -19,6 +19,7 @@ export default function ListOfActivity() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [modalMsg, setModalMsg] = useState({ type: '', text: '' });
 
   // PDF VIEWER STATE
   const [viewingPdf, setViewingPdf] = useState(null);
@@ -52,18 +53,16 @@ export default function ListOfActivity() {
   };
 
   const handleEditClick = (item) => {
-    setEditingItem({ ...item }); 
+    setEditingItem({ ...item });
+    setModalMsg({ type: '', text: '' });
     setIsModalOpen(true);
   };
 
 const handleUpdate = async (e) => {
   e.preventDefault();
   setIsSaving(true);
+  setModalMsg({ type: '', text: '' });
   try {
-    // 1. LINISIN ANG DATA:
-    // Gumamit ng 'destructuring' para kunin lang ang columns na kailangan ng DB.
-    // Tinatanggal natin ang 'user', 'host_name', at 'participantDetails' 
-    // dahil galing lang ang mga ito sa JOIN at hindi sa table columns.
     const { 
       user, 
       host_name, 
@@ -73,17 +72,17 @@ const handleUpdate = async (e) => {
       ...cleanData 
     } = editingItem;
 
-    // 2. I-SEND BILANG JSON STRING:
-    // Siguraduhin na ang api wrapper mo ay tumatanggap ng string o kaya i-convert ito rito.
-    // Kung ang api() wrapper mo ay hindi nagse-set ng Headers, dagdagan ito.
     await scheduleAPI.updateSchedule(editingItem.id, JSON.stringify(cleanData));
 
-    alert("Activity updated successfully!");
-    setIsModalOpen(false);
-    fetchSchedules(); 
+    setModalMsg({ type: 'success', text: 'Activity updated successfully!' });
+    fetchSchedules();
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setModalMsg({ type: '', text: '' });
+    }, 1500);
   } catch (error) {
     console.error("Update error:", error);
-    alert("Update failed. Check console for details.");
+    setModalMsg({ type: 'error', text: 'Update failed. Please try again.' });
   } finally {
     setIsSaving(false);
   }
@@ -294,8 +293,13 @@ const filteredData = useMemo(() => {
                     <option value="Tentative">Tentative</option>
                 </select>
               </div>
+              {modalMsg.text && (
+                <div className={`modal-msg modal-msg-${modalMsg.type}`}>
+                  {modalMsg.type === 'success' ? '✓ ' : '✕ '}{modalMsg.text}
+                </div>
+              )}
               <div className="modal-actions">
-                <button type="submit" className="btn-save">{isSaving ? "Saving..." : "Update"}</button>
+                <button type="submit" className="btn-save" disabled={isSaving}>{isSaving ? "Saving..." : "Update"}</button>
                 <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>Close</button>
               </div>
             </form>
