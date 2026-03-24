@@ -102,7 +102,11 @@ function getParticipantsLabel(e) {
   const edNames = parseRegionalDirectorsLabel(e.executive_directors_label);
   const rdFallback = rdNames.length ? rdNames : (getRegionalDirectorsForEvent(e.id) || []);
   const allNames = [...rdFallback, ...pdNames, ...edNames];
-  if (!allNames.length) return 'TBA';
+  if (!allNames.length) {
+    // Last fallback: plain participants text (from promoted schedules)
+    if (e.participants && String(e.participants).trim()) return String(e.participants).trim();
+    return 'TBA';
+  }
   const allLabels = [];
   if (rdFallback.some((n) => String(n).toLowerCase() === 'all rds')) allLabels.push('All RDs');
   else rdFallback.forEach((n) => allLabels.push(acronymFromParticipantName(n)));

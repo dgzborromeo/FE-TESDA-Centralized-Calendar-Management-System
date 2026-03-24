@@ -73,7 +73,9 @@ export default function EventDetails() {
       ? dbParticipantLines
       : localRegionalDirectorParticipants.length
         ? localRegionalDirectorParticipants
-        : ['No participants'];
+        : event?.participants && String(event.participants).trim()
+          ? String(event.participants).trim().split(',').map(s => s.trim()).filter(Boolean)
+          : ['No participants'];
 
   const historyItems = useMemo(() => {
     const out = [];
