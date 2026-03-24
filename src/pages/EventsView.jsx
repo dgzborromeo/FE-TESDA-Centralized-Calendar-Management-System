@@ -460,12 +460,10 @@ export default function EventsView() {
                         {e.location && <span className="ev-card__loc">📍 {e.location}</span>}
                       </div>
 
-                      {activeTab !== 'Recent' && (
-                        <div className="ev-card__meta-row">
-                          <span className="ev-card__info">👤 {e.creator_name || 'Unknown'}</span>
-                          <span className="ev-card__info">👥 {getParticipantsLabel(e)}</span>
-                        </div>
-                      )}
+                      <div className="ev-card__meta-row">
+                        <span className="ev-card__info">👤 {e.creator_name || 'Unknown'}</span>
+                        <span className="ev-card__info">👥 {getParticipantsLabel(e)}</span>
+                      </div>
 
                       {activeTab === 'By Year' && e.end_date && e.end_date !== e.date && (
                         <div className="ev-card__meta-row">

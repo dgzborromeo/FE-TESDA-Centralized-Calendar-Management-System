@@ -1257,10 +1257,8 @@
 .ev-card__info {
   font-size: 0.78rem;
   color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 280px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* ── EventsView pagination ──────────────────────────────────────────────── */

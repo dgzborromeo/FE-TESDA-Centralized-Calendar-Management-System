@@ -33,12 +33,22 @@ export default function Support() {
           <ul>
             <li>Screenshot of the issue</li>
             <li>Your office/account email</li>
-            <li>Date/time when it happened</li>
-            <li>Steps to reproduce</li>
+            <li>Date and time when it happened</li>
+            <li>Steps to reproduce the problem</li>
+            <li>Browser and device used</li>
+          </ul>
+        </section>
+
+        <section className="info-card">
+          <h2>Common issues to self-check first</h2>
+          <ul>
+            <li>Can't log in — check your credentials or contact admin to reset your password.</li>
+            <li>Can't create events — make sure you are logged in and your account has the right permissions.</li>
+            <li>Events not showing — try refreshing the page or clearing your browser cache.</li>
+            <li>PDF not opening — check if your browser allows pop-ups or PDF viewing.</li>
           </ul>
         </section>
       </div>
     </div>
   );
 }
-

@@ -18,37 +18,58 @@ export default function FAQ() {
       <div className="info-card">
         <div className="info-accordion">
           <details>
-            <summary>Why can’t I create events on weekends?</summary>
+            <summary>Why can't I create events on weekends?</summary>
             <div className="info-answer">
-              Weekends (Saturday and Sunday) are locked by design to prevent scheduling. Please select a weekday.
+              Weekends (Saturday and Sunday) are locked by design. Please select a weekday.
             </div>
           </details>
 
           <details>
-            <summary>What does “Conflict detected” mean?</summary>
+            <summary>What does "Conflict detected" mean?</summary>
             <div className="info-answer">
-              It means your selected time overlaps with another event on the same date. The system shows which event and the overlapping time range.
+              Your selected time overlaps with another event on the same date. The system shows which event conflicts and the overlapping time range. Adjust the time before submitting.
             </div>
           </details>
 
           <details>
-            <summary>Can I still open an event after it is done?</summary>
+            <summary>Where do I find past and upcoming events?</summary>
             <div className="info-answer">
-              Yes. Completed events are marked as <strong>Done</strong> but remain clickable so you can view details.
+              Go to <strong>Events / Meetings</strong> in the nav bar. Use the <strong>Recent</strong> tab for past events, <strong>Upcoming</strong> for future ones, and <strong>By Year</strong> to browse all events for a specific year.
             </div>
           </details>
 
           <details>
-            <summary>How do I respond to an invitation?</summary>
+            <summary>Can I still view an event after it is done?</summary>
             <div className="info-answer">
-              Open <strong>Invitations</strong>, click the item, then submit your response (Accept with representative name or Decline with a reason).
+              Yes. Completed events are marked as <strong>Done</strong> on the calendar but remain clickable so you can view their details.
             </div>
           </details>
 
           <details>
-            <summary>Why can’t some office accounts edit or move events?</summary>
+            <summary>Why can't I see the List of Activity or User Configuration links?</summary>
             <div className="info-answer">
-              Some office accounts are configured as view/create only. They can create new events but cannot edit, delete, drag, or resize events.
+              Those links are only visible to <strong>Admin</strong> accounts. If you need access, contact your system administrator.
+            </div>
+          </details>
+
+          <details>
+            <summary>How do I add a schedule?</summary>
+            <div className="info-answer">
+              Click <strong>+ Add Schedule</strong> on the calendar toolbar, or click any weekday on the calendar grid. You must be logged in to submit a schedule.
+            </div>
+          </details>
+
+          <details>
+            <summary>Why can't some office accounts edit or move events?</summary>
+            <div className="info-answer">
+              Some office accounts are configured as view-only. They can view all events but cannot edit, delete, drag, or resize them.
+            </div>
+          </details>
+
+          <details>
+            <summary>How do I log in?</summary>
+            <div className="info-answer">
+              Click the <strong>Log In</strong> button in the top-right corner of the navigation bar and enter your credentials.
             </div>
           </details>
         </div>
@@ -56,4 +77,3 @@ export default function FAQ() {
     </div>
   );
 }
-
