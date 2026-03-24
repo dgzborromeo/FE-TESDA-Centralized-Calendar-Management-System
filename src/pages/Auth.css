@@ -252,19 +252,6 @@
   object-fit: contain;
   border-radius: 999px;
   background: transparent;
-  animation: tesda-spin 16s linear infinite;
-  transform-origin: 50% 50%;
-}
-
-@keyframes tesda-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-logo-img {
-    animation: none;
-  }
 }
 
 .auth-header h1 {
