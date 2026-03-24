@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom';
-import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
-import '../components/Header.css';
+import Header from '../components/Header';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
 export default function SimpleEventForm() {
@@ -536,51 +535,8 @@ if (response) {
 
   return (
     <div className="simple-event-page">
-      <header className="header">
-        <div className="header-inner">
-          <div className="header-left">
-            <Link to="/dashboard" className="header-logo simple-event-header-logo">
-              <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-              <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
-            </Link>
-          </div>
-          {user && (
-            <div className="sef-header-right">
-              <div className="sef-user-badge">
-                <div className="sef-user-avatar">
-                  {String(user.name || user.email || '?')[0].toUpperCase()}
-                </div>
-                <div className="sef-user-info">
-                  <span className="sef-user-name">{user.name || user.email}</span>
-                  <span className="sef-user-role">{user.role === 'admin' ? 'Admin' : 'User'}</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="sef-logout-btn"
-                onClick={() => { logout(); navigate('/dashboard'); }}
-                title="Log out"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Log out
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
+      <Header />
       <main className="simple-event-main">
-        <div className="simple-event-page-heading">
-          <button
-            type="button"
-            className="simple-event-back-btn"
-            onClick={() => navigate(backTo)}
-            title="Back"
-          >
-            ←
-          </button>
-          <h1 className="simple-event-page-title">Event Form</h1>
-        </div>
         <div className="simple-event-body">
           <div className="simple-event-left">
             {conflictError && (
@@ -606,7 +562,18 @@ if (response) {
             )}
         <form className="simple-event-form" onSubmit={handleSubmit}>
           <section className="simple-event-section">
-            <h2 className="simple-event-section-title">Activities Details</h2>
+            <div className="simple-event-section-header">
+              <button
+                type="button"
+                className="sef-back-inline"
+                onClick={() => navigate(backTo)}
+                title="Back"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+              </button>
+              <h2 className="simple-event-section-title">Activities Details</h2>
+            </div>
             <div className="simple-event-grid">
               <div className="simple-event-field simple-event-field-full">
                 <label className="simple-event-label" htmlFor="title">

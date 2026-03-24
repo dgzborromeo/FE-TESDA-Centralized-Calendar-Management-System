@@ -14,6 +14,48 @@
   cursor: pointer;
 }
 
+/* Sub-header bar below the main nav */
+.sef-subheader {
+  display: none;
+}
+
+.simple-event-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.simple-event-section-header .simple-event-section-title {
+  margin-bottom: 0;
+}
+
+.sef-back-inline {
+  appearance: none;
+  border: none;
+  background: #f1f5f9;
+  color: #1e40af;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  line-height: 1.4;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.sef-back-inline:hover {
+  background: #dbeafe;
+}
+
+.sef-back-inline:active {
+  transform: translateX(-2px);
+}
+
 /* Logged-in user badge in header */
 .sef-header-right {
   display: flex;
