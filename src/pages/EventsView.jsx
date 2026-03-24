@@ -359,56 +359,6 @@ export default function EventsView() {
           onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
           className="dashboard-search-input"
         />
-        {activeTab === 'Upcoming' && (
-          <div className="calendar-legend-host-filter" ref={hostFilterRef}>
-            <button
-              type="button"
-              className={`calendar-legend-host-btn ${hostFilterOpen ? 'is-open' : ''}`}
-              onPointerDown={stopEvent}
-              onMouseDown={stopEvent}
-              onClick={(e) => { stopEvent(e); setHostFilterOpen((v) => !v); }}
-              onKeyDown={(e) => { if (e.key !== 'Enter' && e.key !== ' ') return; stopEvent(e); setHostFilterOpen((v) => !v); }}
-              aria-expanded={hostFilterOpen}
-              aria-label="Host filter: view events by host account"
-            >
-              <span className="calendar-legend-host-btn-text">Host Events</span>
-              <span className="calendar-legend-host-btn-caret">▾</span>
-            </button>
-            {hostFilterOpen && (
-              <>
-                <button type="button" aria-label="Close host menu" className="calendar-legend-host-backdrop"
-                  onPointerDown={stopEvent} onMouseDown={stopEvent}
-                  onClick={(e) => { stopEvent(e); setHostFilterOpen(false); }}
-                />
-                <div className="calendar-legend-host-menu"
-                  onPointerDownCapture={stopEvent} onPointerDown={stopEvent}
-                  onMouseDownCapture={stopEvent} onMouseDown={stopEvent}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {hostOptions.length === 0 ? (
-                    <div className="calendar-legend-host-empty">No host options found.</div>
-                  ) : hostOptions.map((group) => (
-                    <div key={group.clusterId} className="calendar-legend-host-group">
-                      <div className="calendar-legend-host-group-title" title={group.clusterName}>
-                        {clusterShortLabel(group.clusterName)}
-                      </div>
-                      {group.items.map((opt) => (
-                        <button key={opt.key} type="button" className="calendar-legend-host-item"
-                          onPointerDown={stopEvent} onMouseDown={stopEvent}
-                          onClick={(e) => { stopEvent(e); setHostFilterOpen(false); setHostModalTarget(opt); }}
-                          onKeyDown={(e) => { if (e.key !== 'Enter' && e.key !== ' ') return; stopEvent(e); setHostFilterOpen(false); setHostModalTarget(opt); }}
-                        >
-                          <span className="calendar-legend-swatch" style={{ backgroundColor: opt.color }} />
-                          <span className="calendar-legend-host-short" title={opt.label}>{opt.short}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
         </div>
       </div>
 
