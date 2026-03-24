@@ -474,3 +474,26 @@
     display: block;
     pointer-events: none; /* Para hindi ma-block ang click ng icon */
 }
+
+.auth-back-link {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(0,0,0,0.35);
+  padding: 6px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+}
+
+.auth-back-link:hover {
+  background: rgba(0,0,0,0.55);
+}
