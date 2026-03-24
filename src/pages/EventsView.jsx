@@ -125,18 +125,21 @@ function currentYear() {
 
 // ── main component ────────────────────────────────────────────────────────────
 
-const TABS = ['Upcoming', 'Recent', 'By Year'];
+const TABS = ['Recent', 'Upcoming', 'By Year'];
 
 export default function EventsView() {
-  const [activeTab, setActiveTab] = useState('Upcoming');
+  const [activeTab, setActiveTab] = useState('Recent');
 
   // shared state
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   // upcoming state
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [upcomingLoading, setUpcomingLoading] = useState(true);
+  const [upcomingLoading, setUpcomingLoading] = useState(false);
+  const [upcomingFetched, setUpcomingFetched] = useState(false);
   const [users, setUsers] = useState([]);
   const [clusterLegend, setClusterLegend] = useState([]);
   const [hostFilterOpen, setHostFilterOpen] = useState(false);
@@ -170,7 +173,7 @@ export default function EventsView() {
       .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
       .then((rows) => setUpcomingEvents(Array.isArray(rows) ? rows : []))
       .catch(() => setUpcomingEvents([]))
-      .finally(() => setUpcomingLoading(false));
+      .finally(() => { setUpcomingLoading(false); setUpcomingFetched(true); });
   };
 
   const refreshRecent = () => {
@@ -194,18 +197,19 @@ export default function EventsView() {
       .finally(() => setYearLoading(false));
   };
 
-  // load upcoming + shared data on mount
+  // load recent + shared data on mount (Recent is default tab)
   useEffect(() => {
-    refreshUpcoming();
+    refreshRecent();
     usersApi.legendClusters().then((rows) => setClusterLegend(Array.isArray(rows) ? rows : [])).catch(() => setClusterLegend([]));
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
   }, []);
 
   // lazy-load other tabs on first visit
   useEffect(() => {
-    if (activeTab === 'Recent' && recentEvents.length === 0 && !recentLoading) refreshRecent();
+    if (activeTab === 'Upcoming' && !upcomingFetched && !upcomingLoading) refreshUpcoming();
     if (activeTab === 'By Year' && yearEvents.length === 0 && !yearLoading) refreshYear(year);
     setSearchQuery('');
+    setPage(1);
   }, [activeTab]);
 
   useEffect(() => {
@@ -291,7 +295,11 @@ export default function EventsView() {
     || (activeTab === 'Recent' && recentLoading)
     || (activeTab === 'By Year' && yearLoading);
 
-  const activeCount = activeTab === 'Upcoming' ? upcoming.length : activeTab === 'Recent' ? recent.length : byYear.length;
+  const activeList = activeTab === 'Upcoming' ? upcoming : activeTab === 'Recent' ? recent : byYear;
+  const activeCount = activeList.length;
+  const totalPages = Math.max(1, Math.ceil(activeCount / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = activeList.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const tabLabel = activeTab === 'Upcoming' ? 'Upcoming Events/Meetings'
     : activeTab === 'Recent' ? 'Recent Events/Meetings'
@@ -315,40 +323,40 @@ export default function EventsView() {
         </div>
       </div>
 
-      {/* tab bar */}
-      <div className="events-view-tabs">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`events-view-tab${activeTab === tab ? ' active' : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* search row */}
-      <div className="dashboard-search">
-        {activeTab === 'By Year' && (
-          <div className="dashboard-year-control">
-            <label htmlFor="year-events-select">Year:</label>
-            <select
-              id="year-events-select"
-              className="dashboard-year-select"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
+      {/* search row + tabs combined */}
+      <div className="ev-search-tabs-row">
+        <div className="events-view-tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              className={`events-view-tab${activeTab === tab ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab)}
             >
-              {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-        )}
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="dashboard-search">
+          {activeTab === 'By Year' && (
+            <div className="dashboard-year-control">
+              <label htmlFor="year-events-select">Year:</label>
+              <select
+                id="year-events-select"
+                className="dashboard-year-select"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+              >
+                {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          )}
         <input
           type="search"
           placeholder={`Search ${activeTab.toLowerCase()}...`}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
           className="dashboard-search-input"
         />
         {activeTab === 'Upcoming' && (
@@ -401,6 +409,7 @@ export default function EventsView() {
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* section head */}
@@ -415,38 +424,85 @@ export default function EventsView() {
       ) : activeCount === 0 ? (
         <p className="dashboard-empty">No events found.</p>
       ) : (
-        <ul className="dashboard-event-list">
-          {(activeTab === 'Upcoming' ? upcoming : activeTab === 'Recent' ? recent : byYear).map((e) => {
-            const tentative = parseTentativeDescription(e.description || '');
-            return (
-              <li key={e.id} className="dashboard-event-item">
-                <button type="button" className="dashboard-event-row" onClick={() => setSelectedEvent(e.id)}>
-                  <span className="dashboard-event-date">
-                    {activeTab === 'By Year' ? formatDateRange(e.date, e.end_date) : formatDate(e.date)}
-                  </span>
-                  <span className="dashboard-event-time">{formatTime(e.start_time)} – {formatTime(e.end_time)}</span>
-                  <span className="dashboard-event-title-wrap">
-                    <span className="dashboard-event-title">{e.title}</span>
-                    {activeTab === 'Recent' && e.location ? <span className="dashboard-event-location">• {e.location}</span> : null}
-                  </span>
-                  {activeTab !== 'Recent' && (
-                    <>
-                      <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
-                      <span className="dashboard-upcoming-meta">Participants: {getParticipantsLabel(e)}</span>
-                      <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
-                      {tentative.isTentative && (
-                        <span className="dashboard-upcoming-meta">
-                          Schedule: Tentative{tentative.note ? ` (${tentative.note})` : ''}
+        <>
+          <ul className="ev-card-list">
+            {pageItems.map((e) => {
+              const tentative = parseTentativeDescription(e.description || '');
+              const isPast = activeTab === 'Recent';
+              return (
+                <li key={e.id}>
+                  <button type="button" className={`ev-card ${isPast ? 'ev-card--past' : 'ev-card--upcoming'}`} onClick={() => setSelectedEvent(e.id)}>
+                    {/* date badge */}
+                    <div className="ev-card__date">
+                      <span className="ev-card__month">
+                        {new Date((activeTab === 'By Year' ? e.date : e.date) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
+                      </span>
+                      <span className="ev-card__day">
+                        {new Date(e.date + 'T12:00:00').getDate()}
+                      </span>
+                      <span className="ev-card__dow">
+                        {new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
+                      </span>
+                    </div>
+
+                    {/* main content */}
+                    <div className="ev-card__body">
+                      <div className="ev-card__top">
+                        <span className="ev-card__title">{e.title}</span>
+                        {e.conflict_count > 0 && <span className="ev-card__conflict" title="Has conflict">⚠</span>}
+                        {tentative.isTentative && <span className="ev-card__badge ev-card__badge--tentative">Tentative</span>}
+                      </div>
+
+                      <div className="ev-card__meta-row">
+                        <span className="ev-card__time">
+                          🕐 {formatTime(e.start_time)}{e.end_time ? ` – ${formatTime(e.end_time)}` : ''}
                         </span>
+                        {e.location && <span className="ev-card__loc">📍 {e.location}</span>}
+                      </div>
+
+                      {activeTab !== 'Recent' && (
+                        <div className="ev-card__meta-row">
+                          <span className="ev-card__info">👤 {e.creator_name || 'Unknown'}</span>
+                          <span className="ev-card__info">👥 {getParticipantsLabel(e)}</span>
+                        </div>
                       )}
-                    </>
-                  )}
-                  {e.conflict_count > 0 && <span className="dashboard-event-conflict" title="Has conflict">⚠</span>}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+
+                      {activeTab === 'By Year' && e.end_date && e.end_date !== e.date && (
+                        <div className="ev-card__meta-row">
+                          <span className="ev-card__info">📅 Until {formatDateFull(e.end_date)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* pagination */}
+          {totalPages > 1 && (
+            <div className="ev-pagination">
+              <button
+                className="ev-pagination__btn"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+              >
+                ← Prev
+              </button>
+              <span className="ev-pagination__info">
+                Page {safePage} of {totalPages}
+                <span className="ev-pagination__count"> ({activeCount} events)</span>
+              </span>
+              <button
+                className="ev-pagination__btn"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* event modal */}
