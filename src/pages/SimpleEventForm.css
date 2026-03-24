@@ -9,10 +9,9 @@
   color: #0f172a;
 }
 
-/* Use system header look; logo is non-clickable */
+/* Logo is now a clickable link to dashboard */
 .simple-event-page .simple-event-header-logo {
-  cursor: default;
-  pointer-events: auto;
+  cursor: pointer;
 }
 
 /* Logged-in user badge in header */
@@ -439,6 +438,28 @@
   gap: 1rem;
 }
 
+/* Meeting type + location inline row */
+.simple-event-type-location-row {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 1rem;
+}
+
+/* Face to face: meeting type + location = 2 cols */
+.simple-event-type-location-face-to-face {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Hybrid: meeting type + location + zoom = 3 cols */
+.simple-event-type-location-hybrid {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Virtual: meeting type + zoom link = 2 cols */
+.simple-event-type-location-virtual {
+  grid-template-columns: 1fr;
+}
+
 .simple-event-label {
   font-size: 0.78rem;
   font-weight: 600;
@@ -650,33 +671,39 @@
 }
 /* Eto yung magpapatabi sa kanila */
 .participants-inline-row {
-  display: flex;
-  flex-wrap: wrap; /* Para kung sobrang haba, kusa bababa sa mobile */
-  gap: 20px;
-  align-items: center; /* Pantay na horizontal line */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
   padding: 10px 0;
 }
 
 .input-group-inline {
   display: flex;
-  align-items: center; /* Pinapatabi yung Label sa Select */
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .input-group-inline label {
-  white-space: nowrap; /* Para hindi maputol yung text */
+  white-space: nowrap;
   font-weight: 600;
   color: #4a5568;
   font-size: 0.9rem;
 }
 
-/* Fix width para hindi masyadong malapad */
 .modern-select {
-  width: 200px; 
+  width: 100%;
   height: 40px;
 }
 
-.compact-input {
+/* Custom arrow for all select inputs — matches the Heads dropdown trigger look */
+select.simple-event-input,
+select.modern-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.75rem center / 12px 12px, rgba(255, 255, 255, 0.96) !important;
+  padding-right: 2.25rem;
+}.compact-input {
   width: 150px;
   height: 40px;
 }
@@ -1046,3 +1073,131 @@
 .sef-success-btn:hover {
   background: #1d4ed8;
 }
+
+/* Time input styling */
+input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+  filter: invert(40%) sepia(10%) saturate(500%) hue-rotate(180deg);
+}
+
+/* ── Right panel schedule cards ── */
+.sef-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sef-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+}
+
+.sef-card:hover {
+  box-shadow: 0 4px 14px rgba(15,23,42,0.09);
+  border-color: #cbd5e1;
+}
+
+.sef-card--conflict {
+  border-left: 4px solid #ef4444;
+  background: #fff8f8;
+  border-color: #fca5a5;
+}
+
+.sef-card--warn {
+  border-left: 4px solid #f59e0b;
+  background: #fffdf5;
+  border-color: #fde68a;
+}
+
+.sef-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sef-card-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.sef-card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sef-card-badge--conflict {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sef-card-badge--warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sef-card-time {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.sef-card-time svg {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.sef-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+.sef-card-host {
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sef-card-status {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* Match the status pill colors from the design */
+.sef-status-tentative { background: #fefce8; color: #92400e; }
+.sef-status-final     { background: #d1fae5; color: #065f46; }
+.sef-status-approved  { background: #dcfce7; color: #166534; }
+.sef-status-rejected  { background: #fee2e2; color: #991b1b; }
+.sef-status-pending   { background: #e0f2fe; color: #075985; }

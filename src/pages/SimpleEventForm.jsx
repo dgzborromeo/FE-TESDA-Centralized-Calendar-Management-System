@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import '../components/Header.css';
@@ -539,10 +539,10 @@ if (response) {
       <header className="header">
         <div className="header-inner">
           <div className="header-left">
-            <div className="header-logo simple-event-header-logo">
+            <Link to="/dashboard" className="header-logo simple-event-header-logo">
               <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
               <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
-            </div>
+            </Link>
           </div>
           {user && (
             <div className="sef-header-right">
@@ -639,26 +639,37 @@ if (response) {
                 />
               </div>
 
-              <div className="simple-event-field">
-                <label className="simple-event-label" htmlFor="meetingType">
-                  Meeting Type
-                </label>
-                <select
-                  id="meetingType"
-                  name="meetingType"
-                  value={form.meetingType}
-                  onChange={handleChange}
-                  className="simple-event-input"
-                >
-                  <option value="face-to-face">Face to Face</option>
-                  <option value="hybrid">Hybrid</option>
-                  <option value="virtual">Virtual/Zoom</option>
-                </select>
+              <div className={`simple-event-type-location-row simple-event-type-location-${form.meetingType}`}>
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="meetingType">Meeting Type</label>
+                  <select id="meetingType" name="meetingType" value={form.meetingType} onChange={handleChange} className="simple-event-input">
+                    <option value="face-to-face">Face to Face</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="virtual">Virtual/Zoom</option>
+                  </select>
+                </div>
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="location">
+                    {form.meetingType === 'virtual' ? 'Zoom Link' : 'Location'}
+                  </label>
+                  {form.meetingType === 'virtual' ? (
+                    <>
+                      <input id="location" name="zoomLink" type="url" value={form.zoomLink} onChange={handleChange} className="simple-event-input" placeholder="https://zoom.us/j/123456789" required />
+                      {form.zoomLink && !isZoomLink(form.zoomLink) && (
+                        <span className="simple-event-hint simple-event-hint-error">Please enter a valid Zoom link</span>
+                      )}
+                    </>
+                  ) : (
+                    <input id="location" name="location" type="text" value={form.location} onChange={handleChange} className="simple-event-input" placeholder="e.g. TESDA Auditorium, Room 101" required />
+                  )}
+                </div>
+                {form.meetingType === 'hybrid' && (
+                  <div className="simple-event-field">
+                    <label className="simple-event-label" htmlFor="zoomLink">Zoom Link</label>
+                    <input id="zoomLink" name="zoomLink" type="url" value={form.zoomLink} onChange={handleChange} className="simple-event-input" placeholder="https://zoom.us/j/123456789" required />
+                  </div>
+                )}
               </div>
-
-              
-
-              {/* Date row */}
               <div className="simple-event-field-pair simple-event-field-full">
                 <div className="simple-event-field">
                   <label className="simple-event-label" htmlFor="startDate">
@@ -704,124 +715,70 @@ if (response) {
                   <label className="simple-event-label" htmlFor="startTime">
                     Start Time
                   </label>
-                  <input
+                  <select
                     id="startTime"
                     name="startTime"
-                    type="time"
                     value={form.startTime}
                     onChange={handleChange}
                     className="simple-event-input"
                     required
-                  />
+                  >
+                    {Array.from({ length: 18 * 4 }, (_, i) => {
+                      const totalMins = 6 * 60 + i * 15;
+                      const h = Math.floor(totalMins / 60);
+                      const m = totalMins % 60;
+                      const hh = String(h).padStart(2, '0');
+                      const mm = String(m).padStart(2, '0');
+                      const val = `${hh}:${mm}`;
+                      const hour = h % 12 || 12;
+                      const ampm = h < 12 ? 'AM' : 'PM';
+                      return <option key={val} value={val}>{`${hour}:${mm} ${ampm}`}</option>;
+                    })}
+                  </select>
                 </div>
                 <div className="simple-event-field">
                   <label className="simple-event-label" htmlFor="endTime">
                     End Time
                   </label>
-                  <input
+                  <select
                     id="endTime"
                     name="endTime"
-                    type="time"
                     value={form.endTime}
                     onChange={handleChange}
                     className="simple-event-input"
                     required
-                  />
+                  >
+                    {Array.from({ length: 18 * 4 }, (_, i) => {
+                      const totalMins = 6 * 60 + i * 15;
+                      const h = Math.floor(totalMins / 60);
+                      const m = totalMins % 60;
+                      const hh = String(h).padStart(2, '0');
+                      const mm = String(m).padStart(2, '0');
+                      const val = `${hh}:${mm}`;
+                      const hour = h % 12 || 12;
+                      const ampm = h < 12 ? 'AM' : 'PM';
+                      return <option key={val} value={val}>{`${hour}:${mm} ${ampm}`}</option>;
+                    })}
+                  </select>
                 </div>
               </div>
 
-              {form.meetingType === 'face-to-face' && (
-                <div className="simple-event-field simple-event-field-full">
-                  <label className="simple-event-label" htmlFor="location">
-                    Location
-                  </label>
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    value={form.location}
-                    onChange={handleChange}
-                    className="simple-event-input"
-                    placeholder="e.g. TESDA Auditorium, Room 101"
-                    required
-                  />
-                </div>
-              )}
-
-              {form.meetingType === 'hybrid' && (
-                <>
-                  <div className="simple-event-field simple-event-field-full">
-                    <label className="simple-event-label" htmlFor="location">
-                      Location
-                    </label>
-                    <input
-                      id="location"
-                      name="location"
-                      type="text"
-                      value={form.location}
-                      onChange={handleChange}
-                      className="simple-event-input"
-                      placeholder="e.g. TESDA Auditorium, Room 101"
-                      required
-                    />
-                  </div>
-                  <div className="simple-event-field simple-event-field-full">
-                    <label className="simple-event-label" htmlFor="zoomLink">
-                      Zoom Link
-                    </label>
-                    <input
-                      id="zoomLink"
-                      name="zoomLink"
-                      type="url"
-                      value={form.zoomLink}
-                      onChange={handleChange}
-                      className="simple-event-input"
-                      placeholder="e.g. https://zoom.us/j/123456789"
-                      required
-                    />
-                  </div>
-                </>
-              )}
-
-              {form.meetingType === 'virtual' && (
-                <div className="simple-event-field simple-event-field-full">
-                  <label className="simple-event-label" htmlFor="zoomLink">
-                    Zoom Link
-                  </label>
-                  <input
-                    id="zoomLink"
-                    name="zoomLink"
-                    type="url"
-                    value={form.zoomLink}
-                    onChange={handleChange}
-                    className="simple-event-input"
-                    placeholder="e.g. https://zoom.us/j/123456789"
-                    required
-                  />
-                  {form.zoomLink && !isZoomLink(form.zoomLink) && (
-                    <span className="simple-event-hint simple-event-hint-error">
-                      {/* Please enter a valid Zoom link (e.g. https://zoom.us/j/...) */}
-                      Please enter a valid Zoom link 
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
           </section>
-<section className="simple-event-section">
-  <h2 className="simple-event-section-title">Participants</h2>
+          <section className="simple-event-section">
+            <h2 className="simple-event-section-title">Participants</h2>
 
-  {liveConflicts.length > 0 && (
-    <div className="sef-live-conflict-box">
-      <div className="sef-live-conflict-header">
-        <span className="sef-live-conflict-icon">⚠</span>
-        <strong>Schedule Conflict Detected ({liveConflicts.length})</strong>
-      </div>
-      <ul className="sef-live-conflict-list">
-        {liveConflicts.map((msg, i) => <li key={i}>{msg}</li>)}
-      </ul>
-    </div>
-  )}
+            {liveConflicts.length > 0 && (
+              <div className="sef-live-conflict-box">
+                <div className="sef-live-conflict-header">
+                  <span className="sef-live-conflict-icon">⚠</span>
+                  <strong>Schedule Conflict Detected ({liveConflicts.length})</strong>
+                </div>
+                <ul className="sef-live-conflict-list">
+                  {liveConflicts.map((msg, i) => <li key={i}>{msg}</li>)}
+                </ul>
+              </div>
+            )}
 
   <div className="participants-container">
     
@@ -1016,11 +973,11 @@ if (response) {
 )}
           </div>
         )}
-
+      </div>{/* end Heads input-group-inline */}
 
   {/* Focals Group */}
   <div className="input-group-inline">
-    <label>Focals</label>
+    <label className="simple-event-label">Focals</label>
     <select 
       className="simple-event-input modern-select" 
       onChange={handleFocalDropdownChange}
@@ -1032,13 +989,10 @@ if (response) {
       ))}
       <option value="Others" className="option-others">+ Others (New)</option>
     </select>
-  </div>
 
-  {/* Others Field - Biglang susulpot sa dulo */}
-  {showOthersInput && (
-    <div className="input-group-inline others-animate">
-      <label>Specify Name</label>
-      <div className="modern-inline-group">
+    {/* Others Field - appears below the Focals select */}
+    {showOthersInput && (
+      <div className="modern-inline-group others-animate">
         <input 
           type="text"
           className="simple-event-input compact-input"
@@ -1050,11 +1004,10 @@ if (response) {
         <button type="button" className="badge-type" onClick={handleAddCustomFocal}>Add</button>
         <button type="button" className="btn-cancel-inline" onClick={() => setShowOthersInput(false)}>&times;</button>
       </div>
-    </div>
-  )}
-        </div>
-</div>
-<label className="simple-event-label">Final Participants List (Review)</label>
+    )}
+  </div>
+        </div>{/* end .participants-inline-row */}
+  <label className="simple-event-label">Final Participants List (Review)</label>
     {/* Unified Badge List (Always Sorted: Positions first) */}
     <div className="unified-badges-list">
       {/* First: Positions */}
@@ -1075,7 +1028,7 @@ if (response) {
         </span>
       ))}
     </div>
-  </div>
+</div>{/* end .participants-container */}
 </section>
 
           <section className="simple-event-section">
@@ -1164,7 +1117,6 @@ if (response) {
               };
               return (
                 <>
-                  {/* Conflict summary banner */}
                   {Object.values(conflictMap).some(v => v === 'time') && (
                     <div className="sef-conflict-summary sef-conflict-summary--time">
                       <span className="sef-conflict-summary-icon">⚠</span>
@@ -1178,26 +1130,27 @@ if (response) {
                   <ul className="sef-panel-list">
                     {dateSchedules.map((ev) => {
                       const conflict = conflictMap[ev.id];
+                      const isConflict = conflict === 'time';
+                      const isWarn = conflict === 'date';
                       return (
-                        <li key={`${ev.id}-${conflict ?? 'none'}`} className={`sef-panel-item${conflict === 'time' ? ' sef-panel-item--conflict' : conflict === 'date' ? ' sef-panel-item--warn' : ''}`}>
-                          <div className="sef-panel-item-row">
-                            <span className="sef-panel-item-title">{ev.event_title || '(No title)'}</span>
-                            {conflict === 'time' && (
-                              <span className="sef-conflict-badge sef-conflict-time">⚠ Time Conflict</span>
-                            )}
-                            {conflict === 'date' && (
-                              <span className="sef-conflict-badge sef-conflict-date">ℹ Date Overlap</span>
-                            )}
+                        <li key={`${ev.id}-${conflict ?? 'none'}`} className={`sef-card${isConflict ? ' sef-card--conflict' : isWarn ? ' sef-card--warn' : ''}`}>
+                          <div className="sef-card-top">
+                            <span className="sef-card-title">{ev.event_title || '(No title)'}</span>
+                            {isConflict && <span className="sef-card-badge sef-card-badge--conflict">⚠ Conflict</span>}
+                            {isWarn    && <span className="sef-card-badge sef-card-badge--warn">↔ Overlap</span>}
                           </div>
                           {(ev.start_time || ev.end_time) && (
-                            <span className="sef-panel-item-meta">{fmt(ev.start_time)} – {fmt(ev.end_time)}</span>
+                            <div className="sef-card-time">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              {fmt(ev.start_time)}{ev.end_time ? ` – ${fmt(ev.end_time)}` : ''}
+                            </div>
                           )}
-                          {ev.host_name && (
-                            <span className="sef-panel-item-host">{ev.host_name}</span>
-                          )}
-                          {ev.status && (
-                            <span className={`sef-panel-item-status sef-status-${String(ev.status).toLowerCase()}`}>{ev.status}</span>
-                          )}
+                          <div className="sef-card-footer">
+                            {ev.host_name && <span className="sef-card-host">{ev.host_name}</span>}
+                            {ev.status && (
+                              <span className={`sef-card-status sef-status-${String(ev.status).toLowerCase()}`}>{ev.status}</span>
+                            )}
+                          </div>
                         </li>
                       );
                     })}

@@ -13,6 +13,7 @@ import Invitations from './pages/Invitations';
 import Upcoming from './pages/Upcoming';
 import Recent from './pages/Recent';
 import YearEvents from './pages/YearEvents';
+import EventsView from './pages/EventsView';
 import DayView from './pages/DayView';
 import ListOfActivity from './pages/ListOfActivity';
 import UserConfig from './pages/UserConfig';
@@ -53,9 +54,10 @@ function AppRoutes() {
         <Route path="calendar" element={<Calendar />} />
         <Route path="calendar/day/:date" element={<DayView />} />
         <Route path="list-of-activity" element={<ListOfActivity />} />
-        <Route path="upcoming" element={<Upcoming />} />
-        <Route path="year-events" element={<YearEvents />} />
-        <Route path="recent" element={<Recent />} />
+        <Route path="events" element={<EventsView />} />
+        <Route path="upcoming" element={<Navigate to="/events" replace />} />
+        <Route path="year-events" element={<Navigate to="/events" replace />} />
+        <Route path="recent" element={<Navigate to="/events" replace />} />
         <Route path="about" element={<About />} />
         <Route path="help" element={<HelpGuide />} />
         <Route path="faq" element={<FAQ />} />

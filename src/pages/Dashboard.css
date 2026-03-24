@@ -1072,3 +1072,37 @@
     gap: 0.5rem;
   }
 }
+
+/* ── EventsView tab bar ─────────────────────────────────────────────────── */
+.events-view-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 16px 0;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+
+.events-view-tab {
+  padding: 8px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.events-view-tab:hover {
+  color: #1e40af;
+  background: #f1f5f9;
+}
+
+.events-view-tab.active {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+  background: #eff6ff;
+}
