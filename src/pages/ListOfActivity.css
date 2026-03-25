@@ -158,6 +158,27 @@
 }
 .status-pill.final { background: #dcfce7; color: #15803d; }
 .status-pill.tentative { background: #fef9c3; color: #a16207; }
+.status-pill.expired { background: #fee2e2; color: #b91c1c; }
+
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expiry-warning {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 2px 6px;
+  display: inline-block;
+}
+
+.list-of-activity-card-expired .list-of-activity-card-value { color: #b91c1c; }
+.list-of-activity-card-expired.is-active { border-color: #ef4444; background: #fef2f2; }
 
 .attachment-link {
   color: #2563eb;
@@ -175,6 +196,7 @@
 
 .btn-edit { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
 .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.btn-renew { background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
 
 /* Modal */
 .modal-overlay {

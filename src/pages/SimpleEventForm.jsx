@@ -1139,6 +1139,12 @@ if (response) {
             <p className="sef-success-message">
               Your schedule has been successfully submitted for validation. It will be reflected on the calendar upon approval.
             </p>
+            <div className="sef-success-reminder">
+              <span className="sef-reminder-icon">⏳</span>
+              <div>
+                <strong>Reminder:</strong> Your submission is marked as <em>Tentative</em> and must be completed within <strong>5 days</strong>. After 3 days, a follow-up notice will be sent. Submissions that are not completed will automatically expire.
+              </div>
+            </div>
             <button
               className="sef-success-btn"
               onClick={() => { setShowSuccessModal(false); navigate('/dashboard'); }}

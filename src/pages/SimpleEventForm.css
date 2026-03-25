@@ -1116,6 +1116,27 @@ select.modern-select {
   background: #1d4ed8;
 }
 
+.sef-success-reminder {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  color: #78350f;
+  text-align: left;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+.sef-reminder-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 /* Time input styling */
 input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
   opacity: 0.5;

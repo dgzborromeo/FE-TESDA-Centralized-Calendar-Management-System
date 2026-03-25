@@ -86,6 +86,15 @@ const handleUpdate = async (e) => {
   } finally {
     setIsSaving(false);
   }
+}; 
+
+const handleRenew = async (id) => {
+  try {
+    await scheduleAPI.renewSchedule(id);
+    fetchSchedules();
+  } catch (error) {
+    console.error("Renew error:", error);
+  }
 };
 
 const filteredData = useMemo(() => {
@@ -114,7 +123,8 @@ const filteredData = useMemo(() => {
   const counts = useMemo(() => ({
     all: schedules.length,
     final: schedules.filter(s => s.status?.toLowerCase() === 'final').length,
-    tentative: schedules.filter(s => s.status?.toLowerCase() === 'tentative').length
+    tentative: schedules.filter(s => s.status?.toLowerCase() === 'tentative').length,
+    expired: schedules.filter(s => s.status?.toLowerCase() === 'expired').length,
   }), [schedules]);
 
   if (!user) return <Navigate to="/login" replace />;
@@ -140,6 +150,10 @@ const filteredData = useMemo(() => {
         <button className={`list-of-activity-card list-of-activity-card-tentative ${activeCard === 'tentative' ? 'is-active' : ''}`} onClick={() => setActiveCard('tentative')}>
           <span className="list-of-activity-card-label">Tentative</span>
           <span className="list-of-activity-card-value">{counts.tentative}</span>
+        </button>
+        <button className={`list-of-activity-card list-of-activity-card-expired ${activeCard === 'expired' ? 'is-active' : ''}`} onClick={() => setActiveCard('expired')}>
+          <span className="list-of-activity-card-label">Expired</span>
+          <span className="list-of-activity-card-value">{counts.expired}</span>
         </button>
       </div>
 
@@ -209,7 +223,12 @@ const filteredData = useMemo(() => {
                       </div>
                     </td>
                     <td className="list-of-activity-filter-td">
-                      <span className={`status-pill ${item.status?.toLowerCase()}`}>{item.status}</span>
+                      <div className="status-cell">
+                        <span className={`status-pill ${item.status?.toLowerCase()}`}>{item.status}</span>
+                        {item.expiry_warning && (
+                          <span className="expiry-warning">⚠️ {item.days_until_expiry}d left</span>
+                        )}
+                      </div>
                     </td>
                     <td className="list-of-activity-filter-td">
                       {item.attachment_path ? (
@@ -242,6 +261,9 @@ const filteredData = useMemo(() => {
                     <td className="list-of-activity-filter-td">
                       <div className="action-buttons">
                         <button className="btn-edit" onClick={() => handleEditClick(item)}>Edit</button>
+                        {item.status?.toLowerCase() === 'expired' && (
+                          <button className="btn-renew" onClick={() => handleRenew(item.id)}>Renew</button>
+                        )}
                         <button className="btn-delete" onClick={() => handleDelete(item.id)}>Delete</button>
                       </div>
                     </td>
@@ -291,6 +313,7 @@ const filteredData = useMemo(() => {
                 <select value={editingItem.status} onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}>
                     <option value="Final">Final</option>
                     <option value="Tentative">Tentative</option>
+                    <option value="Expired">Expired</option>
                 </select>
               </div>
               {modalMsg.text && (
