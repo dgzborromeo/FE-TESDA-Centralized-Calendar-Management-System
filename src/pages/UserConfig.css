@@ -884,3 +884,17 @@
   .btn-action-edit:hover,
   .btn-action-delete:hover { transform: none !important; }
 }
+
+
+/* Actions column — sticky right */
+.user-config-table th:last-child,
+.user-config-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: #f8fafc;
+  z-index: 2;
+  box-shadow: -2px 0 6px rgba(15,23,42,0.06);
+}
+.user-config-table tbody tr:hover td:last-child {
+  background: #f0f7ff;
+}

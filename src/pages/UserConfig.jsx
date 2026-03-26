@@ -830,7 +830,6 @@ const handleSubmit = async (e) => {
                   <table className="user-config-table">
                     <thead>
                       <tr>
-                        <th>Actions</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Password</th>
@@ -846,15 +845,12 @@ const handleSubmit = async (e) => {
                         <th>Cluster</th>
                         <th>Region</th>
                         <th>Province/District</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredUserAccounts.map((item) => (
                         <tr key={item.id}>
-                          <td className="user-config-action-cell">
-                            <button className="btn-action-edit" onClick={() => openEditUser(item)}>Edit</button>
-                            <button className="btn-action-delete" onClick={() => handleDeleteUser(item.id, item.name)}>Delete</button>
-                          </td>
                           <td>{displayValue(item.name)}</td>
                           <td>{displayValue(item.email)}</td>
                           <td>
@@ -885,6 +881,10 @@ const handleSubmit = async (e) => {
                           <td>{displayValue(item.profile?.cluster)}</td>
                           <td>{displayValue(item.profile?.region)}</td>
                           <td>{displayValue(item.profile?.province_district)}</td>
+                          <td className="user-config-action-cell">
+                            <button className="btn-action-edit" onClick={() => openEditUser(item)}>Edit</button>
+                            <button className="btn-action-delete" onClick={() => handleDeleteUser(item.id, item.name)}>Delete</button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
