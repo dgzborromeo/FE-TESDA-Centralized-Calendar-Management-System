@@ -313,6 +313,49 @@
   line-height: 1.6;
 }
 
+.sef-conflict-resolution {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #fca5a5;
+}
+
+.sef-conflict-resolution-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #991b1b;
+  margin: 0 0 0.5rem;
+}
+
+.sef-conflict-resolution-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sef-conflict-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+.sef-conflict-option-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  background: #ef4444;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 /* Conflict summary banners */
 .sef-conflict-summary {
   display: flex;

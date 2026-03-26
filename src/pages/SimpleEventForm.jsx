@@ -744,6 +744,23 @@ if (response) {
                 <ul className="sef-live-conflict-list">
                   {liveConflicts.map((msg, i) => <li key={i}>{msg}</li>)}
                 </ul>
+                <div className="sef-conflict-resolution">
+                  <p className="sef-conflict-resolution-label">To resolve this conflict, you may:</p>
+                  <div className="sef-conflict-resolution-options">
+                    <div className="sef-conflict-option">
+                      <span className="sef-conflict-option-key">A</span>
+                      <span>Review and adjust the <strong>participants</strong> to remove those with conflicting schedules.</span>
+                    </div>
+                    <div className="sef-conflict-option">
+                      <span className="sef-conflict-option-key">B</span>
+                      <span>Select a different <strong>date</strong> that does not overlap with existing activities.</span>
+                    </div>
+                    <div className="sef-conflict-option">
+                      <span className="sef-conflict-option-key">C</span>
+                      <span>Adjust the <strong>start or end time</strong> to avoid overlapping with the conflicting event.</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
