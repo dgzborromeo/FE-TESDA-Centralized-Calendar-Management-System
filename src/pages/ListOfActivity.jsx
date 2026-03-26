@@ -261,9 +261,6 @@ const filteredData = useMemo(() => {
                     <td className="list-of-activity-filter-td">
                       <div className="action-buttons">
                         <button className="btn-edit" onClick={() => handleEditClick(item)}>Edit</button>
-                        {item.status?.toLowerCase() === 'expired' && (
-                          <button className="btn-renew" onClick={() => handleRenew(item.id)}>Renew</button>
-                        )}
                         <button className="btn-delete" onClick={() => handleDelete(item.id)}>Delete</button>
                       </div>
                     </td>
