@@ -369,7 +369,8 @@ const isWeekendYMD = (ymd) => {
   };
 
   const today = new Date();
-  const minStartDateYmd = toLocalYMD(addBusinessDays(today, 0)); // lead time temporarily disabled
+  const isAdmin = user?.role === 'admin';
+  const minStartDateYmd = isAdmin ? toLocalYMD(today) : toLocalYMD(addBusinessDays(today, 10));
 
   const dateErrors = (() => {
     const errs = {};
@@ -378,7 +379,7 @@ const isWeekendYMD = (ymd) => {
 
     if (start) {
       if (isWeekendYMD(start)) errs.startDate = 'Weekends are not allowed. Please select a weekday (Mon–Fri).';
-      // else if (start < minStartDateYmd) errs.startDate = 'Minimum lead time is 10 working days (Mon–Fri). Please select a later date.';
+      else if (!isAdmin && start < minStartDateYmd) errs.startDate = 'Minimum lead time is 10 working days (Mon–Fri). Please select a later date.';
     }
     if (end) {
       if (isWeekendYMD(end)) errs.endDate = 'Weekends are not allowed. Please select a weekday (Mon–Fri).';

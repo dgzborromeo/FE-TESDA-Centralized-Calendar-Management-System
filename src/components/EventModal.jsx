@@ -361,15 +361,22 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
   const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
+  // Build plain text participants from the participants field (from promoted schedules)
+  const plainParticipants = event.participants && String(event.participants).trim() && !String(event.participants).trim().startsWith('[')
+    ? String(event.participants).trim().split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
   const participantLines = hasBackendParticipants
     ? backendParticipantLines
     : participantsFromJson.length
       ? participantsFromJson
+    : plainParticipants.length
+      ? plainParticipants
     : dbParticipantLines.length
       ? dbParticipantLines
       : localRegionalDirectorParticipants.length
         ? localRegionalDirectorParticipants
-      : ['No participants'];
+        : ['No participants'];
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';

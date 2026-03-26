@@ -69,12 +69,12 @@ export default function EventDetails() {
   const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
   const participantLines = hasBackendParticipants
     ? event.attendees.map((a) => a.name)
-    : dbParticipantLines.length
-      ? dbParticipantLines
-      : localRegionalDirectorParticipants.length
-        ? localRegionalDirectorParticipants
-        : event?.participants && String(event.participants).trim()
-          ? String(event.participants).trim().split(',').map(s => s.trim()).filter(Boolean)
+    : event?.participants && String(event.participants).trim() && !String(event.participants).trim().startsWith('[')
+      ? String(event.participants).trim().split(',').map(s => s.trim()).filter(Boolean)
+      : dbParticipantLines.length
+        ? dbParticipantLines
+        : localRegionalDirectorParticipants.length
+          ? localRegionalDirectorParticipants
           : ['No participants'];
 
   const historyItems = useMemo(() => {
