@@ -786,6 +786,7 @@ select.simple-event-input,
 select.modern-select {
   appearance: none;
   -webkit-appearance: none;
+  color-scheme: light;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.75rem center / 12px 12px, rgba(255, 255, 255, 0.96) !important;
   padding-right: 2.25rem;
 }.compact-input {
@@ -799,8 +800,8 @@ select.modern-select {
 }
 
 @keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .modern-inline-group {
@@ -881,23 +882,25 @@ select.modern-select {
     top: calc(100% + 5px);
     left: 0;
     display: flex;
-    z-index: 2000;
+    z-index: 9999;
     background: #ffffff;
     border: 1px solid rgba(148, 163, 184, 0.4);
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
     border-radius: 12px;
-    overflow: hidden; /* Para sa border-radius */
-    animation: dropdownFadeIn 0.2s ease-out;
+    overflow: visible;
+    animation: dropdownFadeIn 0.18s ease-out;
 }
 
 @keyframes dropdownFadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 .dropdown-list-main, .dropdown-list-sub {
     list-style: none;
     padding: 8px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin: 0;
     width: 240px; /* Mas malapad para sa long names */
     height: 380px; /* Fixed height para pantay lagi */
@@ -1307,3 +1310,258 @@ input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
 .sef-status-approved  { background: #dcfce7; color: #166534; }
 .sef-status-rejected  { background: #fee2e2; color: #991b1b; }
 .sef-status-pending   { background: #e0f2fe; color: #075985; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIMPLE EVENT FORM — Premium animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes sef-page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sef-section-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sef-panel-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sef-title-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sef-btn-shimmer {
+  0%   { left: -80%; }
+  100% { left: 130%; }
+}
+@keyframes sef-orb-1 {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.7; }
+}
+@keyframes sef-orb-2 {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.6; }
+}
+@keyframes sef-input-glow {
+  from { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  to   { box-shadow: 0 0 0 3px rgba(37,99,235,0.16), 0 4px 12px rgba(15,23,42,0.07); }
+}
+@keyframes sef-section-title-bar {
+  from { width: 0; }
+  to   { width: 32px; }
+}
+@keyframes sef-success-modal-in {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes sef-success-icon-pop {
+  0%   { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes sef-back-btn-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Page background orbs ──────────────────────────────────────────────── */
+.simple-event-page {
+  position: relative;
+  animation: sef-page-in 0.4s ease both;
+}
+.simple-event-page::before,
+.simple-event-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.simple-event-page::before {
+  width: 500px; height: 500px;
+  top: -150px; right: -120px;
+  background: radial-gradient(circle, rgba(31,58,95,0.1) 0%, transparent 70%);
+  animation: sef-orb-1 11s ease-in-out infinite;
+}
+.simple-event-page::after {
+  width: 380px; height: 380px;
+  bottom: 80px; left: -100px;
+  background: radial-gradient(circle, rgba(63,143,140,0.08) 0%, transparent 70%);
+  animation: sef-orb-2 14s ease-in-out 3s infinite;
+}
+
+/* Keep content above orbs */
+.simple-event-main,
+.simple-event-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Page title entrance ───────────────────────────────────────────────── */
+.simple-event-page-title {
+  animation: sef-title-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+.sef-back-inline {
+  animation: sef-back-btn-in 0.4s ease 0.08s both;
+  transition: background 0.2s ease, box-shadow 0.2s ease !important;
+}
+.sef-back-inline:hover {
+  box-shadow: 0 4px 12px rgba(37,99,235,0.18) !important;
+}
+
+/* ── Sections staggered entrance ──────────────────────────────────────── */
+.simple-event-left .simple-event-section:nth-child(1) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
+.simple-event-left .simple-event-section:nth-child(2) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
+.simple-event-left .simple-event-section:nth-child(3) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.28s both; }
+.simple-event-left .simple-event-section:nth-child(4) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.36s both; }
+.simple-event-left .simple-event-section:nth-child(5) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.44s both; }
+.simple-event-left .simple-event-section:nth-child(6) { animation: sef-section-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.52s both; }
+.simple-event-right-panel {
+  animation: sef-panel-in 0.5s cubic-bezier(0.22,1,0.36,1) 0.22s both;
+  transition: box-shadow 0.25s ease !important;
+}
+.simple-event-right-panel:hover {
+  box-shadow: 0 12px 32px rgba(15,23,42,0.1) !important;
+}
+
+/* ── Section cards — hover lift ───────────────────────────────────────── */
+.simple-event-section {
+  transition: box-shadow 0.22s ease, border-color 0.2s ease !important;
+}
+.simple-event-section:hover {
+  box-shadow: 0 8px 24px rgba(15,23,42,0.08) !important;
+  border-color: rgba(37,99,235,0.2) !important;
+}
+
+/* ── Section title — animated left bar ────────────────────────────────── */
+/* (removed — caused unwanted color bar on section titles) */
+
+/* ── Input fields — focus glow + scale ────────────────────────────────── */
+.simple-event-input,
+.simple-event-textarea {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease !important;
+}
+.simple-event-input:focus,
+.simple-event-textarea:focus {
+  animation: sef-input-glow 0.25s ease forwards;
+}
+
+/* ── Submit button — looping shimmer + spring hover ───────────────────── */
+.simple-event-submit {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease !important;
+}
+.simple-event-submit::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+  pointer-events: none;
+  animation: sef-btn-shimmer 2.4s ease-in-out infinite;
+}
+.simple-event-submit:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 16px 36px rgba(15,23,42,0.35) !important;
+}
+.simple-event-submit:active:not(:disabled) {
+  transform: scale(0.97) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── Success modal — pop-in ────────────────────────────────────────────── */
+.sef-success-modal {
+  animation: sef-success-modal-in 0.45s cubic-bezier(0.34,1.56,0.64,1) both !important;
+}
+.sef-success-icon {
+  animation: sef-success-icon-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s both !important;
+}
+
+/* ── Success OK button — shimmer ──────────────────────────────────────── */
+.sef-success-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease !important;
+}
+.sef-success-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.3) 50%, transparent 65%);
+  pointer-events: none;
+  animation: sef-btn-shimmer 2.8s ease-in-out 0.5s infinite;
+}
+.sef-success-btn:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.4) !important;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .simple-event-page,
+  .simple-event-page::before,
+  .simple-event-page::after,
+  .simple-event-page-title,
+  .sef-back-inline,
+  .simple-event-left .simple-event-section,
+  .simple-event-right-panel,
+  .sef-success-modal,
+  .sef-success-icon {
+    animation: none !important;
+  }
+  .simple-event-submit::after,
+  .sef-success-btn::after { display: none; }
+  .simple-event-section:hover,
+  .simple-event-right-panel:hover,
+  .simple-event-submit:hover,
+  .sef-back-inline:hover {
+    transform: none !important;
+  }
+}
+
+
+/* ── Dropdown z-index fixes ────────────────────────────────────────────── */
+/* Sections must not create stacking contexts that trap dropdowns */
+.simple-event-section {
+  overflow: visible !important;
+}
+.simple-event-left {
+  overflow: visible !important;
+}
+.simple-event-body {
+  overflow: visible !important;
+}
+
+/* Participants section sits above program reference */
+.simple-event-left .simple-event-section:has(.participants-container),
+.simple-event-left .simple-event-section:has(.participants-inline-row) {
+  z-index: 10;
+  position: relative;
+}
+
+/* Ensure dropdown always on top */
+.main-menu-container {
+  z-index: 9999 !important;
+}
+
+/* input-group-inline must not clip dropdown */
+.input-group-inline {
+  overflow: visible !important;
+  position: relative;
+  z-index: 5;
+}
+.participants-inline-row {
+  overflow: visible !important;
+  position: relative;
+  z-index: 5;
+}
+.participants-container {
+  overflow: visible !important;
+  position: relative;
+  z-index: 5;
+}

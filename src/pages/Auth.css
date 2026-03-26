@@ -484,3 +484,226 @@
 .auth-back-link:hover {
   background: rgba(0,0,0,0.55);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN PAGE PREMIUM ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes auth-card-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes auth-media-in {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes auth-field-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes auth-logo-pop {
+  0%   { opacity: 0; transform: scale(0.6) rotate(-8deg); }
+  70%  { transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes auth-title-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes auth-btn-shimmer {
+  0%   { left: -80%; }
+  100% { left: 130%; }
+}
+@keyframes auth-orb-extra-1 {
+  0%, 100% { transform: translate(0,0) scale(1); opacity: 0.5; }
+  45%       { transform: translate(40px,-30px) scale(1.12); opacity: 0.75; }
+  75%       { transform: translate(-20px,18px) scale(0.92); opacity: 0.4; }
+}
+@keyframes auth-orb-extra-2 {
+  0%, 100% { transform: translate(0,0) scale(1); opacity: 0.4; }
+  35%       { transform: translate(-30px,25px) scale(1.08); opacity: 0.65; }
+  70%       { transform: translate(22px,-15px) scale(0.95); opacity: 0.35; }
+}
+@keyframes auth-input-focus-glow {
+  from { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  to   { box-shadow: 0 0 0 4px rgba(37,99,235,0.16), 0 8px 20px rgba(2,6,23,0.08); }
+}
+@keyframes auth-error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+@keyframes auth-overlay-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes auth-kicker-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Extra floating orbs on the page background ────────────────────────── */
+.auth-page-split {
+  position: relative;
+}
+.auth-split-media::before {
+  content: '';
+  position: absolute;
+  width: 280px; height: 280px;
+  top: 10%; left: 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+  animation: auth-orb-extra-1 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-split-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 560px at 20% 15%, rgba(37,99,235,0.24), transparent 55%),
+    radial-gradient(900px 520px at 90% 30%, rgba(14,165,233,0.18), transparent 55%),
+    linear-gradient(180deg, rgba(2,6,23,0.18) 0%, rgba(2,6,23,0.42) 85%, rgba(2,6,23,0.68) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Split layout entrance ─────────────────────────────────────────────── */
+.auth-split-media {
+  animation: auth-media-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.auth-split-panel {
+  animation: auth-card-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+/* ── Auth card — glass shimmer border ─────────────────────────────────── */
+.auth-card {
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+.auth-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow:
+    0 24px 52px rgba(2,6,23,0.16),
+    0 8px 20px rgba(2,6,23,0.1) !important;
+}
+
+/* ── Logo pop-in ───────────────────────────────────────────────────────── */
+.auth-logo {
+  animation: auth-logo-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+/* ── Header text entrance ──────────────────────────────────────────────── */
+.auth-header h1 {
+  animation: auth-title-in 0.45s ease 0.3s both;
+}
+.auth-header p {
+  animation: auth-title-in 0.45s ease 0.38s both;
+}
+
+/* ── Form fields staggered ─────────────────────────────────────────────── */
+.auth-form > label:nth-child(1),
+.auth-form > .auth-error:nth-child(1) { animation: auth-field-in 0.4s ease 0.35s both; }
+.auth-form > label:nth-child(2)       { animation: auth-field-in 0.4s ease 0.42s both; }
+.auth-form > label:nth-child(3)       { animation: auth-field-in 0.4s ease 0.49s both; }
+.auth-form > label:nth-child(4)       { animation: auth-field-in 0.4s ease 0.56s both; }
+.auth-form > .auth-forgot             { animation: auth-field-in 0.4s ease 0.52s both; }
+.auth-form > .auth-submit             { animation: auth-field-in 0.4s ease 0.6s both; }
+
+/* ── Input fields — focus glow ─────────────────────────────────────────── */
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease !important;
+  border-radius: 10px !important;
+}
+.auth-form input:focus {
+  transform: scaleX(1.01);
+  transform-origin: left center;
+  animation: auth-input-focus-glow 0.25s ease forwards;
+}
+
+/* ── Error message — shake ─────────────────────────────────────────────── */
+.auth-error {
+  animation: auth-error-shake 0.45s ease both;
+  border-radius: 10px !important;
+}
+
+/* ── Submit button — looping shimmer ──────────────────────────────────── */
+.auth-submit {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px !important;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, filter 0.15s ease !important;
+}
+.auth-submit::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+  pointer-events: none;
+  animation: auth-btn-shimmer 2.4s ease-in-out infinite;
+}
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 24px rgba(37,99,235,0.4) !important;
+  filter: brightness(1.06) !important;
+}
+.auth-submit:active:not(:disabled) {
+  transform: scale(0.97) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── Overlay text entrance ─────────────────────────────────────────────── */
+.auth-split-overlay-inner {
+  animation: auth-overlay-in 0.6s ease 0.4s both;
+}
+.auth-split-kicker {
+  animation: auth-kicker-in 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.5s both;
+}
+
+/* ── Back to Dashboard link — hover lift ──────────────────────────────── */
+.auth-back-link {
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.auth-back-link:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
+}
+
+/* ── Forgot password link ──────────────────────────────────────────────── */
+.auth-forgot a {
+  transition: color 0.15s ease, letter-spacing 0.15s ease;
+}
+.auth-forgot a:hover {
+  letter-spacing: 0.01em;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .auth-split-media,
+  .auth-split-panel,
+  .auth-logo,
+  .auth-header h1,
+  .auth-header p,
+  .auth-form > label,
+  .auth-form > .auth-forgot,
+  .auth-form > .auth-submit,
+  .auth-split-overlay-inner,
+  .auth-split-kicker,
+  .auth-error,
+  .auth-split-media::before {
+    animation: none !important;
+  }
+  .auth-submit::after { display: none; }
+  .auth-submit:hover,
+  .auth-card:hover,
+  .auth-back-link:hover {
+    transform: none !important;
+  }
+}

@@ -321,3 +321,272 @@
   color: #991b1b;
   border: 1px solid #fecaca;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIST OF ACTIVITY — Premium animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes loa-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes loa-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes loa-card-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes loa-title-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes loa-row-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes loa-sheet-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes loa-btn-shimmer {
+  0%   { left: -80%; }
+  100% { left: 130%; }
+}
+@keyframes loa-modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes loa-orb-1 {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.65; }
+}
+@keyframes loa-orb-2 {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.55; }
+}
+@keyframes loa-value-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Page background orbs ──────────────────────────────────────────────── */
+.list-of-activity-page {
+  position: relative;
+  overflow: hidden;
+}
+.list-of-activity-page::before,
+.list-of-activity-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.list-of-activity-page::before {
+  width: 450px; height: 450px;
+  top: -120px; right: -100px;
+  background: radial-gradient(circle, rgba(31,58,95,0.08) 0%, transparent 70%);
+  animation: loa-orb-1 10s ease-in-out infinite;
+}
+.list-of-activity-page::after {
+  width: 320px; height: 320px;
+  bottom: 100px; left: -80px;
+  background: radial-gradient(circle, rgba(63,143,140,0.07) 0%, transparent 70%);
+  animation: loa-orb-2 13s ease-in-out 2s infinite;
+}
+
+/* Keep content above orbs */
+.list-of-activity-header,
+.list-of-activity-cards,
+.list-of-activity-sheet {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header entrance ───────────────────────────────────────────────────── */
+.list-of-activity-title {
+  animation: loa-title-in 0.45s cubic-bezier(0.22,1,0.36,1) both;
+}
+.list-of-activity-subtitle {
+  animation: loa-fade-in 0.45s ease 0.1s both;
+}
+
+/* ── Summary cards staggered ───────────────────────────────────────────── */
+.list-of-activity-cards .list-of-activity-card:nth-child(1) { animation: loa-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+.list-of-activity-cards .list-of-activity-card:nth-child(2) { animation: loa-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.18s both; }
+.list-of-activity-cards .list-of-activity-card:nth-child(3) { animation: loa-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
+.list-of-activity-cards .list-of-activity-card:nth-child(4) { animation: loa-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.34s both; }
+
+/* Card value pop-in */
+.list-of-activity-card-value {
+  animation: loa-value-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.4s both;
+}
+
+/* Card enhanced hover */
+.list-of-activity-card {
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease, border-color 0.2s ease, background 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+/* Shine sweep on hover */
+.list-of-activity-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+.list-of-activity-card:hover::after { left: 130%; }
+.list-of-activity-card:hover {
+  transform: translateY(-4px) scale(1.01) !important;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.1) !important;
+}
+
+/* ── Sheet entrance ────────────────────────────────────────────────────── */
+.list-of-activity-sheet {
+  animation: loa-sheet-in 0.5s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+  transition: box-shadow 0.25s ease !important;
+}
+.list-of-activity-sheet:hover {
+  box-shadow: 0 8px 32px rgba(15,23,42,0.08) !important;
+}
+
+/* ── Table header ──────────────────────────────────────────────────────── */
+.list-of-activity-filter-th {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  transition: background 0.2s ease;
+}
+
+/* ── Table rows staggered ──────────────────────────────────────────────── */
+.list-of-activity-filters-table tbody tr {
+  animation: loa-row-in 0.35s ease both;
+  transition: background 0.15s ease !important;
+}
+.list-of-activity-filters-table tbody tr:nth-child(1)  { animation-delay: 0.05s; }
+.list-of-activity-filters-table tbody tr:nth-child(2)  { animation-delay: 0.10s; }
+.list-of-activity-filters-table tbody tr:nth-child(3)  { animation-delay: 0.15s; }
+.list-of-activity-filters-table tbody tr:nth-child(4)  { animation-delay: 0.20s; }
+.list-of-activity-filters-table tbody tr:nth-child(5)  { animation-delay: 0.25s; }
+.list-of-activity-filters-table tbody tr:nth-child(6)  { animation-delay: 0.30s; }
+.list-of-activity-filters-table tbody tr:nth-child(7)  { animation-delay: 0.35s; }
+.list-of-activity-filters-table tbody tr:nth-child(8)  { animation-delay: 0.40s; }
+.list-of-activity-filters-table tbody tr:nth-child(9)  { animation-delay: 0.45s; }
+.list-of-activity-filters-table tbody tr:nth-child(10) { animation-delay: 0.50s; }
+.list-of-activity-filters-table tbody tr:hover {
+  background: rgba(239,246,255,0.7) !important;
+}
+
+/* ── Action buttons — shimmer + spring ────────────────────────────────── */
+.btn-edit,
+.btn-delete,
+.btn-save,
+.btn-cancel,
+.btn-view-pdf {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, filter 0.15s ease !important;
+  border-radius: 6px !important;
+}
+.btn-edit::after,
+.btn-delete::after,
+.btn-save::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+  pointer-events: none;
+  animation: loa-btn-shimmer 2.8s ease-in-out infinite;
+}
+.btn-edit:hover   { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(59,130,246,0.4) !important; }
+.btn-delete:hover { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(239,68,68,0.4) !important; }
+.btn-save:hover   { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(16,185,129,0.4) !important; }
+.btn-edit:active, .btn-delete:active, .btn-save:active {
+  transform: scale(0.96) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── Filter inputs — focus glow ────────────────────────────────────────── */
+.filter-group input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  border-radius: 8px !important;
+}
+.filter-group input:focus {
+  border-color: rgba(37,99,235,0.4) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+  outline: none;
+}
+
+/* Reset button */
+.btn-reset {
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+  border-radius: 8px !important;
+}
+.btn-reset:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 4px 10px rgba(15,23,42,0.1) !important;
+  background: #f8fafc !important;
+}
+
+/* ── Modal — pop-in ────────────────────────────────────────────────────── */
+.modal-content {
+  animation: loa-modal-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 60px rgba(15,23,42,0.2) !important;
+}
+
+/* Modal form inputs */
+.form-group input,
+.form-group select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  border-radius: 8px !important;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color: rgba(37,99,235,0.4) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+  outline: none;
+}
+
+/* ── Status pills — enhanced ───────────────────────────────────────────── */
+.status-pill {
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+.status-pill:hover {
+  transform: scale(1.06) !important;
+}
+.status-pill.final   { box-shadow: 0 2px 6px rgba(21,128,61,0.2); }
+.status-pill.tentative { box-shadow: 0 2px 6px rgba(161,98,7,0.2); }
+.status-pill.expired { box-shadow: 0 2px 6px rgba(185,28,28,0.2); }
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .list-of-activity-page::before,
+  .list-of-activity-page::after,
+  .list-of-activity-title,
+  .list-of-activity-subtitle,
+  .list-of-activity-cards .list-of-activity-card,
+  .list-of-activity-card-value,
+  .list-of-activity-sheet,
+  .list-of-activity-filters-table tbody tr,
+  .modal-content {
+    animation: none !important;
+  }
+  .list-of-activity-card::after,
+  .btn-edit::after,
+  .btn-delete::after,
+  .btn-save::after { display: none; }
+  .list-of-activity-card:hover,
+  .btn-edit:hover,
+  .btn-delete:hover,
+  .btn-save:hover,
+  .btn-reset:hover {
+    transform: none !important;
+  }
+}

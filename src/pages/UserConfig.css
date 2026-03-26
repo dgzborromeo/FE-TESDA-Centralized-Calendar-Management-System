@@ -673,3 +673,214 @@
   background: #cbd5e1;
   border-radius: 4px;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   USER CONFIG — Premium animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes uc-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes uc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes uc-title-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes uc-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes uc-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes uc-modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes uc-btn-shimmer {
+  0%   { left: -80%; }
+  100% { left: 130%; }
+}
+@keyframes uc-tab-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes uc-orb {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.65; }
+}
+
+/* ── Page orbs ─────────────────────────────────────────────────────────── */
+.user-config-page {
+  position: relative;
+  overflow: hidden;
+}
+.user-config-page::before,
+.user-config-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.user-config-page::before {
+  width: 420px; height: 420px;
+  top: -100px; right: -80px;
+  background: radial-gradient(circle, rgba(31,58,95,0.08) 0%, transparent 70%);
+  animation: uc-orb 10s ease-in-out infinite;
+}
+.user-config-page::after {
+  width: 300px; height: 300px;
+  bottom: 80px; left: -70px;
+  background: radial-gradient(circle, rgba(63,143,140,0.07) 0%, transparent 70%);
+  animation: uc-orb 13s ease-in-out 2s infinite;
+}
+.user-config-header,
+.user-config-tabs,
+.user-config-content { position: relative; z-index: 1; }
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.user-config-title    { animation: uc-title-in 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+.user-config-subtitle { animation: uc-fade-in 0.4s ease 0.1s both; }
+
+/* ── Tabs staggered ────────────────────────────────────────────────────── */
+.user-config-tab:nth-child(1) { animation: uc-tab-in 0.35s ease 0.1s both; }
+.user-config-tab:nth-child(2) { animation: uc-tab-in 0.35s ease 0.16s both; }
+.user-config-tab:nth-child(3) { animation: uc-tab-in 0.35s ease 0.22s both; }
+.user-config-tab:nth-child(4) { animation: uc-tab-in 0.35s ease 0.28s both; }
+.user-config-tab:nth-child(5) { animation: uc-tab-in 0.35s ease 0.34s both; }
+.user-config-tab:nth-child(6) { animation: uc-tab-in 0.35s ease 0.40s both; }
+.user-config-tab {
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.user-config-tab:hover { transform: translateY(-1px); }
+.user-config-tab.is-active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ── Content panel ─────────────────────────────────────────────────────── */
+.user-config-content {
+  animation: uc-fade-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.18s both;
+  transition: box-shadow 0.25s ease !important;
+}
+.user-config-content:hover {
+  box-shadow: 0 8px 28px rgba(15,23,42,0.09) !important;
+}
+
+/* ── Config cards staggered ────────────────────────────────────────────── */
+.user-config-list .user-config-card:nth-child(1)  { animation: uc-card-in 0.4s ease 0.1s both; }
+.user-config-list .user-config-card:nth-child(2)  { animation: uc-card-in 0.4s ease 0.16s both; }
+.user-config-list .user-config-card:nth-child(3)  { animation: uc-card-in 0.4s ease 0.22s both; }
+.user-config-list .user-config-card:nth-child(4)  { animation: uc-card-in 0.4s ease 0.28s both; }
+.user-config-list .user-config-card:nth-child(5)  { animation: uc-card-in 0.4s ease 0.34s both; }
+.user-config-list .user-config-card:nth-child(6)  { animation: uc-card-in 0.4s ease 0.40s both; }
+.user-config-list .user-config-card:nth-child(7)  { animation: uc-card-in 0.4s ease 0.46s both; }
+.user-config-list .user-config-card:nth-child(8)  { animation: uc-card-in 0.4s ease 0.52s both; }
+.user-config-card {
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.22,1,0.36,1) !important;
+}
+.user-config-card:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(37,99,235,0.2) !important;
+  box-shadow: 0 4px 14px rgba(15,23,42,0.07) !important;
+  transform: translateX(3px);
+}
+
+/* ── Table rows staggered ──────────────────────────────────────────────── */
+.user-config-table tbody tr {
+  animation: uc-row-in 0.35s ease both;
+  transition: background 0.15s ease !important;
+}
+.user-config-table tbody tr:nth-child(1)  { animation-delay: 0.05s; }
+.user-config-table tbody tr:nth-child(2)  { animation-delay: 0.10s; }
+.user-config-table tbody tr:nth-child(3)  { animation-delay: 0.15s; }
+.user-config-table tbody tr:nth-child(4)  { animation-delay: 0.20s; }
+.user-config-table tbody tr:nth-child(5)  { animation-delay: 0.25s; }
+.user-config-table tbody tr:nth-child(6)  { animation-delay: 0.30s; }
+.user-config-table tbody tr:nth-child(7)  { animation-delay: 0.35s; }
+.user-config-table tbody tr:nth-child(8)  { animation-delay: 0.40s; }
+.user-config-table tbody tr:nth-child(9)  { animation-delay: 0.45s; }
+.user-config-table tbody tr:nth-child(10) { animation-delay: 0.50s; }
+.user-config-table tbody tr:hover { background: #f0f7ff !important; }
+
+/* ── Buttons — shimmer + spring ────────────────────────────────────────── */
+.user-config-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.user-config-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+  pointer-events: none;
+  animation: uc-btn-shimmer 2.8s ease-in-out infinite;
+}
+.user-config-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
+}
+.user-config-btn-ghost:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 4px 10px rgba(15,23,42,0.1) !important;
+}
+.user-config-btn:active:not(:disabled) {
+  transform: scale(0.96) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* Action buttons in table */
+.btn-action-edit,
+.btn-action-delete {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease !important;
+  border-radius: 6px !important;
+}
+.btn-action-edit:hover   { transform: translateY(-2px) scale(1.06) !important; box-shadow: 0 4px 10px rgba(49,130,206,0.35) !important; }
+.btn-action-delete:hover { transform: translateY(-2px) scale(1.06) !important; box-shadow: 0 4px 10px rgba(229,62,62,0.35) !important; }
+
+/* ── Search input ──────────────────────────────────────────────────────── */
+.user-config-users-search {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.user-config-users-search:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.14) !important;
+}
+
+/* ── Modal pop-in ──────────────────────────────────────────────────────── */
+.user-modal {
+  animation: uc-modal-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both !important;
+}
+.user-modal-field input:focus,
+.user-modal-field select:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .user-config-page::before, .user-config-page::after,
+  .user-config-title, .user-config-subtitle,
+  .user-config-tab, .user-config-content,
+  .user-config-list .user-config-card,
+  .user-config-table tbody tr,
+  .user-modal { animation: none !important; }
+  .user-config-btn::after { display: none; }
+  .user-config-card:hover,
+  .user-config-btn:hover,
+  .btn-action-edit:hover,
+  .btn-action-delete:hover { transform: none !important; }
+}

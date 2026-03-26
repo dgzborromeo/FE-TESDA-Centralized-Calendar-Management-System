@@ -314,7 +314,7 @@ export default function EventsView() {
     : 'All registered events for the selected year';
 
   return (
-    <div className="dashboard dashboard-page">
+    <div className="dashboard dashboard-page events-view-page">
       {/* topbar */}
       <div className="dashboard-topbar">
         <div className="dashboard-topbar-left">

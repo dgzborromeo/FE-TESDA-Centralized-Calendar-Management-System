@@ -141,3 +141,165 @@
   }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INFO PAGES (About / HelpGuide / FAQ / Support) — Premium animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes info-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes info-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes info-title-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes info-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes info-btn-shimmer {
+  0%   { left: -80%; }
+  100% { left: 130%; }
+}
+@keyframes info-orb {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.65; }
+}
+@keyframes info-accordion-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Page wrapper orbs ─────────────────────────────────────────────────── */
+.info-page {
+  position: relative;
+  overflow: hidden;
+}
+.info-page::before,
+.info-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.info-page::before {
+  width: 400px; height: 400px;
+  top: -100px; right: -80px;
+  background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%);
+  animation: info-orb 11s ease-in-out infinite;
+}
+.info-page::after {
+  width: 280px; height: 280px;
+  bottom: 60px; left: -60px;
+  background: radial-gradient(circle, rgba(63,143,140,0.06) 0%, transparent 70%);
+  animation: info-orb 14s ease-in-out 2s infinite;
+}
+.info-topbar,
+.info-grid,
+.info-accordion,
+.info-card { position: relative; z-index: 1; }
+
+/* ── Topbar entrance ───────────────────────────────────────────────────── */
+.info-topbar {
+  animation: info-fade-up 0.45s cubic-bezier(0.22,1,0.36,1) both;
+  transition: box-shadow 0.25s ease !important;
+}
+.info-topbar:hover {
+  box-shadow: 0 12px 28px rgba(2,6,23,0.09) !important;
+}
+.info-title    { animation: info-title-in 0.4s ease 0.05s both; }
+.info-subtitle { animation: info-fade-in 0.4s ease 0.12s both; }
+
+/* ── Nav buttons — shimmer + spring ───────────────────────────────────── */
+.info-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+  border-radius: 8px !important;
+}
+.info-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.3) 50%, transparent 65%);
+  pointer-events: none;
+  animation: info-btn-shimmer 3s ease-in-out infinite;
+}
+.info-btn:hover {
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.12) !important;
+}
+.info-btn:active {
+  transform: scale(0.96) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── Info cards staggered ──────────────────────────────────────────────── */
+.info-grid .info-card:nth-child(1) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+.info-grid .info-card:nth-child(2) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.18s both; }
+.info-grid .info-card:nth-child(3) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
+.info-grid .info-card:nth-child(4) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.34s both; }
+.info-grid .info-card:nth-child(5) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.42s both; }
+.info-grid .info-card:nth-child(6) { animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.50s both; }
+
+/* Single card (non-grid) */
+.info-card:not(.info-grid .info-card) {
+  animation: info-card-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.12s both;
+}
+
+.info-card {
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.22,1,0.36,1) !important;
+}
+.info-card:hover {
+  box-shadow: 0 12px 32px rgba(2,6,23,0.1) !important;
+  transform: translateY(-3px);
+}
+
+/* ── FAQ accordion staggered ───────────────────────────────────────────── */
+.info-accordion details:nth-child(1)  { animation: info-accordion-in 0.35s ease 0.08s both; }
+.info-accordion details:nth-child(2)  { animation: info-accordion-in 0.35s ease 0.14s both; }
+.info-accordion details:nth-child(3)  { animation: info-accordion-in 0.35s ease 0.20s both; }
+.info-accordion details:nth-child(4)  { animation: info-accordion-in 0.35s ease 0.26s both; }
+.info-accordion details:nth-child(5)  { animation: info-accordion-in 0.35s ease 0.32s both; }
+.info-accordion details:nth-child(6)  { animation: info-accordion-in 0.35s ease 0.38s both; }
+.info-accordion details:nth-child(7)  { animation: info-accordion-in 0.35s ease 0.44s both; }
+.info-accordion details:nth-child(8)  { animation: info-accordion-in 0.35s ease 0.50s both; }
+.info-accordion details:nth-child(9)  { animation: info-accordion-in 0.35s ease 0.56s both; }
+.info-accordion details:nth-child(10) { animation: info-accordion-in 0.35s ease 0.62s both; }
+
+.info-accordion details {
+  transition: box-shadow 0.2s ease !important;
+}
+.info-accordion details:hover {
+  box-shadow: 0 4px 14px rgba(2,6,23,0.08) !important;
+}
+.info-accordion summary {
+  transition: background 0.2s ease, padding-left 0.2s ease !important;
+}
+.info-accordion summary:hover {
+  background: rgba(37,99,235,0.05) !important;
+  padding-left: 1.1rem !important;
+}
+.info-accordion details[open] summary {
+  background: rgba(37,99,235,0.08) !important;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .info-page::before, .info-page::after,
+  .info-topbar, .info-title, .info-subtitle,
+  .info-grid .info-card, .info-card,
+  .info-accordion details { animation: none !important; }
+  .info-btn::after { display: none; }
+  .info-card:hover,
+  .info-btn:hover { transform: none !important; }
+  .info-accordion summary:hover { padding-left: 0.95rem !important; }
+}

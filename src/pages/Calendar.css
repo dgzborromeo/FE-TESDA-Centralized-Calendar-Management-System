@@ -2558,3 +2558,303 @@
 .fc .fc-addSchedule-button:active {
   transform: translateY(0) !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CALENDAR PREMIUM ANIMATIONS — Todo edition
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Extra keyframes ───────────────────────────────────────────────────── */
+@keyframes cal-hero-orb-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
+  33%       { transform: translate(30px, -20px) scale(1.12); opacity: 0.8; }
+  66%       { transform: translate(-15px, 15px) scale(0.92); opacity: 0.45; }
+}
+@keyframes cal-hero-orb-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  40%       { transform: translate(-25px, 20px) scale(1.08); opacity: 0.7; }
+  70%       { transform: translate(20px, -10px) scale(0.95); opacity: 0.35; }
+}
+@keyframes cal-toolbar-in {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cal-legend-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes cal-grid-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes cal-today-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0.5), 0 3px 10px rgba(37,99,235,0.4); }
+  60%  { box-shadow: 0 0 0 8px rgba(37,99,235,0), 0 3px 10px rgba(37,99,235,0.4); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0), 0 3px 10px rgba(37,99,235,0.4); }
+}
+@keyframes cal-event-pop {
+  0%   { opacity: 0; transform: scaleY(0.7) translateY(4px); }
+  70%  { transform: scaleY(1.03) translateY(-1px); }
+  100% { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+@keyframes cal-event-shimmer {
+  0%   { background-position: -300px 0; }
+  100% { background-position: 300px 0; }
+}
+@keyframes cal-side-item-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes cal-cluster-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes cal-now-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+  50%       { opacity: 0.85; box-shadow: 0 0 8px 3px rgba(239,68,68,0.25); }
+}
+@keyframes cal-day-hover-glow {
+  from { background: rgba(239,246,255,0); }
+  to   { background: rgba(239,246,255,0.85); }
+}
+@keyframes cal-header-slide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Floating orbs on main calendar container ──────────────────────────── */
+.calendar-main::before,
+.calendar-main::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.calendar-main::before {
+  width: 320px; height: 320px;
+  top: -100px; right: -80px;
+  background: radial-gradient(circle, rgba(63,143,140,0.18) 0%, transparent 70%);
+  animation: cal-hero-orb-1 9s ease-in-out infinite;
+}
+.calendar-main::after {
+  width: 240px; height: 240px;
+  bottom: -60px; left: -60px;
+  background: radial-gradient(circle, rgba(37,99,235,0.14) 0%, transparent 70%);
+  animation: cal-hero-orb-2 11s ease-in-out 2s infinite;
+}
+/* Keep content above orbs */
+.calendar-main-fullcalendar {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Toolbar entrance ──────────────────────────────────────────────────── */
+.fc .fc-toolbar {
+  animation: cal-toolbar-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+/* ── Toolbar title — gradient shimmer ─────────────────────────────────── */
+.fc .fc-toolbar-title {
+  background: linear-gradient(
+    90deg,
+    #1f3a5f 0%, #1f3a5f 25%,
+    #4f6d8a 45%, #3f8f8c 55%,
+    #1f3a5f 75%, #1f3a5f 100%
+  );
+  background-size: 800px 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: cal-shimmer 5s linear 0.5s 1 forwards, cal-toolbar-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+}
+
+/* ── Column headers staggered entrance ────────────────────────────────── */
+.fc .fc-col-header-cell:nth-child(1) { animation: cal-header-slide 0.35s ease 0.15s both; }
+.fc .fc-col-header-cell:nth-child(2) { animation: cal-header-slide 0.35s ease 0.19s both; }
+.fc .fc-col-header-cell:nth-child(3) { animation: cal-header-slide 0.35s ease 0.23s both; }
+.fc .fc-col-header-cell:nth-child(4) { animation: cal-header-slide 0.35s ease 0.27s both; }
+.fc .fc-col-header-cell:nth-child(5) { animation: cal-header-slide 0.35s ease 0.31s both; }
+.fc .fc-col-header-cell:nth-child(6) { animation: cal-header-slide 0.35s ease 0.35s both; }
+.fc .fc-col-header-cell:nth-child(7) { animation: cal-header-slide 0.35s ease 0.39s both; }
+
+/* ── Grid rows staggered fade-in ──────────────────────────────────────── */
+.fc .fc-daygrid-body tr:nth-child(1) { animation: cal-grid-row-in 0.4s ease 0.2s both; }
+.fc .fc-daygrid-body tr:nth-child(2) { animation: cal-grid-row-in 0.4s ease 0.26s both; }
+.fc .fc-daygrid-body tr:nth-child(3) { animation: cal-grid-row-in 0.4s ease 0.32s both; }
+.fc .fc-daygrid-body tr:nth-child(4) { animation: cal-grid-row-in 0.4s ease 0.38s both; }
+.fc .fc-daygrid-body tr:nth-child(5) { animation: cal-grid-row-in 0.4s ease 0.44s both; }
+.fc .fc-daygrid-body tr:nth-child(6) { animation: cal-grid-row-in 0.4s ease 0.50s both; }
+
+/* ── Today date number — ripple ring ──────────────────────────────────── */
+.fc .fc-day-today .fc-daygrid-day-number {
+  animation: cal-today-ring 2.5s ease-out 0.8s infinite;
+}
+
+/* ── Event cards — pop-in + shimmer on hover ──────────────────────────── */
+.fc .fc-event {
+  animation: cal-event-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: top center;
+  position: relative;
+  overflow: hidden;
+}
+/* Shimmer sweep on hover */
+.fc .fc-event::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255,255,255,0.35) 50%,
+    transparent 65%
+  );
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+.fc .fc-event:hover::after {
+  left: 150%;
+}
+.fc .fc-event:hover {
+  box-shadow: 0 10px 28px rgba(15,23,42,0.2) !important;
+  transform: translateY(-3px) scale(1.015) !important;
+  filter: brightness(1.06) !important;
+  z-index: 20 !important;
+}
+
+/* ── Day cell hover — smooth glow ─────────────────────────────────────── */
+.fc .fc-daygrid-day:not(.fc-day-sat):not(.fc-day-sun):not(.fc-day-today):hover {
+  background: rgba(239,246,255,0.8);
+  transition: background 0.2s ease;
+}
+/* Subtle scale on day number hover */
+.fc .fc-daygrid-day-number:hover {
+  background: rgba(37,99,235,0.1);
+  color: #1d4ed8;
+  transform: scale(1.1);
+  transition: all 0.15s ease;
+}
+
+/* ── Now indicator — pulsing glow ─────────────────────────────────────── */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #ef4444 !important;
+  border-width: 2px !important;
+  animation: cal-now-pulse 2s ease-in-out infinite;
+}
+.fc .fc-timegrid-now-indicator-arrow {
+  border-top-color: #ef4444 !important;
+  border-bottom-color: #ef4444 !important;
+  filter: drop-shadow(0 0 4px rgba(239,68,68,0.5));
+}
+
+/* ── Legend panel entrance ─────────────────────────────────────────────── */
+.calendar-legend {
+  animation: cal-legend-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both !important;
+}
+
+/* ── Cluster items staggered ───────────────────────────────────────────── */
+.calendar-cluster-item:nth-child(1) { animation: cal-cluster-in 0.4s ease 0.2s both; }
+.calendar-cluster-item:nth-child(2) { animation: cal-cluster-in 0.4s ease 0.27s both; }
+.calendar-cluster-item:nth-child(3) { animation: cal-cluster-in 0.4s ease 0.34s both; }
+.calendar-cluster-item:nth-child(4) { animation: cal-cluster-in 0.4s ease 0.41s both; }
+.calendar-cluster-item:nth-child(5) { animation: cal-cluster-in 0.4s ease 0.48s both; }
+.calendar-cluster-item:nth-child(6) { animation: cal-cluster-in 0.4s ease 0.55s both; }
+.calendar-cluster-item:nth-child(7) { animation: cal-cluster-in 0.4s ease 0.62s both; }
+
+/* Cluster summary hover — lift + glow */
+.calendar-cluster-summary {
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.calendar-cluster-summary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(15,23,42,0.12) !important;
+}
+
+/* ── Side panel items staggered ───────────────────────────────────────── */
+.calendar-side-list .calendar-side-item:nth-child(1) { animation: cal-side-item-in 0.35s ease 0.22s both; }
+.calendar-side-list .calendar-side-item:nth-child(2) { animation: cal-side-item-in 0.35s ease 0.28s both; }
+.calendar-side-list .calendar-side-item:nth-child(3) { animation: cal-side-item-in 0.35s ease 0.34s both; }
+.calendar-side-list .calendar-side-item:nth-child(4) { animation: cal-side-item-in 0.35s ease 0.40s both; }
+.calendar-side-list .calendar-side-item:nth-child(5) { animation: cal-side-item-in 0.35s ease 0.46s both; }
+
+/* Side item hover — slide right + glow */
+.calendar-side-item {
+  transition: transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s ease, background 0.2s ease !important;
+}
+.calendar-side-item:hover {
+  transform: translateX(5px) !important;
+  box-shadow: 0 6px 18px rgba(15,23,42,0.1) !important;
+}
+
+/* ── Toolbar buttons — micro bounce ───────────────────────────────────── */
+.fc .fc-button {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.fc .fc-button:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03) !important;
+}
+.fc .fc-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* ── View toggle — smooth active indicator ────────────────────────────── */
+.calendar-view-toggle button {
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.calendar-view-toggle button:hover:not(.active) {
+  transform: translateY(-2px) scale(1.04) !important;
+}
+.calendar-view-toggle button.active {
+  transform: scale(1.04) !important;
+}
+
+/* ── Search input — focus expand ──────────────────────────────────────── */
+.calendar-search {
+  transition: all 0.25s ease !important;
+}
+.calendar-search:focus {
+  transform: scaleX(1.02);
+  transform-origin: left center;
+}
+
+/* ── Holiday events — distinct style ─────────────────────────────────── */
+.fc-event-holiday {
+  opacity: 0.82;
+  font-style: italic;
+}
+.fc-event-holiday:hover {
+  opacity: 1;
+}
+
+/* ── Timegrid slot hover ──────────────────────────────────────────────── */
+.fc .fc-timegrid-slot:hover {
+  background: rgba(37,99,235,0.04);
+  transition: background 0.15s ease;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .calendar-main::before,
+  .calendar-main::after,
+  .fc .fc-toolbar,
+  .fc .fc-toolbar-title,
+  .fc .fc-col-header-cell,
+  .fc .fc-daygrid-body tr,
+  .fc .fc-day-today .fc-daygrid-day-number,
+  .fc .fc-event,
+  .fc .fc-timegrid-now-indicator-line,
+  .calendar-legend,
+  .calendar-cluster-item,
+  .calendar-side-list .calendar-side-item {
+    animation: none !important;
+  }
+  .fc .fc-event::after { display: none; }
+  .fc .fc-button:hover,
+  .calendar-view-toggle button:hover,
+  .calendar-cluster-summary:hover,
+  .calendar-side-item:hover {
+    transform: none !important;
+  }
+}
