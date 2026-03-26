@@ -24,6 +24,7 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import SimpleEventForm from './pages/SimpleEventForm';
+import LandingPage from './pages/LandingPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -46,10 +47,9 @@ function AppRoutes() {
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
       <Route path="/simple-event-form" element={<SimpleEventForm />} />
-      <Route path="/" element={<Layout />}>
-        {/* Public landing: show dashboard even without login */}
-        <Route index element={<Dashboard />} />
-        {/* Public view-only pages */}
+      {/* Landing page — no layout wrapper */}
+      <Route path="/" element={<LandingPage />} />
+      <Route element={<Layout />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="calendar/day/:date" element={<DayView />} />

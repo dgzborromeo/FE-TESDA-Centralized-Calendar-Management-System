@@ -29,23 +29,14 @@ export default function Login() {
   //     setLoading(false);
   //   }
   // };
-// Login.jsx
 const handleSubmit = async (e) => {
   e.preventDefault();
   setError('');
   setLoading(true);
   try {
     const { user: userData, token } = await authApi.login(email, password, remember);
-    
-    // Antayin matapos ang refreshUser sa loob ng login bago mag-navigate
-    const freshUser = await login(userData, token); 
-
-    // TINGNAN KUNG SAAN DAPAT PUMUNTA
-    if (freshUser && freshUser.isProfileComplete) {
-      navigate('/dashboard');
-    } else {
-      navigate('/profile'); // Para sa mga bagong user
-    }
+    await login(userData, token);
+    navigate('/dashboard');
   } catch (err) {
     setError(err.message || 'Login failed.');
   } finally {
@@ -56,9 +47,9 @@ const handleSubmit = async (e) => {
     <div className="auth-page auth-page-split">
       <div className="auth-split">
         <div className="auth-split-media" aria-hidden="true">
-          <Link to="/dashboard" className="auth-back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Back to Dashboard
+          <Link to="/" className="auth-back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
           </Link>
           <img className="auth-split-img" src="/login-hero.png" alt="" />
           <div className="auth-split-overlay">
