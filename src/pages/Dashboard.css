@@ -36,10 +36,10 @@
   50%       { box-shadow: 0 0 0 3px rgba(37,99,235,0.3), 0 6px 20px rgba(37,99,235,0.22); }
 }
 @keyframes dash-scan-line {
-  0%   { transform: translateY(-100%); opacity: 0; }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { transform: translateY(400%); opacity: 0; }
+  0%   { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(400%) skewX(-15deg); opacity: 0; }
 }
 @keyframes dash-card-shine {
   0%   { left: -60%; }
@@ -109,16 +109,16 @@
     inset 0 1px 0 rgba(255,255,255,0.1) !important;
   border-radius: 22px !important;
 }
-/* Scan line shimmer */
+/* Subtle dot mesh texture on hero */
 .dashboard-panel-overview::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
-  animation: dash-scan-line 7s ease-in-out 1s infinite;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
   pointer-events: none;
   z-index: 1;
+  animation: none;
 }
 /* Glowing orb top-right */
 .dashboard-panel-overview::after {
@@ -139,7 +139,10 @@
   background-clip: text;
   animation: dash-shimmer 3s linear 0.6s 1 forwards, dash-fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both;
 }
-.dashboard-panel-overview .dashboard-subtitle { color: rgba(255,255,255,0.72); }
+.dashboard-panel-overview .dashboard-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: clamp(0.9rem, 0.82rem + 0.3vw, 1.05rem);
+}
 .dashboard-panel-overview .dashboard-overview-chip {
   background: rgba(255,255,255,0.12);
   border-color: rgba(255,255,255,0.22);
