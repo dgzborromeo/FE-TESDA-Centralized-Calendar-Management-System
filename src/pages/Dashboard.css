@@ -1705,14 +1705,14 @@
   transform: scale(1.04) !important;
   animation: ev-tab-active-glow 2.5s ease-in-out 0.3s infinite !important;
 }
-/* Shimmer sweep on active tab */
+/* Active tab — bottom border indicator only, no shimmer */
 .events-view-tab.active::after {
   content: '';
   position: absolute;
-  top: 0; left: -80%;
-  width: 60%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.25) 50%, transparent 65%);
-  animation: ev-shimmer-sweep 3s ease-in-out 0.5s infinite;
+  bottom: 0; left: 10%; right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, #2563eb, #3f8f8c);
+  border-radius: 2px;
   pointer-events: none;
 }
 
@@ -1844,27 +1844,19 @@
 }
 
 
-/* ── Dashboard action buttons — shimmer sweep (from EventsView tab) ─────── */
-@keyframes dash-btn-shimmer-loop {
-  0%   { left: -80%; }
-  100% { left: 130%; }
-}
-
+/* ── Dashboard action buttons — formal border glow ──────────────────────── */
 .dashboard-btn {
   position: relative;
   overflow: hidden;
-}
-.dashboard-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.28) 50%, transparent 65%);
-  pointer-events: none;
-  animation: dash-btn-shimmer-loop 2.8s ease-in-out infinite;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
-/* Primary button — brighter shimmer, teal-to-blue gradient */
+/* Primary button — navy-to-teal gradient, no shimmer */
 .dashboard-btn-primary {
   background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 50%, #3f8f8c 100%) !important;
   color: #fff !important;
@@ -1873,17 +1865,10 @@
 }
 .dashboard-btn-primary:hover {
   background: linear-gradient(135deg, #193048 0%, #3d5a78 50%, #2d7a77 100%) !important;
-  box-shadow: 0 6px 22px rgba(31,58,95,0.45) !important;
-}
-.dashboard-btn-primary::after {
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.38) 50%, transparent 65%);
-  animation: dash-btn-shimmer-loop 2.2s ease-in-out infinite;
+  box-shadow: 0 6px 22px rgba(31,58,95,0.5), 0 0 0 2px rgba(63,143,140,0.35) !important;
+  transform: translateY(-2px) !important;
 }
 
-/* Inside hero panel — keep shimmer visible on dark bg */
-.dashboard-panel-overview .dashboard-btn::after {
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.2) 50%, transparent 65%);
-}
 /* Add Schedule inside hero — forest green */
 .dashboard-panel-overview .dashboard-btn-primary {
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
@@ -1905,11 +1890,9 @@
   backdrop-filter: blur(12px);
 }
 .dashboard-panel-overview .dashboard-btn:not(.dashboard-btn-primary):hover {
-  background: rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.22) !important;
   color: #fff !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dashboard-btn::after { animation: none !important; }
+  border-color: rgba(255,255,255,0.45) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.2) !important;
+  transform: translateY(-2px) !important;
 }

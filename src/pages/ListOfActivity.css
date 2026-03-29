@@ -482,31 +482,18 @@
   background: rgba(239,246,255,0.7) !important;
 }
 
-/* ── Action buttons — shimmer + spring ────────────────────────────────── */
+/* ── Action buttons ────────────────────────────────────────────────────── */
 .btn-edit,
 .btn-delete,
 .btn-save,
 .btn-cancel,
 .btn-view-pdf {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, filter 0.15s ease !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   border-radius: 6px !important;
 }
-.btn-edit::after,
-.btn-delete::after,
-.btn-save::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
-  pointer-events: none;
-  animation: loa-btn-shimmer 2.8s ease-in-out infinite;
-}
-.btn-edit:hover   { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(59,130,246,0.4) !important; }
-.btn-delete:hover { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(239,68,68,0.4) !important; }
-.btn-save:hover   { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(16,185,129,0.4) !important; }
+.btn-edit:hover   { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(59,130,246,0.35) !important; }
+.btn-delete:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(239,68,68,0.35) !important; }
+.btn-save:hover   { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(16,185,129,0.35) !important; }
 .btn-edit:active, .btn-delete:active, .btn-save:active {
   transform: scale(0.96) !important;
   transition-duration: 0.08s !important;

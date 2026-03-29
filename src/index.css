@@ -148,15 +148,7 @@ a:hover {
   letter-spacing: -0.03em;
 }
 
-/* ── Global button shine animation ──────────────────────────────────────── */
-@keyframes global-btn-shine {
-  0%   { left: -80%; opacity: 0; }
-  5%   { opacity: 1; }
-  30%  { left: 130%; opacity: 1; }
-  31%  { opacity: 0; }
-  100% { left: 130%; opacity: 0; }
-}
-
+/* ── Buttons — no looping shine, clean hover only ───────────────────────── */
 button,
 a.dashboard-btn,
 a.landing-btn,
@@ -168,81 +160,4 @@ a.calendar-legend-add,
 .sef-success-btn,
 .sef-back-inline {
   position: relative;
-  overflow: hidden;
-}
-
-button::after,
-a.dashboard-btn::after,
-a.landing-btn::after,
-a.info-btn::after,
-a.calendar-legend-add::after,
-.auth-submit::after,
-.simple-event-submit::after,
-.dashboard-mini-today-btn::after,
-.sef-success-btn::after,
-.sef-back-inline::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -80%;
-  width: 55%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 65%
-  );
-  pointer-events: none;
-  animation: global-btn-shine 5s ease-in-out infinite;
-  z-index: 1;
-}
-
-/* Stagger the shine per button type so they don't all shine at once */
-a.dashboard-btn::after                { animation-delay: 0.5s; }
-a.landing-btn::after                  { animation-delay: 1s; }
-.auth-submit::after                   { animation-delay: 1.5s; }
-.simple-event-submit::after           { animation-delay: 2s; }
-.dashboard-mini-today-btn::after      { animation-delay: 2.5s; }
-.sef-success-btn::after               { animation-delay: 0.4s; }
-
-/* No shine on calendar toolbar buttons, header nav links,
-   list of activity, user config, and events view buttons */
-.fc .fc-button::after,
-.header-link::after,
-.header-profile-btn::after,
-.btn-edit::after,
-.btn-delete::after,
-.btn-save::after,
-.btn-reset::after,
-.btn-inline-save::after,
-.btn-add-toggle::after,
-.btn-action-edit::after,
-.btn-action-delete::after,
-.btn-cancel::after,
-.btn-view-pdf::after,
-.user-config-btn::after,
-.user-config-tab::after,
-.events-view-tab::after,
-.ev-pagination__btn::after,
-.dashboard-upcoming-page-btn::after {
-  display: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  button::after,
-  a.dashboard-btn::after,
-  a.landing-btn::after,
-  a.info-btn::after,
-  .auth-submit::after,
-  .simple-event-submit::after,
-  .user-config-btn::after,
-  .btn-edit::after,
-  .btn-delete::after,
-  .btn-save::after,
-  .events-view-tab::after,
-  .sef-success-btn::after,
-  .fc .fc-button::after {
-    display: none !important;
-  }
 }

@@ -811,27 +811,16 @@
 .user-config-table tbody tr:nth-child(10) { animation-delay: 0.50s; }
 .user-config-table tbody tr:hover { background: #f0f7ff !important; }
 
-/* ── Buttons — shimmer + spring ────────────────────────────────────────── */
+/* ── Buttons ────────────────────────────────────────────────────────────── */
 .user-config-btn {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
-}
-.user-config-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
-  pointer-events: none;
-  animation: uc-btn-shimmer 2.8s ease-in-out infinite;
+  transition: all 0.2s ease !important;
 }
 .user-config-btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.04) !important;
-  box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(37,99,235,0.3), 0 0 0 2px rgba(37,99,235,0.15) !important;
 }
 .user-config-btn-ghost:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.03) !important;
+  transform: translateY(-2px) !important;
   box-shadow: 0 4px 10px rgba(15,23,42,0.1) !important;
 }
 .user-config-btn:active:not(:disabled) {

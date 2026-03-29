@@ -177,16 +177,20 @@ function isEventOngoing(e, todayYmd, nowMins) {
 // Ilagay bago ang `export default function Dashboard() {`
 function getEventParticipants(e) {
   if (!e.participants) return 'None';
+  const raw = String(e.participants).trim();
 
-  try {
-    const parsed = typeof e.participants === 'string' ? JSON.parse(e.participants) : e.participants;
-    if (!Array.isArray(parsed) || !parsed.length) return 'None';
-
-    return parsed.map(p => p.name).join(', ');
-  } catch (err) {
-    console.error('Error parsing participants:', err);
-    return 'None';
+  // New format: JSON array of {name, ...} objects
+  if (raw.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(p => p.name || p).filter(Boolean).join(', ');
+      }
+    } catch (_) { /* fall through */ }
   }
+
+  // Legacy: plain comma-separated string
+  return raw || 'None';
 }
 
 export default function Dashboard() {

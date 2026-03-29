@@ -5,42 +5,41 @@
   justify-content: center;
   padding: 1.5rem;
   background:
-    radial-gradient(900px 380px at 15% 10%, rgba(37, 99, 235, 0.22), transparent 60%),
-    radial-gradient(700px 320px at 85% 35%, rgba(14, 165, 233, 0.18), transparent 60%),
-    radial-gradient(900px 420px at 50% 95%, rgba(99, 102, 241, 0.12), transparent 55%),
-    linear-gradient(180deg, #eff6ff 0%, #f0f7ff 40%, #f8fafc 100%);
+    radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 55% 40% at 10% 20%, rgba(31,58,95,0.65), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 90% 15%, rgba(63,143,140,0.22), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 90%, rgba(31,58,95,0.45), transparent 55%),
+    linear-gradient(160deg, #0c1628 0%, #0f1e35 40%, #122040 70%, #0c1628 100%);
+  background-size: 24px 24px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   position: relative;
-  overflow: hidden;
+}
+
+.auth-page::before {
+  content: none;
+}
+
+.auth-page::after {
+  content: none;
 }
 
 .auth-page.auth-page-split {
   padding: 1.75rem;
-  position: relative;
-  overflow: hidden;
-  background: #1e2d42;
-}
-
-/* Blurred background image */
-.auth-page.auth-page-split::before {
-  content: '';
-  position: absolute;
-  inset: -20px;
   background:
-    url('/login-bg.png') center / cover no-repeat;
-  filter: blur(18px) brightness(0.45) saturate(1.2);
-  transform: scale(1.05);
-  pointer-events: none;
-  z-index: 0;
+    radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 55% 40% at 10% 20%, rgba(31,58,95,0.65), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 90% 15%, rgba(63,143,140,0.22), transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 90%, rgba(31,58,95,0.45), transparent 55%),
+    linear-gradient(160deg, #0c1628 0%, #0f1e35 40%, #122040 70%, #0c1628 100%);
+  background-size: 24px 24px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 }
 
-/* Dark overlay on top of blurred bg */
+/* Orbs — same as landing page hero orbs */
+.auth-page-split .auth-orb {
+  display: none;
+}
+
 .auth-page.auth-page-split::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 25, 45, 0.45);
-  pointer-events: none;
-  z-index: 0;
+  content: none;
 }
 
 .auth-page.auth-page-split .auth-split {
@@ -48,45 +47,42 @@
   z-index: 1;
 }
 
-.auth-page.auth-page-split::before,
-.auth-page.auth-page-split::after {
-  /* Disable floating blobs on photo background */
-  display: none;
-}
-
 .auth-split {
   width: min(1040px, 100%);
   display: grid;
   grid-template-columns: 1.25fr 0.95fr;
-  border-radius: 20px;
+  border-radius: 22px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%) padding-box,
-    linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%) border-box;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
   box-shadow:
-    0 32px 80px rgba(2, 6, 23, 0.4),
-    0 12px 32px rgba(2, 6, 23, 0.25),
-    inset 0 1px 0 rgba(255,255,255,0.15);
+    0 32px 80px rgba(2,6,23,0.5),
+    0 12px 32px rgba(2,6,23,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1);
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(12px);
 }
 
 .auth-split-media {
   position: relative;
   min-height: 640px;
-  background: linear-gradient(135deg, #1e2d42 0%, #243550 35%, #1f3a5f 65%, #2a4a6b 100%);
+  /* Same dark navy as landing page */
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 20%, rgba(63,143,140,0.3), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 80% 70%, rgba(37,99,235,0.22), transparent 65%),
+    linear-gradient(160deg, #0c1628 0%, #1f3a5f 50%, #0f1e35 100%);
 }
 
 .auth-split-img {
   width: 100%;
   height: 100%;
   display: block;
-  /* show the whole hero image (no crop) */
   object-fit: contain;
   object-position: center;
-  filter: saturate(1.05) contrast(1.05);
-  background: rgba(2, 6, 23, 0.55); /* letterbox color */
+  filter: saturate(1.05) contrast(1.05) brightness(0.85);
+  background: transparent;
+  opacity: 0.55;
 }
 
 .auth-split-media::after {
@@ -96,11 +92,11 @@
   background:
     radial-gradient(ellipse 80% 50% at 80% 20%, rgba(63,143,140,0.3), transparent 70%),
     radial-gradient(ellipse 60% 40% at 20% 60%, rgba(37,99,235,0.2), transparent 70%),
-    linear-gradient(180deg, 
+    linear-gradient(180deg,
       transparent 0%,
-      transparent 50%,
-      rgba(15,25,45,0.75) 75%,
-      rgba(15,25,45,0.95) 100%);
+      transparent 45%,
+      rgba(12,22,40,0.7) 72%,
+      rgba(12,22,40,0.95) 100%);
   pointer-events: none;
 }
 
@@ -158,108 +154,54 @@
   align-items: center;
   justify-content: center;
   padding: 2.25rem;
+  /* Dark glass — same as landing feature cards */
   background:
-    radial-gradient(520px 220px at 20% 0%, rgba(37, 99, 235, 0.08), transparent 60%),
-    radial-gradient(520px 220px at 95% 20%, rgba(14, 165, 233, 0.06), transparent 55%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.65) 100%);
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(31,58,95,0.4), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(63,143,140,0.15), transparent 55%),
+    rgba(10,18,32,0.72);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(255,255,255,0.07);
 }
 
 .auth-page-split .auth-card {
   max-width: 420px;
 }
 
-/* Floating accent blobs for a "premium" feel */
-.auth-page::before,
-.auth-page::after {
-  content: '';
-  position: absolute;
-  width: 520px;
-  height: 520px;
-  border-radius: 999px;
-  filter: blur(40px);
-  opacity: 0.55;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.auth-page::before {
-  left: -180px;
-  top: -200px;
-  background: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.38), transparent 60%),
-    radial-gradient(circle at 70% 70%, rgba(14, 165, 233, 0.28), transparent 55%);
-  animation: auth-float-1 14s ease-in-out infinite;
-}
-
-.auth-page::after {
-  right: -220px;
-  bottom: -260px;
-  background: radial-gradient(circle at 35% 35%, rgba(99, 102, 241, 0.32), transparent 60%),
-    radial-gradient(circle at 70% 65%, rgba(245, 158, 11, 0.18), transparent 55%);
-  animation: auth-float-2 16s ease-in-out infinite;
-}
-
-@keyframes auth-float-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(70px, 40px) scale(1.05); }
-}
-
-@keyframes auth-float-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-80px, -35px) scale(1.06); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-page::before,
-  .auth-page::after {
-    animation: none;
-  }
+.auth-page-split {
+  position: relative;
 }
 
 .auth-card {
   width: 100%;
   max-width: 440px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 18px;
+  /* Dark glass card — same as landing feat-card */
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
   padding: 2.25rem;
   box-shadow:
-    0 24px 60px rgba(15, 23, 42, 0.15),
-    0 8px 20px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255,255,255,1);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
+    0 24px 60px rgba(2,6,23,0.4),
+    0 8px 20px rgba(2,6,23,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(16px);
   z-index: 1;
-  transform: translateZ(0);
 }
 
 .auth-card::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.35) 0%, rgba(14, 165, 233, 0.25) 35%, rgba(99, 102, 241, 0.25) 100%);
-  z-index: 0;
-  opacity: 0.55;
-  pointer-events: none;
+  content: none;
 }
 
 .auth-card::after {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: calc(var(--radius) - 1px);
-  z-index: 0;
-  pointer-events: none;
+  content: none;
 }
 
 .auth-card:hover {
-  border-color: rgba(37, 99, 235, 0.22);
+  border-color: rgba(255,255,255,0.16);
   box-shadow:
-    0 18px 40px rgba(2, 6, 23, 0.12),
-    0 6px 16px rgba(2, 6, 23, 0.08);
+    0 28px 64px rgba(2,6,23,0.45),
+    0 10px 24px rgba(2,6,23,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .auth-header {
@@ -295,11 +237,11 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  color: var(--text);
+  color: rgba(255,255,255,0.92);
 }
 
 .auth-header p {
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.5);
   font-size: 0.9rem;
 }
 
@@ -316,38 +258,46 @@
   flex-direction: column;
   gap: 0.35rem;
   font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: rgba(255,255,255,0.65);
 }
 
 .auth-form input[type="text"],
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
   padding: 0.75rem 0.95rem;
-  border: 1.5px solid rgba(203, 213, 225, 0.8);
+  border: 1.5px solid rgba(255,255,255,0.12);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--text);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.92);
   font-size: 1rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.auth-form input[type="text"]::placeholder,
+.auth-form input[type="email"]::placeholder,
+.auth-form input[type="password"]::placeholder {
+  color: rgba(255,255,255,0.28);
+}
+
 .auth-form input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: rgba(63,143,140,0.6);
   box-shadow:
-    0 0 0 4px rgba(37, 99, 235, 0.14),
-    0 10px 20px rgba(2, 6, 23, 0.06);
+    0 0 0 3px rgba(63,143,140,0.15),
+    0 4px 12px rgba(0,0,0,0.2);
 }
 
 .auth-checkbox {
   flex-direction: row !important;
   align-items: center;
+  color: rgba(255,255,255,0.6) !important;
 }
 
 .auth-checkbox input {
   width: auto;
   margin-right: 0.5rem;
+  accent-color: #3f8f8c;
 }
 
 .auth-forgot {
@@ -357,11 +307,11 @@
 
 .auth-forgot a {
   font-size: 0.9rem;
-  color: var(--accent);
+  color: #5eead4;
 }
 
 .auth-forgot-info {
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.5);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0;
@@ -369,10 +319,10 @@
 
 .auth-error {
   padding: 0.75rem;
-  background: #fef2f2;
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-sm);
-  color: var(--danger);
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.35);
+  border-radius: 10px;
+  color: #fca5a5;
   font-size: 0.9rem;
 }
 
@@ -450,15 +400,15 @@
   text-align: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  color: var(--text-muted);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
   font-size: 0.9rem;
   position: relative;
   z-index: 1;
 }
 
 .auth-footer a {
-  color: var(--accent);
+  color: #5eead4;
   font-weight: 500;
 }
 
@@ -480,19 +430,19 @@
     right: 12px;
     background: transparent;
     border: none;
-    padding: 8px; /* Mas malaking clickable area */
+    padding: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b; /* Modern slate gray */
-    transition: color 0.2s ease, transform 0.1s active;
-    border-radius: 50%; /* Round hover effect */
+    color: rgba(255,255,255,0.4);
+    transition: color 0.2s ease;
+    border-radius: 50%;
 }
 
 .password-toggle-icon:hover {
-    color: #1d4ed8; /* Blue branding pag na-hover */
-    background-color: rgba(0, 0, 0, 0.05); /* Subtle gray circle on hover */
+    color: rgba(255,255,255,0.85);
+    background-color: rgba(255,255,255,0.08);
 }
 
 .password-toggle-icon svg {
@@ -584,18 +534,17 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── Extra floating orbs on the page background ────────────────────────── */
+/* ── Extra floating orbs on the media panel ────────────────────────────── */
 .auth-page-split {
   position: relative;
 }
 .auth-split-media::before {
   content: '';
   position: absolute;
-  width: 280px; height: 280px;
-  top: 10%; left: 5%;
+  width: 380px; height: 380px;
+  top: -100px; right: -80px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
-  animation: auth-orb-extra-1 12s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(63,143,140,0.28) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -604,9 +553,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(1200px 560px at 20% 15%, rgba(37,99,235,0.24), transparent 55%),
-    radial-gradient(900px 520px at 90% 30%, rgba(14,165,233,0.18), transparent 55%),
-    linear-gradient(180deg, rgba(2,6,23,0.18) 0%, rgba(2,6,23,0.42) 85%, rgba(2,6,23,0.68) 100%);
+    radial-gradient(ellipse 80% 50% at 80% 20%, rgba(63,143,140,0.25), transparent 65%),
+    radial-gradient(ellipse 60% 40% at 20% 60%, rgba(37,99,235,0.18), transparent 65%),
+    linear-gradient(180deg, rgba(12,22,40,0.15) 0%, rgba(12,22,40,0.42) 72%, rgba(12,22,40,0.92) 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -671,26 +620,14 @@
   border-radius: 10px !important;
 }
 
-/* ── Submit button — looping shimmer ──────────────────────────────────── */
+/* ── Submit button ─────────────────────────────────────────────────────── */
 .auth-submit {
-  position: relative;
-  overflow: hidden;
   border-radius: 10px !important;
-  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, filter 0.15s ease !important;
-}
-.auth-submit::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
-  pointer-events: none;
-  animation: auth-btn-shimmer 2.4s ease-in-out infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 .auth-submit:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 8px 24px rgba(37,99,235,0.4) !important;
-  filter: brightness(1.06) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(37,99,235,0.35), 0 0 0 2px rgba(37,99,235,0.2) !important;
 }
 .auth-submit:active:not(:disabled) {
   transform: scale(0.97) !important;

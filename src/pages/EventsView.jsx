@@ -95,27 +95,44 @@ function formatParticipantsAcronymList(summaryStr) {
 }
 
 function getParticipantsLabel(e) {
-  const fromSummary = formatParticipantsAcronymList(e.participants_summary);
-  if (fromSummary) return fromSummary;
+  // 1. JSON array from SimpleEventForm — display the name values as-is
+  if (e.participants && String(e.participants).trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(e.participants);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(p => String(p.name || p).trim()).filter(Boolean).join(', ') || 'TBA';
+      }
+    } catch (_) { /* fall through */ }
+  }
+
+  // 2. Plain text — stored as-is from resolveParticipantLabels (promoted from ListOfActivity)
+  if (e.participants && String(e.participants).trim()) {
+    return String(e.participants).trim();
+  }
+
+  // 3. Legacy label fields
   const rdNames = parseRegionalDirectorsLabel(e.regional_directors_label);
   const pdNames = parseRegionalDirectorsLabel(e.provincial_directors_label);
   const edNames = parseRegionalDirectorsLabel(e.executive_directors_label);
   const rdFallback = rdNames.length ? rdNames : (getRegionalDirectorsForEvent(e.id) || []);
   const allNames = [...rdFallback, ...pdNames, ...edNames];
-  if (!allNames.length) {
-    // Last fallback: plain participants text (from promoted schedules)
-    if (e.participants && String(e.participants).trim()) return String(e.participants).trim();
-    return 'TBA';
+  if (allNames.length) {
+    const allLabels = [];
+    if (rdFallback.some((n) => String(n).toLowerCase() === 'all rds')) allLabels.push('All RDs');
+    else rdFallback.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+    if (pdNames.some((n) => String(n).toLowerCase() === 'all pds')) allLabels.push('All PDs');
+    else pdNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+    if (edNames.some((n) => String(n).toLowerCase() === 'all eds')) allLabels.push('All EDs');
+    else edNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
+    const filtered = allLabels.filter(Boolean);
+    if (filtered.length) return Array.from(new Set(filtered)).join(', ');
   }
-  const allLabels = [];
-  if (rdFallback.some((n) => String(n).toLowerCase() === 'all rds')) allLabels.push('All RDs');
-  else rdFallback.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
-  if (pdNames.some((n) => String(n).toLowerCase() === 'all pds')) allLabels.push('All PDs');
-  else pdNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
-  if (edNames.some((n) => String(n).toLowerCase() === 'all eds')) allLabels.push('All EDs');
-  else edNames.forEach((n) => allLabels.push(acronymFromParticipantName(n)));
-  const filtered = allLabels.filter(Boolean);
-  return filtered.length ? Array.from(new Set(filtered)).join(', ') : 'TBA';
+
+  // 4. participants_summary fallback
+  const fromSummary = formatParticipantsAcronymList(e.participants_summary);
+  if (fromSummary) return fromSummary;
+
+  return 'TBA';
 }
 
 function stopEvent(e) {
