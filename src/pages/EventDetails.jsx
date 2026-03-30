@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { events as eventsApi } from '../api';
+import { events as eventsApi, resolveAttachmentUrl } from '../api';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
@@ -153,7 +153,7 @@ export default function EventDetails() {
           <ul className="event-details-list">
             {postDocs.map((a) => (
               <li key={a.id}>
-                <a href={a.url} target="_blank" rel="noreferrer">{a.original_name}</a>
+                <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer">{a.original_name}</a>
               </li>
             ))}
           </ul>
@@ -220,4 +220,5 @@ export default function EventDetails() {
     </div>
   );
 }
+
 

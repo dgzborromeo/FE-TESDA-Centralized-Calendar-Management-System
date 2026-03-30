@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { events as eventsApi } from '../api';
+import { events as eventsApi, resolveAttachmentUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useAppDialog } from './AppDialogProvider';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
@@ -484,9 +484,9 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                         {regularAttachments.map((a) => (
                           <li key={a.id} className="modal-event-attach-item">
                             <span className="modal-event-attach-icon">PDF</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                            <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
                             <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                            <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                            <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                           </li>
                         ))}
                       </ul>
@@ -529,9 +529,9 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                           {postDocs.map((a) => (
                             <li key={a.id} className="modal-event-attach-item">
                               <span className="modal-event-attach-icon">PDF</span>
-                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                              <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
                               <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                              <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                             </li>
                           ))}
                         </ul>
@@ -589,9 +589,9 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                           {attendanceSheets.map((a) => (
                             <li key={a.id} className="modal-event-attach-item">
                               <span className="modal-event-attach-icon">PDF</span>
-                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
+                              <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-name">{a.original_name}</a>
                               <span className="modal-event-attach-size">{a.size_bytes ? `${(a.size_bytes / 1024 / 1024).toFixed(2)} MB` : ''}</span>
-                              <a href={a.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                              <a href={resolveAttachmentUrl(a.url)} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                             </li>
                           ))}
                         </ul>
@@ -653,8 +653,8 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
                               <span className="modal-photo-slot-title">Photo {slot}</span>
                               {existing ? (
                                 <div className="modal-photo-slot-existing">
-                                  <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-name">{existing.original_name}</a>
-                                  <a href={existing.url} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
+                                  <a href={resolveAttachmentUrl(existing.url)} target="_blank" rel="noreferrer" className="modal-event-attach-name">{existing.original_name}</a>
+                                  <a href={resolveAttachmentUrl(existing.url)} target="_blank" rel="noreferrer" className="modal-event-attach-dl" title="Download">↓</a>
                                 </div>
                               ) : (
                                 <p className="modal-postdoc-empty">No uploaded photo yet.</p>
@@ -928,3 +928,5 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     </div>
   );
 }
+
+

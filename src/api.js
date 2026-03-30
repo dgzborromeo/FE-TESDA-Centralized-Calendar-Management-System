@@ -2,6 +2,16 @@
  * API client - uses proxy in dev (/api -> backend:3001)
  */
 const BASE = import.meta.env.VITE_API_BASE_URL;
+
+// Backend root URL (strips /api suffix) for serving static files like uploads
+export const BACKEND_ROOT = BASE ? BASE.replace(/\/api\/?$/, '') : '';
+
+// Resolve an attachment URL — if it starts with /uploads, prefix with backend root
+export function resolveAttachmentUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `${BACKEND_ROOT}${url}`;
+}
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -54,6 +64,12 @@ export const events = {
     const form = new FormData();
     form.append('attachment', file);
     return api(`/events/${id}/post-document`, { method: 'POST', body: form });
+  },
+  uploadSupportingDocument: (id, file, type) => {
+    const form = new FormData();
+    form.append('attachment', file);
+    form.append('document_type', type || 'attendance_sheet');
+    return api(`/events/${id}/supporting-document`, { method: 'POST', body: form });
   },
   conflicts: () => api('/events/conflicts'),
   conflictsList: () => api('/events/conflicts/list'),
@@ -211,6 +227,7 @@ export const config = {
   deleteSchedule: (id) => api(`/delete-schedule/${id}`, { 
     method: 'DELETE' 
   }),
+  renewSchedule: (id) => api(`/renew-schedule/${id}`, { method: 'POST' }),
 
 
     getFocalships: () => api('/focalship'),
