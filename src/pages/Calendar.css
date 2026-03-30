@@ -415,23 +415,54 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   margin-top: 0.35rem;
   overflow-x: auto;
   padding-bottom: 0.15rem;
+  scrollbar-width: none;
 }
+.calendar-participant-legend::-webkit-scrollbar { display: none; }
 
-/* Make participant legend boxes match Offices legend look */
+/* Participant legend items — match offices legend style */
 .calendar-participant-legend .calendar-legend-item {
-  background: #ffffff;
-  border: 1px solid rgba(148, 163, 184, 0.55);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(148,163,184,0.5);
+  border-radius: 8px;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.18), 0 1px 3px rgba(15,23,42,0.06);
+  padding: 0.45rem 0.75rem 0.45rem 0.6rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  animation: cal-cluster-in 0.35s cubic-bezier(0.22,1,0.36,1) both;
 }
-
+.calendar-participant-legend .calendar-legend-item:nth-child(1) { animation-delay: 0.05s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(2) { animation-delay: 0.10s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(3) { animation-delay: 0.15s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(4) { animation-delay: 0.20s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(5) { animation-delay: 0.25s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(6) { animation-delay: 0.30s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(7) { animation-delay: 0.35s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(8) { animation-delay: 0.40s; }
+.calendar-participant-legend .calendar-legend-item:nth-child(9) { animation-delay: 0.45s; }
 .calendar-participant-legend .calendar-legend-item:hover {
-  background: #f9fafb;
-  border-color: rgba(63, 143, 140, 0.6);
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+  background: #f0f7ff;
+  border-color: rgba(63,143,140,0.55);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.1);
+  transform: translateY(-2px);
+}
+/* Bold label text */
+.calendar-participant-legend .calendar-legend-name {
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
+  letter-spacing: 0.02em;
+  color: #1e293b;
+}
+/* Active state — same as offices is-filtered */
+.calendar-participant-legend .calendar-legend-item-btn.is-active {
+  border-color: rgba(37,99,235,0.55);
+  background: rgba(37,99,235,0.08);
+  box-shadow: 0 6px 14px rgba(37,99,235,0.12);
+}
+.calendar-participant-legend .calendar-legend-item-btn.is-active .calendar-legend-name {
+  color: #1d4ed8 !important;
 }
 
 .calendar-legend-top {

@@ -1117,6 +1117,7 @@ return parsedEvents
                         className={`calendar-legend-item calendar-legend-item-btn ${
                           activeParticipantKey === item.key ? 'is-active' : ''
                         }`}
+                        style={{ '--participant-color': item.color }}
                         onClick={() =>
                           setActiveParticipantKey((prev) => (prev === item.key ? '' : item.key))
                         }
