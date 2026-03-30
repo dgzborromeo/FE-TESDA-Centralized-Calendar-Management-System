@@ -123,17 +123,21 @@ export default function Header() {
               <div className="header-dropdown header-dropdown-left">
                 <div className="header-dropdown-section-label">System</div>
                 <Link to="/about" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
                   About COROPOTI
                 </Link>
                 <Link to="/help" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
                   User Guide
                 </Link>
                 <Link to="/faq" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01"/></svg>
                   FAQs
                 </Link>
                 <div className="header-dropdown-sep" />
                 <div className="header-dropdown-section-label">Support</div>
                 <Link to="/support" className="header-dropdown-item" onClick={() => setHelpOpen(false)}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                   Contact / Report Issue
                 </Link>
               </div>
@@ -173,11 +177,14 @@ export default function Header() {
                   <div className="header-dropdown-user">
                     <strong>{user?.name}</strong>
                     <span>{user?.email}</span>
-                    <span>{user?.role === 'admin' ? 'Admin' : user?.role === 'viewer' ? 'Viewer' : 'User'}</span>
+                    <span className="header-dropdown-role-badge">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      {user?.role === 'admin' ? 'Admin' : user?.role === 'viewer' ? 'Viewer' : 'User'}
+                    </span>
                   </div>
-                  {/* <Link to="/invitations" className="header-dropdown-item" onClick={() => setAccountOpen(false)}>Invitations</Link> */}
                   <button type="button" className="header-dropdown-item header-dropdown-logout" onClick={handleLogout}>
-                    Logout
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
                   </button>
                 </div>
               )}
