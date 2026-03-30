@@ -111,15 +111,15 @@
   align-items: center;
   animation: land-fade-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
 }
-.landing-hero-left  { min-width: 0; margin-left: -2rem; }
+.landing-hero-left  { min-width: 0; margin-left: -10rem; }
 .landing-hero-right {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  min-width: 260px;
-  width: 260px;
+  min-width: 360px;
+  width: 360px;
   animation: land-fade-up 0.6s ease 0.4s both;
-  margin-right: -2rem;
+  margin-right: -8rem;
 }
 
 /* ── Kicker badge — government style ──────────────────────────────────── */
@@ -181,7 +181,7 @@
   position: relative;
   z-index: 1;
   gap: 0;
-  margin-left: -80px;
+  margin-left: 0;
 }
 .landing-one-o-wrap {
   position: relative;
@@ -189,6 +189,7 @@
   align-items: flex-start;
   justify-content: center;
   margin-right: -70px;
+  margin-left: -60px;
   z-index: 2;
   align-self: flex-start;
   margin-top: 0;
@@ -256,9 +257,11 @@
   font-family: 'Dancing Script', 'Brush Script MT', cursive;
   font-size: clamp(2.2rem, 4.5vw, 4rem);
   font-weight: 400;
-  color: #b91c1c;
-  -webkit-text-fill-color: #b91c1c;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 3px 12px rgba(120,0,0,0.3);
+  color: #f87171;
+  -webkit-text-fill-color: #fa0505;
+  text-shadow:
+    0 0 24px rgba(248,113,113,0.4),
+    0 2px 8px rgba(0,0,0,0.3);
   letter-spacing: 0.02em;
   display: block;
 }
@@ -362,11 +365,25 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transition: opacity 0.4s ease, transform 0.4s ease;
   overflow: hidden;
 }
-.landing-slide-in  { opacity: 1; transform: translateY(0); }
-.landing-slide-out { opacity: 0; transform: translateY(8px); }
+.landing-slide-in {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.4s ease, transform 0.42s cubic-bezier(0.22,1,0.36,1);
+}
+.landing-slide-out {
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+/* Starting position before enter transition fires — no transition so it snaps right */
+.landing-slide-enter {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: none;
+}
 
 /* Slide indicator dots */
 .landing-slide-dots {

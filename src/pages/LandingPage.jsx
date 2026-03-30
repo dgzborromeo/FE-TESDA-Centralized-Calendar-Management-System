@@ -7,6 +7,7 @@ export default function LandingPage() {
   const { user } = useAuth();
   const [slide, setSlide] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [entering, setEntering] = useState(false);
   const TOTAL = 4;
   const INTERVAL = 4000;
 
@@ -14,9 +15,15 @@ export default function LandingPage() {
     const timer = setInterval(() => {
       setVisible(false);
       setTimeout(() => {
+        setEntering(true);
         setSlide(s => (s + 1) % TOTAL);
-        setVisible(true);
-      }, 400);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setEntering(false);
+            setVisible(true);
+          });
+        });
+      }, 380);
     }, INTERVAL);
     return () => clearInterval(timer);
   }, []);
@@ -130,7 +137,7 @@ export default function LandingPage() {
 
           {/* Right column — rotating showcase */}
           <div className="landing-hero-right">
-            <div className={`landing-slide-wrap ${visible ? 'landing-slide-in' : 'landing-slide-out'}`}>
+            <div className={`landing-slide-wrap ${entering ? 'landing-slide-enter' : visible ? 'landing-slide-in' : 'landing-slide-out'}`}>
 
               {/* SLIDE 0 — Feature cards */}
               {slide === 0 && (
@@ -313,7 +320,19 @@ export default function LandingPage() {
                 <button
                   key={i}
                   className={`landing-slide-dot ${i === slide ? 'landing-slide-dot--active' : ''}`}
-                  onClick={() => { setVisible(false); setTimeout(() => { setSlide(i); setVisible(true); }, 400); }}
+                  onClick={() => {
+                    setVisible(false);
+                    setTimeout(() => {
+                      setEntering(true);
+                      setSlide(i);
+                      requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                          setEntering(false);
+                          setVisible(true);
+                        });
+                      });
+                    }, 300);
+                  }}
                   aria-label={`Slide ${i + 1}`}
                 />
               ))}
