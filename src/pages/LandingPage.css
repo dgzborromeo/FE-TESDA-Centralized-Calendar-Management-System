@@ -316,19 +316,32 @@
   letter-spacing: 0.01em;
   display: inline-block;
 }
-/* Primary — white on navy, formal lift + ring on hover */
+/* Primary — navy-to-teal gradient with arrow */
 .landing-btn-primary {
-  background: rgba(255,255,255,0.95);
-  color: #1f3a5f;
-  border: 1px solid transparent;
+  background: linear-gradient(135deg, #1f3a5f 0%, #2d5282 50%, #3f8f8c 100%);
+  color: #fff;
+  border: 1px solid rgba(63,143,140,0.4);
   font-weight: 800;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 18px rgba(31,58,95,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: 0.02em;
+}
+.landing-btn-primary::after {
+  content: '→';
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
 }
 .landing-btn-primary:hover {
-  background: #fff;
-  color: #1a3354;
+  background: linear-gradient(135deg, #193048 0%, #254470 50%, #2d7a77 100%);
+  color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 0 0 2px rgba(255,255,255,0.35);
+  box-shadow: 0 8px 24px rgba(31,58,95,0.55), 0 0 0 1px rgba(63,143,140,0.3);
+}
+.landing-btn-primary:hover::after {
+  transform: translateX(4px);
 }
 /* Secondary — teal glass, border brightens on hover */
 .landing-btn-secondary {
@@ -344,19 +357,36 @@
   color: #99f6e4;
   box-shadow: 0 6px 20px rgba(63,143,140,0.28), 0 0 0 1px rgba(63,143,140,0.3);
 }
-/* Ghost — white glass, border sharpens on hover */
+/* Ghost — outlined with lock icon */
 .landing-btn-ghost {
-  background: rgba(255,255,255,0.08);
+  background: transparent;
   color: rgba(255,255,255,0.82);
-  border: 1.5px solid rgba(255,255,255,0.18);
-  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,0.28);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.02em;
+}
+.landing-btn-ghost::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.82)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 .landing-btn-ghost:hover {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.38);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.5);
   transform: translateY(-2px);
   color: #fff;
   box-shadow: 0 6px 18px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.15);
+}
+.landing-btn-ghost:hover::before {
+  transform: translateY(-1px);
 }
 
 /* ── Right column slide panel ──────────────────────────────────────────── */
