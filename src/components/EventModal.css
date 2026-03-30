@@ -44,7 +44,7 @@
   padding: 1.5rem 1.9rem 1.25rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.4);
   background:
-    linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 45%, #3f8f8c 100%);
+    linear-gradient(135deg, #0d1f45 0%, #1a3a7a 45%, #2255b0 100%);
   color: #e5e7eb;
 }
 
@@ -744,26 +744,26 @@
   padding: 0.72rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 12px;
-  background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 45%, #3f8f8c 100%);
+  background: linear-gradient(135deg, #0d1f45 0%, #1a3a7a 45%, #2255b0 100%);
   color: #ffffff;
   font-size: 0.92rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  box-shadow: 0 10px 24px rgba(31, 58, 95, 0.32);
+  box-shadow: 0 10px 24px rgba(20, 50, 130, 0.32);
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease, background 120ms ease;
 }
 
 .modal-postdoc-upload .modal-btn-edit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #17304f 0%, #3f5f7f 45%, #327a77 100%);
+  background: linear-gradient(135deg, #162d55 0%, #2255b0 45%, #2a6acc 100%);
   transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(31, 58, 95, 0.36);
+  box-shadow: 0 14px 30px rgba(20, 50, 130, 0.36);
   filter: brightness(1.03);
 }
 
 .modal-postdoc-upload .modal-btn-edit:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 8px 18px rgba(31, 58, 95, 0.28);
+  box-shadow: 0 8px 18px rgba(20, 50, 130, 0.28);
 }
 
 .modal-postdoc-upload .modal-btn-edit:focus-visible {
