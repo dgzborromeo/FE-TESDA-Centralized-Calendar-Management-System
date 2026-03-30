@@ -677,6 +677,20 @@ const hostOptions = useMemo(() => {
       }
     });
 
+    // Special case: OSEC cluster — add osec@tesda.gov.ph user if exists
+    if (cluster.id === 'osec') {
+      const osecUser = userMapByCode.get('osec');
+      if (osecUser && !items.find(i => i.accountId === Number(osecUser.id))) {
+        items.push({
+          key: `${cluster.id}-OSEC`,
+          label: 'Office of the Secretary (OSEC)',
+          short: 'OSEC',
+          color: cluster.color || '#ef4444',
+          accountId: Number(osecUser.id),
+        });
+      }
+    }
+
     return {
       clusterId: cluster.id,
       clusterName: cluster.name,
