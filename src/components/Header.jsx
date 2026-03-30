@@ -83,7 +83,7 @@ export default function Header() {
         <div className="header-left">
           <Link to="/dashboard" className="header-logo">
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-            <span className="header-logo-text">COROPOTI Centralized Schedule Management System</span>
+            <span className="header-logo-text">ONE Centralized Calendar System</span>
           </Link>
           {isCalendarPage && (
             <input
