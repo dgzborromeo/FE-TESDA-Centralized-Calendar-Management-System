@@ -30,6 +30,10 @@ const [selectedRegionId, setSelectedRegionId] = useState(null); // Para sa Provi
 const [isMenuOpen, setIsMenuOpen] = useState(false);
 const [hoveredPosition, setHoveredPosition] = useState(null);
 const [conflictError, setConflictError] = useState(null); // I-store dito ang JSON error
+const [selectedRegionIdForTTI, setSelectedRegionIdForTTI] = useState(null);
+const [selectedProvinceIdForTTI, setSelectedProvinceIdForTTI] = useState(null);
+const [tempProvincesForTTI, setTempProvincesForTTI] = useState([]);
+const [tempTtis, setTempTtis] = useState([]);
 // Para sa UI logic ng cascading
 const [subType, setSubType] = useState(null); // 'cluster', 'office', 'region', 'province'
 const [tempRegions, setTempRegions] = useState([]);
@@ -178,85 +182,97 @@ const handlePositionDropdownChange = (e) => {
   }
 };
 const handleSubSelect = (subItem, type, parentPos) => {
-  const labelMap = { 'district_ncr': 'Districts', 'prov_region': 'Provinces', 'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions' };
-  const allLabel = `${parentPos} - All ${labelMap[type] || 'Participants'}`;
-
-  if (selectedPositions.some(p => p.name === allLabel)) return;
-
+  const labelMap = { 
+    'tti': 'TTIs', 'district_ncr': 'Districts', 'prov_region': 'Provinces',
+    'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions'
+  };
+  
   const posObj = positions.find(p => p.name === parentPos);
-  if (!posObj) return;
-
-  // ITEM NAME ONLY: Kunin lang yung dulo (e.g., "Manila" imbes na "NCR - Manila")
-  // Ito ang magiging text sa badge: "Position - Item"
+  const allLabel = `${parentPos} - All ${labelMap[type]}`;
   const itemNameOnly = subItem.includes(' - ') ? subItem.split(' - ').pop() : subItem;
   const fullName = `${parentPos} - ${itemNameOnly}`;
 
   setSelectedPositions(prev => {
-    const exists = prev.find(p => p.name === fullName);
-    if (exists) return prev.filter(p => p.name !== fullName);
+    const isAllActive = prev.some(p => p.name === allLabel);
+    let updated;
 
-    const dataSources = { clusters, offices, regions, provinces };
-    const sourceData = dataSources[posObj.sub_menu_source] || provinces;
-    const actualItem = sourceData.find(item => (type === 'region' ? item.region : item.name) === itemNameOnly);
+    if (isAllActive) {
+      // 💥 EXPLOSION LOGIC: 
+      // 1. Kunin ang listahan ng lahat ng items sa category na ito
+      let itemsToExplode = [];
+      if (type === 'tti') itemsToExplode = tempTtis;
+      else if (type === 'district_ncr' || type === 'prov_region') itemsToExplode = provinces;
+      else itemsToExplode = { 'cluster': clusters, 'office': offices, 'region': regions }[type] || [];
 
-    const updated = [...prev, {
-      id: `${type}-${actualItem?.id || Date.now()}`,
-      name: fullName,
-      designationId: posObj.id, 
-      targetId: actualItem?.id,
-      targetType: type.replace('_ncr', '').replace('_region', ''),
-      isSub: true,
-      isAll: false
-    }];
+      // 2. Gawin silang individual badges MALIBAN sa kinlick mo (uncheck)
+      const individualBadges = itemsToExplode
+        .filter(item => (type === 'region' ? item.region : item.name) !== itemNameOnly)
+        .map(item => ({
+          id: `${type}-${item.id}`,
+          name: `${parentPos} - ${type === 'region' ? item.region : item.name}`,
+          designationId: posObj?.id,
+          targetId: item.id,
+          targetType: type === 'prov_region' ? 'province' : (type === 'district_ncr' ? 'district' : type),
+          isSub: true,
+          isAll: false
+        }));
+
+      // 3. Alisin ang "All" badge at ipalit ang mga individuals
+      updated = [...prev.filter(p => p.name !== allLabel), ...individualBadges];
+    } else {
+      // Normal Toggle Logic
+      const exists = prev.find(p => p.name === fullName);
+      if (exists) {
+        updated = prev.filter(p => p.name !== fullName);
+      } else {
+        updated = [...prev, {
+          id: `${type}-${Date.now()}`,
+          name: fullName,
+          designationId: posObj?.id,
+          targetType: type === 'prov_region' ? 'province' : (type === 'district_ncr' ? 'district' : type),
+          isSub: true,
+          isAll: false
+        }];
+      }
+    }
     updateParticipantsText(updated, selectedFocals);
     return updated;
   });
 };
 const handleSelectAll = (items, type, parentPos) => {
   const labelMap = { 
-    'district_ncr': 'Districts', 
-    'prov_region': 'Provinces', 
-    'cluster': 'Clusters', 
-    'office': 'Offices', 
-    'region': 'Regions',
-    'district': 'Districts',
-    'province': 'Provinces'
+    'district_ncr': 'Districts', 'prov_region': 'Provinces', 'cluster': 'Clusters', 
+    'office': 'Offices', 'region': 'Regions', 'district': 'Districts',
+    'province': 'Provinces', 'tti' : 'TTIs'
   };
 
   const displayLabel = labelMap[type] || 'Participants';
   const allLabel = `${parentPos} - All ${displayLabel}`;
   const posObj = positions.find(p => p.name === parentPos);
 
-  // MATCHING LOGIC
-  const currentViewFullNames = items.map(item => {
-    // Siguraduhin na 'name' o 'region' lang ang kinukuha para tugma sa handleSubSelect badges
-    const itemName = type === 'region' ? item.region : item.name;
-    return `${parentPos} - ${itemName}`;
-  });
-
   setSelectedPositions(prev => {
     const isAlreadyAll = prev.some(p => p.name === allLabel);
     
     if (isAlreadyAll) {
+      // Kapag in-uncheck ang "Select All", empty na lahat sa category na yun
       const updated = prev.filter(p => p.name !== allLabel);
       updateParticipantsText(updated, selectedFocals);
       return updated;
     } else {
-      // 1. Alisin ang individual badges na sakop ng "Select All" view na ito
-      const filtered = prev.filter(p => !currentViewFullNames.includes(p.name));
+      // Pag kinlick ang "Select All", alisin muna ang mga individual items sa view na yun
+      let searchTargetType = type === 'prov_region' ? 'province' : (type === 'district_ncr' ? 'district' : type);
       
-      // 2. I-set ang tamang targetType para sa database (e.g., 'prov_region' -> 'province')
-      let finalTargetType = type;
-      if (type === 'prov_region') finalTargetType = 'province';
-      if (type === 'district_ncr') finalTargetType = 'district';
-
+      const filtered = prev.filter(p => 
+        p.designationId !== posObj?.id || p.targetType !== searchTargetType
+      );
+      
       const allEntry = {
         id: `all-${type}-${Date.now()}`,
         name: allLabel,
         designationId: posObj?.id,
-        targetType: finalTargetType, // Ito ang papasok sa target_type column sa DB
+        targetType: searchTargetType,
         isSub: true,
-        isAll: true // Ito ang magiging is_all = 1
+        isAll: true 
       };
       
       const updated = [...filtered, allEntry];
@@ -300,6 +316,28 @@ const handleFocalDropdownChange = (e) => {
         }
     }
     e.target.value = ""; // Reset dropdown
+};
+const handleRegionHoverTTI = async (regionId) => {
+  setSelectedRegionIdForTTI(regionId);
+  setSelectedProvinceIdForTTI(null);
+  setTempTtis([]);
+  try {
+    const res = await scheduleAPI.getProvinces(regionId);
+    setTempProvincesForTTI(res || []);
+  } catch (err) {
+    console.error("Error fetching provinces for TTI", err);
+  }
+};
+
+// Hover handler para sa Provinces (TTI Level)
+const handleProvinceHoverTTI = async (provinceId) => {
+  setSelectedProvinceIdForTTI(provinceId);
+  try {
+    const res = await scheduleAPI.getTTIsByProvince(provinceId);
+    setTempTtis(res || []);
+  } catch (err) {
+    console.error("Error fetching TTIs", err);
+  }
 };
 
 const handleAddCustomFocal = async () => {
@@ -770,195 +808,274 @@ if (response) {
 <div className="participants-inline-row">
   {/* Positions Group */}
 {/* Heads Group with Custom Dropdown */}
-      <div className="input-group-inline" style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-        <label className="simple-event-label">Heads</label>
-        
-        {/* Custom Trigger - Pinagmumukhang Select Input */}
-        <div 
-          className="custom-dropdown-trigger" 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {hoveredPosition || "-- Select Participant --"}
-          <span className="arrow">{isMenuOpen ? '▲' : '▼'}</span>
-        </div>
+<div className="input-group-inline" style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+  <label className="simple-event-label">Heads</label>
 
-        {/* Ang Cascading Menu sa Gilid */}
-        {isMenuOpen && (
-          <div className="main-menu-container">
-            {/* Unang Listahan (Main Positions) */}
-<ul className="dropdown-list-main">
-{positions.map((p) => {
-  const hasSubMenu = p.has_sub_menu; // Direct from DB column
-  
-  return (
-    <li 
-      key={p.id} 
-      className={hoveredPosition === p.name ? 'active-li' : ''}
-      onMouseEnter={() => {
-        setHoveredPosition(p.name);
-        if (hasSubMenu) {
-          setSubType(p.sub_menu_type);
-          // Special cases handle
-          if (p.sub_menu_type === 'district_ncr') handleRegionHover(2);
-          else if (p.sub_menu_type !== 'prov_region') setSelectedRegionId(null);
-        } else {
-          setSubType(null);
-        }
-      }}
-      onClick={() => {
-        if (!hasSubMenu) {
-          handlePositionDropdownChange({ target: { value: p.name } });
-          setIsMenuOpen(false);
-          setHoveredPosition(null);
-        }
-      }}
-    >
-      {p.name}
-      {hasSubMenu && <span className="chevron-right">▶</span>}
-    </li>
-  );
-})}
-</ul>
+  {/* Custom Trigger */}
+  <div
+    className="custom-dropdown-trigger"
+    onClick={() => setIsMenuOpen(!isMenuOpen)}
+  >
+    {hoveredPosition || "-- Select Participant --"}
+    <span className="arrow">{isMenuOpen ? '▲' : '▼'}</span>
+  </div>
 
-            {/* Pangalawang Listahan (Lilitaw sa tabi pag nag-hover sa may sub-type) */}
-            {subType && (
-              <ul className="dropdown-list-sub">
-{/* Render clusters, offices, or regions dynamically */}
-{['cluster', 'office', 'region'].includes(subType) && (
-  <ul className="dropdown-list-sub">
-    <li className="select-all-item">
-      <label className="checkbox-label">
-        <input 
-  type="checkbox" 
-  onChange={() => {
-    const config = getPosConfig(hoveredPosition);
-    const items = { 
-      'cluster': clusters, 
-      'office': offices, 
-      'region': regions,
-      'district_ncr': provinces,
-      'prov_region': provinces 
-    }[subType];
-    handleSelectAll(items, subType, hoveredPosition);
-  }}
-  checked={selectedPositions.some(p => {
-    const labelMap = { 'district_ncr': 'Districts', 'prov_region': 'Provinces', 'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions' };
-    return p.name === `${hoveredPosition} - All ${labelMap[subType] || 'Participants'}`;
-  })}
-/>
-<span className="item-text">
-  All {
-    subType === 'district_ncr' ? 'Districts' : 
-    subType === 'prov_region' ? 'Provinces' : 
-    (subType.charAt(0).toUpperCase() + subType.slice(1) + 's')
-  }
-</span>
-      </label>
-    </li>
-    <div className="scrollable-sub-list">
-      {( { clusters, offices, regions }[getPosConfig(hoveredPosition)?.source] || [])
-        .filter(item => item.id !== 1)
-        .map(item => {
-          const itemName = subType === 'region' ? item.region : item.name;
-          const fullName = `${hoveredPosition} - ${itemName}`;
-          const currentConfig = getPosConfig(hoveredPosition);
-          const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${currentConfig?.label}`);
-          
+  {/* Ang Cascading Menu sa Gilid */}
+  {isMenuOpen && (
+    <div className="main-menu-container">
+      {/* Unang Listahan (Main Positions) */}
+      <ul className="dropdown-list-main">
+        {positions.map((p) => {
+          const hasSubMenu = p.has_sub_menu;
           return (
-            <li key={item.id} className="checkbox-item">
-              <label className="checkbox-label" onClick={() => handleSubSelect(itemName, subType, hoveredPosition)}>
-                <input type="checkbox" checked={isChecked} readOnly />
-                <span className="item-text">{itemName}</span>
-              </label>
+            <li
+              key={p.id}
+              className={hoveredPosition === p.name ? 'active-li' : ''}
+              onMouseEnter={() => {
+                setHoveredPosition(p.name);
+                if (hasSubMenu) {
+                  setSubType(p.sub_menu_type);
+                  if (p.sub_menu_type === 'tti' || p.sub_menu_type === 'school') {
+                    setSelectedRegionIdForTTI(null);
+                    setSelectedProvinceIdForTTI(null);
+                  }
+                  if (p.sub_menu_type === 'district_ncr') handleRegionHover(2);
+                  else if (p.sub_menu_type !== 'prov_region') setSelectedRegionId(null);
+                } else {
+                  setSubType(null);
+                }
+              }}
+              onClick={() => {
+                if (!hasSubMenu) {
+                  handlePositionDropdownChange({ target: { value: p.name } });
+                  setIsMenuOpen(false);
+                  setHoveredPosition(null);
+                }
+              }}
+            >
+              {p.name}
+              {hasSubMenu && <span className="chevron-right">▶</span>}
             </li>
           );
-      })}
-    </div>
-  </ul>
-)}
-{subType === 'prov_region' && (
-  <div className="scrollable-sub-list" style={{ borderLeft: '1px solid #eee', minWidth: '180px' }}>
-    {regions.filter(r => r.id !== 1 && r.id !== 2).map(r => (
-      <li 
-        key={r.id} 
-        onMouseEnter={() => handleRegionHover(r.id)}
-        className={selectedRegionId === r.id ? 'active-li' : ''}
-        style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', cursor: 'default' }}
-      >
-        {r.region} <span className="chevron-right">▶</span>
-      </li>
-    ))}
-  </div>
-)}
+        })}
+      </ul>
 
-{subType === 'district_ncr' && (
-  <ul className="dropdown-list-sub">
-    <li className="select-all-item">
-      <label className="checkbox-label">
-        <input 
-          type="checkbox" 
-          onChange={() => handleSelectAll(provinces, 'district', hoveredPosition)}
-          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Districts`)}
-        />
-        <span className="item-text">All Districts</span>
-      </label>
-    </li>
-    <div className="scrollable-sub-list">
-{provinces.map(pr => {
-  const fullName = `${hoveredPosition} - ${pr.name}`; // Tinanggal ang "National Capital Region" sa name
-  // Dito tinitingnan kung dapat bang naka-check ang box (kung yung individual name o yung "All Districts" ay selected)
-  const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
-  
-  return (
-    <li key={pr.id} className="checkbox-item">
-      <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'district_ncr', hoveredPosition)}>
-        <input type="checkbox" checked={isChecked} readOnly />
-        <span className="item-text">{pr.name}</span>
-      </label>
-    </li>
-  );
-})}
-    </div>
-  </ul>
-)}
+      {/* PANGALAWANG COLUMN WRAPPER */}
+      {subType && (
+        <div className="sub-menu-wrapper" style={{ display: 'flex' }}>
+          
+          {/* 1. Clusters, Offices, Regions */}
+          {['cluster', 'office', 'region'].includes(subType) && (
+            <ul className="dropdown-list-sub">
+              <li className="select-all-item">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    onChange={() => {
+                      const items = { 'cluster': clusters, 'office': offices, 'region': regions }[subType];
+                      handleSelectAll(items, subType, hoveredPosition);
+                    }}
+                    checked={selectedPositions.some(p => {
+                      const labelMap = { 'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions' };
+                      return p.name === `${hoveredPosition} - All ${labelMap[subType]}`;
+                    })}
+                  />
+                  <span className="item-text">
+                    All {subType.charAt(0).toUpperCase() + subType.slice(1) + 's'}
+                  </span>
+                </label>
+              </li>
+              <div className="scrollable-sub-list">
+                {({ clusters, offices, regions }[getPosConfig(hoveredPosition)?.source] || [])
+                  .filter(item => item.id !== 1)
+                  .map(item => {
+                    const itemName = subType === 'region' ? item.region : item.name;
+                    const fullName = `${hoveredPosition} - ${itemName}`;
+                    const currentConfig = getPosConfig(hoveredPosition);
+                    // IBALIK ANG LOGIC MO: Naka-check kung individual OR kung naka "Select All"
+                    const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${currentConfig?.label}`);
+                    return (
+                      <li key={item.id} className="checkbox-item">
+                        <label className="checkbox-label" onClick={() => handleSubSelect(itemName, subType, hoveredPosition)}>
+                          <input type="checkbox" checked={isChecked} readOnly />
+                          <span className="item-text">{itemName}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+              </div>
+            </ul>
+          )}
+
+          {/* 2. District NCR */}
+          {subType === 'district_ncr' && (
+            <ul className="dropdown-list-sub">
+              <li className="select-all-item">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    onChange={() => handleSelectAll(provinces, 'district', hoveredPosition)}
+                    checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Districts`)}
+                  />
+                  <span className="item-text">All Districts</span>
+                </label>
+              </li>
+              <div className="scrollable-sub-list">
+                {provinces.map(pr => {
+                  const fullName = `${hoveredPosition} - ${pr.name}`;
+                  const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
+                  return (
+                    <li key={pr.id} className="checkbox-item">
+                      <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'district_ncr', hoveredPosition)}>
+                        <input type="checkbox" checked={isChecked} readOnly />
+                        <span className="item-text">{pr.name}</span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </div>
+            </ul>
+          )}
+
+          {/* 3. Provincial Director */}
+          {subType === 'prov_region' && (
+            <>
+              <ul className="dropdown-list-sub" style={{ minWidth: '180px' }}>
+                <div className="scrollable-sub-list">
+                  {regions.filter(r => r.id !== 1 && r.id !== 2).map(r => (
+                    <li
+                      key={r.id}
+                      onMouseEnter={() => handleRegionHover(r.id)}
+                      className={selectedRegionId === r.id ? 'active-li' : ''}
+                      style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', cursor: 'default' }}
+                    >
+                      {r.region} <span className="chevron-right">▶</span>
+                    </li>
+                  ))}
+                </div>
               </ul>
-            )}
-{subType === 'prov_region' && selectedRegionId && (
-  <ul className="dropdown-list-sub">
-    <li className="select-all-item">
-      <label className="checkbox-label">
-        <input 
-          type="checkbox" 
-          onChange={() => {
-            // TANGGALIN ang regName mapping dito para mag-match sa individual badges
-            handleSelectAll(provinces, 'prov_region', hoveredPosition);
-          }}
-          checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Provinces`)}
-        />
-        <span className="item-text">All Provinces</span>
-      </label>
-    </li>
-    <div className="scrollable-sub-list">
-      {provinces.map(pr => {
-        // Ang fullName dito ay "Position - Province" (wala nang Region name)
-        const fullName = `${hoveredPosition} - ${pr.name}`; 
-        const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Provinces`);
-        
-        return (
-          <li key={pr.id} className="checkbox-item">
-            <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'prov_region', hoveredPosition)}>
-              <input type="checkbox" checked={isChecked} readOnly />
-              <span className="item-text">{pr.name}</span>
-            </label>
-          </li>
-        );
-      })}
+              {selectedRegionId && (
+                <ul className="dropdown-list-sub" style={{ borderLeft: '1px solid #eee' }}>
+                  <li className="select-all-item">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        onChange={() => handleSelectAll(provinces, 'prov_region', hoveredPosition)}
+                        checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All Provinces`)}
+                      />
+                      <span className="item-text">All Provinces</span>
+                    </label>
+                  </li>
+                  <div className="scrollable-sub-list">
+                    {provinces.map(pr => {
+                      const fullName = `${hoveredPosition} - ${pr.name}`;
+                      const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Provinces`);
+                      return (
+                        <li key={pr.id} className="checkbox-item">
+                          <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'prov_region', hoveredPosition)}>
+                            <input type="checkbox" checked={isChecked} readOnly />
+                            <span className="item-text">{pr.name}</span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </div>
+                </ul>
+              )}
+            </>
+          )}
+
+          {/* 4. TTI / TTIs */}
+          {['tti', 'school'].includes(subType) && (
+            <>
+              <ul className="dropdown-list-sub" style={{ minWidth: '180px' }}>
+                <div className="scrollable-sub-list">
+                  {regions.filter(r => r.id !== 1).map(r => (
+                    <li
+                      key={r.id}
+                      onMouseEnter={() => handleRegionHoverTTI(r.id)}
+                      className={selectedRegionIdForTTI === r.id ? 'active-li' : ''}
+                      style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', cursor: 'default' }}
+                    >
+                      {r.region} <span className="chevron-right">▶</span>
+                    </li>
+                  ))}
+                </div>
+              </ul>
+              {selectedRegionIdForTTI && (
+                <ul className="dropdown-list-sub" style={{ minWidth: '180px', borderLeft: '1px solid #eee' }}>
+                  <div className="scrollable-sub-list">
+                    {tempProvincesForTTI.map(p => (
+                      <li
+                        key={p.id}
+                        onMouseEnter={() => handleProvinceHoverTTI(p.id)}
+                        className={selectedProvinceIdForTTI === p.id ? 'active-li' : ''}
+                        style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', cursor: 'default' }}
+                      >
+                        {p.name} <span className="chevron-right">▶</span>
+                      </li>
+                    ))}
+                  </div>
+                </ul>
+              )}
+              {selectedProvinceIdForTTI && (
+                <ul className="dropdown-list-sub" style={{ 
+                    minWidth: '250px',            // Tinaasan natin ang base width
+                    width: 'max-content',         // Ito ang magic: kusa siyang lalapad base sa text
+                    maxWidth: '450px',            // Pero may limit para hindi sobrang haba
+                    borderLeft: '1px solid #eee',
+                    whiteSpace: 'nowrap'          // Pinipigilan natin mag-wrap yung text sa bagong linya
+                  }}
+                >
+                  <li className="select-all-item">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        onChange={() => handleSelectAll(tempTtis, 'tti', hoveredPosition)}
+                        checked={selectedPositions.some(p => p.name === `${hoveredPosition} - All TTIs`)}
+                      />
+                      <span className="item-text">All TTIs</span>
+                    </label>
+                  </li>
+                  <div className="scrollable-sub-list">
+                    {tempTtis.map(tti => {
+                      const fullName = `${hoveredPosition} - ${tti.name}`;
+                      // Inapply rin natin ang logic dito para sa TTI
+                      const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All TTIs`);
+                    return (
+                              <li key={tti.id} className="checkbox-item">
+                                <label 
+                                  className="checkbox-label" 
+                                  onClick={() => handleSubSelect(tti.name, 'tti', hoveredPosition)}
+                                  style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                                >
+                                  <input type="checkbox" checked={isChecked} readOnly />
+                                  {/* textOverflow para kung sakaling lumampas sa 450px, mag-dot-dot-dot (...) */}
+                                  <span 
+                                    className="item-text" 
+                                    style={{ 
+                                      whiteSpace: 'nowrap', 
+                                      overflow: 'hidden', 
+                                      textOverflow: 'ellipsis' 
+                                    }}
+                                    title={tti.name} // Pag hino-hover ng mouse, lalabas ang buong pangalan
+                                  >
+                                    {tti.name}
+                                  </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </div>
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
-  </ul>
-)}
-          </div>
-        )}
-      </div>{/* end Heads input-group-inline */}
+  )}
+</div>
 
   {/* Focals Group */}
   <div className="input-group-inline">

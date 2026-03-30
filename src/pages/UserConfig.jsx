@@ -11,6 +11,7 @@ const TABS = [
   { id: 'positions', label: 'Positions' },
   { id: 'pos-setup', label: 'Position Setup' },
   { id: 'focals', label: 'Focalships' },
+  { id: 'ttis', label: 'TTIs' }, // Bago
 ];
 
 export default function UserConfig() {
@@ -63,6 +64,23 @@ const [regions, setRegions] = useState([]);
 const [provinces, setProvinces] = useState([]);
 const [userFormError, setUserFormError] = useState('');
 const [userFormLoading, setUserFormLoading] = useState(false);
+const [ttis, setTtis] = useState([]);
+const [ttiFormData, setTtiFormData] = useState({ 
+  name: '', 
+  province_id: '', 
+  classification: '', 
+  address: '', 
+  email: '' 
+});
+const loadTTIs = useCallback(() => {
+  setLoading(true);
+  configApi.getTTIs()
+    .then(data => {
+      setTtis(data || []);
+      setLoading(false);
+    })
+    .catch(err => { console.error(err); setLoading(false); });
+}, []);
   // Load Offices
   const loadOffices = useCallback(() => {
     setLoading(true);
@@ -125,7 +143,43 @@ const loadProvinces = useCallback(() => {
     })
     .catch(err => { console.error(err); setLoading(false); });
 }, []);
+// Handler para sa TTI Save/Update
+const handleTTISubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const payload = {
+      ...ttiFormData,
+      province_id: parseInt(ttiFormData.province_id)
+    };
 
+    if (editingId) {
+      await configApi.updateTTI(editingId, payload);
+    } else {
+      await configApi.addTTI(payload);
+    }
+    
+    loadTTIs(); // Refresh list
+    resetTtiForm(); // Close and clear form
+  } catch (err) {
+    alert(err.message || "Error saving TTI");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Reset function para sa TTI
+const resetTtiForm = () => {
+  setTtiFormData({ 
+    name: '', 
+    province_id: '', 
+    classification: '', 
+    address: '', 
+    email: '' 
+  });
+  setIsFormOpen(false);
+  setEditingId(null);
+};
 const loadFocals = useCallback(() => {
   setLoading(true);
   configApi.getFocalships()
@@ -324,36 +378,54 @@ const filteredUserAccounts = userAccounts.filter((item) => {
   return buildUserSearchText(item).includes(query);
 });
 
-  useEffect(() => {
-if (activeTab === 'offices') {
-    loadOffices();
-    loadClusters(); // Idagdag ito
-  }
-    if (activeTab === 'divisions') {
+useEffect(() => {
+  // 1. DATA LOADING LOGIC
+  switch (activeTab) {
+    case 'offices':
+      loadOffices();
+      loadClusters();
+      break;
+    case 'divisions':
       loadDivisions();
-      loadOffices(); // Kailangan natin ito para sa dropdown sa Divisions tab
-    }
-    if (activeTab === 'positions') loadPositions();
-    if (activeTab === 'pos-setup') { 
-        loadConfigPositions(); 
-        loadOffices(); 
-        loadDivisions(); 
-        loadPositions(); 
-    }
-    if (activeTab === 'focals') loadFocals();
-    if (activeTab === 'users') {
-        loadUserAccounts();
-        loadOffices();    // Para sa Office dropdown
-        loadPositions();  // Para sa Designation/Position dropdown
-        loadClusters();   // Kung may cluster dropdown din
-        loadRegions();   // <-- Dagdag ito
-        loadProvinces(); // <-- Dagdag ito
-      }
-    // I-reset ang form state paglipat ng tab
-    setIsFormOpen(false);
-    setEditingId(null);
-    setFormData({ name: '', abbr: '', office_id: '' });
-  }, [activeTab, loadOffices, loadClusters,loadRegions,loadProvinces, loadDivisions, loadPositions, loadConfigPositions, loadFocals, loadUserAccounts]);
+      loadOffices();
+      break;
+    case 'positions':
+      loadPositions();
+      break;
+    case 'pos-setup':
+      loadConfigPositions();
+      loadOffices();
+      loadDivisions();
+      loadPositions();
+      break;
+    case 'focals':
+      loadFocals();
+      break;
+    case 'users':
+      loadUserAccounts();
+      loadOffices();
+      loadPositions();
+      loadClusters();
+      loadRegions();
+      loadProvinces();
+      break;
+    case 'ttis':
+      loadTTIs();
+      loadProvinces(); // Siguradong loaded ang options para sa dropdown
+      break;
+    default:
+      break;
+  }
+  setIsFormOpen(false);
+  setEditingId(null);
+  setFormData({ 
+    name: '', abbr: '', has_sub_menu: false, sub_menu_type: '', 
+    sub_menu_source: '', office_id: '', division_id: '', position_id: '' 
+  });
+  setTtiFormData({ 
+    name: '', province_id: '', classification: '', address: '', email: '' 
+  });
+}, [activeTab, loadOffices, loadTTIs, loadClusters, loadRegions, loadProvinces, loadDivisions, loadPositions, loadConfigPositions, loadFocals, loadUserAccounts]);
 
   
   // Handle Save (Unified for Office and Division)
@@ -434,24 +506,30 @@ const handleSubmit = async (e) => {
     }
     setIsFormOpen(true);
   };
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure?")) return;
-    try {
-      if (activeTab === 'offices') await configApi.deleteOffice(id);
-      else if (activeTab === 'divisions') await configApi.deleteDivision(id);
-      else if (activeTab === 'positions') await configApi.deletePosition(id);
-      else if (activeTab === 'pos-setup') await configApi.deleteConfigPosition(id);
-      else if (activeTab === 'focals') await configApi.deleteFocalship(id);
-      // Refresh current tab
-      if (activeTab === 'offices') loadOffices();
-      if (activeTab === 'divisions') loadDivisions();
-      if (activeTab === 'positions') loadPositions();
-      if (activeTab === 'pos-setup') loadConfigPositions();
-      if (activeTab === 'focals') loadFocals();
-    } catch (err) {
-      alert("Delete failed");
+const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure?")) return;
+  try {
+    if (activeTab === 'offices') await configApi.deleteOffice(id);
+    else if (activeTab === 'divisions') await configApi.deleteDivision(id);
+    else if (activeTab === 'positions') await configApi.deletePosition(id);
+    else if (activeTab === 'pos-setup') await configApi.deleteConfigPosition(id);
+    else if (activeTab === 'focals') await configApi.deleteFocalship(id);
+    else if (activeTab === 'ttis') await configApi.deleteTTI(id); // <--- Dagdag ito
+
+    // Refresh current tab
+    switch(activeTab) {
+      case 'offices': loadOffices(); break;
+      case 'divisions': loadDivisions(); break;
+      case 'positions': loadPositions(); break;
+      case 'pos-setup': loadConfigPositions(); break;
+      case 'focals': loadFocals(); break;
+      case 'ttis': loadTTIs(); break; // <--- Dagdag ito
+      default: break;
     }
-  };
+  } catch (err) {
+    alert("Delete failed");
+  }
+};
 
   if (!user) return <Navigate to="/login" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
@@ -681,6 +759,7 @@ const handleSubmit = async (e) => {
                       <option value="region">Region</option>
                       <option value="prov_region">Provinces (Region-based)</option>
                       <option value="district_ncr">Districts (NCR)</option>
+                      <option value="tti">TTIs</option>
                     </select>
 
                     <select 
@@ -694,6 +773,7 @@ const handleSubmit = async (e) => {
                       <option value="offices">Offices</option>
                       <option value="regions">Regions</option>
                       <option value="districts">Districts</option>
+                      <option value="ttis">TTIs</option>
                     </select>
                   </>
                 )}
@@ -1166,6 +1246,97 @@ const handleSubmit = async (e) => {
             </ul>
           </section>
         )}
+
+        {/* TTIs TAB */}
+        {activeTab === 'ttis' && (
+        <section className="user-config-panel">
+          <div className="panel-header-inline">
+            <h2 className="user-config-panel-title">TTI Configuration</h2>
+            {!isFormOpen && (
+              <button className="btn-add-toggle" onClick={() => setIsFormOpen(true)}>+ Add TTI</button>
+            )}
+          </div>
+
+          {isFormOpen && (
+            <form className="tti-config-form" onSubmit={handleTTISubmit}>
+              <div className="tti-form-grid">
+                <input 
+                  type="text" placeholder="Name of TTI (e.g. PTC Apayao)" 
+                  value={ttiFormData.name} onChange={(e) => setTtiFormData({...ttiFormData, name: e.target.value})} required 
+                />
+                <select 
+                  value={ttiFormData.province_id} 
+                  onChange={(e) => setTtiFormData({...ttiFormData, province_id: e.target.value})} required
+                >
+                  <option value="">-- Select Province --</option>
+                  {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <select 
+                  value={ttiFormData.classification} 
+                  onChange={(e) => setTtiFormData({...ttiFormData, classification: e.target.value})}
+                >
+                  <option value="">-- Classification --</option>
+                  <option value="PTC">PTC</option>
+                  <option value="DTC">DTC</option>
+                  <option value="RTC">RTC</option>
+                  <option value="STC">STC</option>
+                  <option value="TAS">TAS</option>
+                </select>
+                <input 
+                  type="email" placeholder="Official Email (Optional)" 
+                  value={ttiFormData.email} onChange={(e) => setTtiFormData({...ttiFormData, email: e.target.value})} 
+                />
+                <textarea 
+                  placeholder="Complete Address" 
+                  value={ttiFormData.address} onChange={(e) => setTtiFormData({...ttiFormData, address: e.target.value})}
+                />
+              </div>
+              <div className="inline-form-btns" style={{ marginTop: '20px' }}>
+                <button type="submit" className="btn-inline-save">
+                  {editingId ? 'Update TTI' : 'Save TTI'}
+                </button>
+                <button type="button" className="btn-inline-cancel" onClick={resetTtiForm}>Cancel</button>
+              </div>
+            </form>
+          )}
+
+          <ul className="modern-config-list">
+            {loading ? <p>Loading...</p> : ttis.map(t => (
+              <li key={t.id} className="config-list-item">
+                <div className="tti-info-main">
+                  <span className="tti-name-text">{t.name}</span>
+                  <div className="tti-sub-text">
+                    <span className="tti-badge">{t.classification || 'N/A'}</span>
+                    <span>•</span>
+                    <span>{t.province?.name || 'No Province Assigned'}</span>
+                    {t.email && (
+                      <>
+                        <span>•</span>
+                        <span style={{ fontStyle: 'italic' }}>{t.email}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="item-actions">
+                  <button className="btn-action-edit" onClick={() => {
+                    setEditingId(t.id);
+                    setTtiFormData({ 
+                      name: t.name, 
+                      province_id: t.province_id, 
+                      classification: t.classification || '', 
+                      address: t.address || '', 
+                      email: t.email || '' 
+                    });
+                    setIsFormOpen(true);
+                  }}>Edit</button>
+                  <button className="btn-action-delete" onClick={() => handleDelete(t.id)}>Delete</button>
+                </div>
+              </li>
+            ))}
+            {!loading && ttis.length === 0 && <p className="user-config-empty">No TTIs found.</p>}
+          </ul>
+        </section>
+      )}
 
       </div>
     </div>

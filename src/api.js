@@ -248,4 +248,18 @@ export const config = {
 
   getClusters: () => api('/clusters'),
   getRegions: () => api('/regions'),
+    getTTIs: () => api('/ttis'),
+  getTTI: (id) => api(`/ttis/${id}`),
+  addTTI: (body) => api('/ttis', { 
+    method: 'POST', 
+    body: JSON.stringify(body) 
+  }),
+  updateTTI: (id, body) => api(`/ttis/${id}`, { 
+    method: 'PUT', // Siguraduhing PUT ito base sa backend route mo
+    body: JSON.stringify(body) 
+  }),
+  deleteTTI: (id) => api(`/ttis/${id}`, { 
+    method: 'DELETE' 
+  }),
+  getTTIsByProvince: (provinceId) => api(`/provinces/${provinceId}/ttis`),
 };
