@@ -1,19 +1,24 @@
 import { Link } from 'react-router-dom';
 import './Info.css';
+import './Dashboard.css';
 
 export default function HelpGuide() {
   return (
     <div className="info-page">
-      <div className="info-topbar">
-        <div>
-          <h1 className="info-title">User Guide</h1>
-          <p className="info-subtitle">Quick steps for common tasks in the system.</p>
+      <section className="dashboard-panel dashboard-panel-overview ev-hero-panel">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-overview-titleblock">
+            <h1 className="dashboard-title">User Guide</h1>
+            <p className="dashboard-subtitle">Quick steps for common tasks in the system.</p>
+          </div>
+          <div className="dashboard-overview-side">
+            <div className="dashboard-actions">
+              <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
+              <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
+            </div>
+          </div>
         </div>
-        <div className="info-actions">
-          <Link to="/dashboard" className="info-btn">Back to Dashboard</Link>
-          <Link to="/calendar" className="info-btn">View Calendar</Link>
-        </div>
-      </div>
+      </section>
 
       <section className="info-card" style={{ marginBottom: '1rem' }}>
         <h2>Submit a new schedule</h2>

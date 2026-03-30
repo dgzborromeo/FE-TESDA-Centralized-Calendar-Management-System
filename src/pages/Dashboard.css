@@ -1359,7 +1359,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   flex-wrap: wrap;
 }
 
@@ -1370,34 +1370,36 @@
 
 .events-view-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
+  background: rgba(241,245,249,0.8);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 12px;
+  padding: 4px;
 }
 
 .events-view-tab {
-  padding: 8px 18px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
   cursor: pointer;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #64748b;
-  border-radius: 8px;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  border-radius: 9px;
+  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
   white-space: nowrap;
 }
 
 .events-view-tab:hover {
   color: #1e40af;
-  background: #eff6ff;
-  border-color: #93c5fd;
+  background: rgba(255,255,255,0.8);
 }
 
 .events-view-tab.active {
   color: #fff;
-  background: linear-gradient(135deg, #1e40af, #2563eb);
-  border-color: #1e40af;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 50%, #3f8f8c 100%);
+  box-shadow: 0 2px 10px rgba(31,58,95,0.3);
 }
 
 /* ── EventsView cards ───────────────────────────────────────────────────── */
@@ -1407,7 +1409,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .ev-card {
@@ -1415,19 +1417,19 @@
   align-items: stretch;
   width: 100%;
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
-  transition: box-shadow 0.18s, transform 0.15s, border-color 0.18s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.05);
 }
 
 .ev-card:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
-  border-color: #cbd5e1;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.1), 0 2px 6px rgba(15,23,42,0.06);
+  border-color: rgba(79,109,138,0.3);
 }
 
 /* date badge column */
@@ -1436,50 +1438,54 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
-  padding: 14px 10px;
+  min-width: 72px;
+  padding: 16px 12px;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .ev-card--upcoming .ev-card__date {
-  background: linear-gradient(160deg, #1f3a5f, #4f6d8a 60%, #3f8f8c);
+  background: linear-gradient(160deg, #1f3a5f 0%, #2d5282 55%, #3f8f8c 100%);
   color: #fff;
 }
 
 .ev-card--past .ev-card__date {
-  background: linear-gradient(160deg, #475569, #64748b);
+  background: linear-gradient(160deg, #334155 0%, #64748b 100%);
   color: #fff;
 }
 
 .ev-card__month {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.85;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
 }
 
 .ev-card__day {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.85rem;
+  font-weight: 900;
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .ev-card__dow {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
   text-transform: uppercase;
-  opacity: 0.75;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
 }
 
 /* body */
 .ev-card__body {
   flex: 1;
-  padding: 12px 16px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   justify-content: center;
+  border-left: 1px solid rgba(148,163,184,0.1);
 }
 
 .ev-card__top {
@@ -1490,11 +1496,16 @@
 }
 
 .ev-card__title {
-  font-size: 0.95rem;
+  font-size: 0.97rem;
   font-weight: 700;
   color: #0f172a;
   flex: 1;
   min-width: 0;
+  transition: color 0.15s ease;
+}
+
+.ev-card:hover .ev-card__title {
+  color: #1d4ed8;
 }
 
 .ev-card__conflict {
@@ -1520,7 +1531,7 @@
 .ev-card__meta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -1548,25 +1559,27 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: 20px;
+  margin-top: 24px;
   padding: 12px 0;
 }
 
 .ev-pagination__btn {
-  padding: 7px 18px;
-  border: 1.5px solid #cbd5e1;
+  padding: 8px 20px;
+  border: 1.5px solid rgba(148,163,184,0.3);
   background: #fff;
   color: #1e40af;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
 .ev-pagination__btn:hover:not(:disabled) {
+  transform: translateY(-2px);
   background: #eff6ff;
   border-color: #93c5fd;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.15);
 }
 
 .ev-pagination__btn:disabled {
@@ -1587,12 +1600,11 @@
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   EVENTSVIEW PREMIUM ANIMATIONS
+   EVENTSVIEW ANIMATIONS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Keyframes ─────────────────────────────────────────────────────────── */
 @keyframes ev-fade-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes ev-fade-in {
@@ -1600,66 +1612,32 @@
   to   { opacity: 1; }
 }
 @keyframes ev-tab-in {
-  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes ev-card-in {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes ev-date-badge-in {
-  from { opacity: 0; transform: scale(0.7) rotate(-4deg); }
-  to   { opacity: 1; transform: scale(1) rotate(0deg); }
-}
-@keyframes ev-shimmer-sweep {
-  0%   { left: -80%; }
-  100% { left: 120%; }
-}
-@keyframes ev-tab-active-glow {
-  0%, 100% { box-shadow: 0 4px 14px rgba(37,99,235,0.3); }
-  50%       { box-shadow: 0 6px 22px rgba(37,99,235,0.5); }
-}
-@keyframes ev-orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
-  40%       { transform: translate(20px, -15px) scale(1.1); opacity: 0.75; }
-  70%       { transform: translate(-12px, 10px) scale(0.93); opacity: 0.4; }
-}
-@keyframes ev-search-focus-in {
-  from { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
-  to   { box-shadow: 0 0 0 3px rgba(37,99,235,0.18), 0 4px 12px rgba(15,23,42,0.08); }
-}
-@keyframes ev-pagination-in {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes ev-pagination-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ev-search-focus-in {
+  from { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  to   { box-shadow: 0 0 0 3px rgba(37,99,235,0.15), 0 4px 12px rgba(15,23,42,0.06); }
+}
 
-/* ── Page wrapper — floating orbs ─────────────────────────────────────── */
+/* ── Page wrapper ─────────────────────────────────────────────────────── */
 .events-view-page {
   position: relative;
-  overflow: hidden;
-}
-.events-view-page::before,
-.events-view-page::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-.events-view-page::before {
-  width: 400px; height: 400px;
-  top: -120px; right: -100px;
-  background: radial-gradient(circle, rgba(31,58,95,0.08) 0%, transparent 70%);
-  animation: ev-orb-float 10s ease-in-out infinite;
-}
-.events-view-page::after {
-  width: 300px; height: 300px;
-  bottom: 60px; left: -80px;
-  background: radial-gradient(circle, rgba(63,143,140,0.07) 0%, transparent 70%);
-  animation: ev-orb-float 13s ease-in-out 3s infinite;
 }
 
-/* Keep content above orbs */
+/* Hero panel — same as dashboard overview */
+.ev-hero-panel {
+  margin-bottom: clamp(0.8rem, 1.6vw, 1rem);
+}
+
 .ev-search-tabs-row,
 .ev-card-list,
 .ev-pagination {
@@ -1667,180 +1645,49 @@
   z-index: 1;
 }
 
-/* ── Search + tabs row entrance ───────────────────────────────────────── */
+/* ── Entrance animations ──────────────────────────────────────────────── */
 .ev-search-tabs-row {
-  animation: ev-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: ev-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both;
 }
+.events-view-tabs .events-view-tab:nth-child(1) { animation: ev-tab-in 0.35s ease 0.05s both; }
+.events-view-tabs .events-view-tab:nth-child(2) { animation: ev-tab-in 0.35s ease 0.1s both; }
+.events-view-tabs .events-view-tab:nth-child(3) { animation: ev-tab-in 0.35s ease 0.15s both; }
 
-/* ── Search input — focus ring animation ──────────────────────────────── */
+.ev-card-list { animation: ev-fade-in 0.3s ease 0.1s both; }
+.ev-card-list .ev-card:nth-child(1)  { animation: ev-card-in 0.35s ease 0.06s both; }
+.ev-card-list .ev-card:nth-child(2)  { animation: ev-card-in 0.35s ease 0.10s both; }
+.ev-card-list .ev-card:nth-child(3)  { animation: ev-card-in 0.35s ease 0.14s both; }
+.ev-card-list .ev-card:nth-child(4)  { animation: ev-card-in 0.35s ease 0.18s both; }
+.ev-card-list .ev-card:nth-child(5)  { animation: ev-card-in 0.35s ease 0.22s both; }
+.ev-card-list .ev-card:nth-child(6)  { animation: ev-card-in 0.35s ease 0.26s both; }
+.ev-card-list .ev-card:nth-child(7)  { animation: ev-card-in 0.35s ease 0.30s both; }
+.ev-card-list .ev-card:nth-child(8)  { animation: ev-card-in 0.35s ease 0.34s both; }
+.ev-card-list .ev-card:nth-child(9)  { animation: ev-card-in 0.35s ease 0.38s both; }
+.ev-card-list .ev-card:nth-child(10) { animation: ev-card-in 0.35s ease 0.42s both; }
+
+.ev-pagination { animation: ev-pagination-in 0.35s ease 0.25s both; }
+
+/* ── Search input focus ───────────────────────────────────────────────── */
 .ev-search-tabs-row .dashboard-search-input {
-  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease !important;
+  transition: border-color 0.18s ease, box-shadow 0.2s ease !important;
   border-radius: 10px !important;
   border: 1px solid rgba(148,163,184,0.3) !important;
-  background: rgba(255,255,255,0.95) !important;
+  background: #fff !important;
 }
 .ev-search-tabs-row .dashboard-search-input:focus {
   border-color: rgba(37,99,235,0.4) !important;
-  transform: scaleX(1.01);
-  transform-origin: left center;
-  animation: ev-search-focus-in 0.25s ease forwards;
-}
-
-/* ── Tab buttons — staggered entrance + spring hover ─────────────────── */
-.events-view-tab {
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  border-radius: 10px !important;
-  position: relative;
-  overflow: hidden;
-}
-.events-view-tabs .events-view-tab:nth-child(1) { animation: ev-tab-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
-.events-view-tabs .events-view-tab:nth-child(2) { animation: ev-tab-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
-.events-view-tabs .events-view-tab:nth-child(3) { animation: ev-tab-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.19s both; }
-
-.events-view-tab:hover:not(.active) {
-  transform: translateY(-2px) scale(1.04) !important;
-  box-shadow: 0 4px 12px rgba(37,99,235,0.15) !important;
-}
-.events-view-tab.active {
-  transform: scale(1.04) !important;
-  animation: ev-tab-active-glow 2.5s ease-in-out 0.3s infinite !important;
-}
-/* Active tab — bottom border indicator only, no shimmer */
-.events-view-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 10%; right: 10%;
-  height: 2px;
-  background: linear-gradient(90deg, #2563eb, #3f8f8c);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-/* ── Card list — staggered entrance ──────────────────────────────────── */
-.ev-card-list {
-  animation: ev-fade-in 0.35s ease 0.1s both;
-}
-.ev-card-list .ev-card:nth-child(1)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.08s both; }
-.ev-card-list .ev-card:nth-child(2)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.14s both; }
-.ev-card-list .ev-card:nth-child(3)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
-.ev-card-list .ev-card:nth-child(4)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
-.ev-card-list .ev-card:nth-child(5)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.32s both; }
-.ev-card-list .ev-card:nth-child(6)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.38s both; }
-.ev-card-list .ev-card:nth-child(7)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.44s both; }
-.ev-card-list .ev-card:nth-child(8)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.50s both; }
-.ev-card-list .ev-card:nth-child(9)  { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.56s both; }
-.ev-card-list .ev-card:nth-child(10) { animation: ev-card-in 0.4s cubic-bezier(0.22,1,0.36,1) 0.62s both; }
-
-/* ── Card — enhanced hover + shimmer ─────────────────────────────────── */
-.ev-card {
-  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease, border-color 0.2s ease !important;
-  border-radius: 14px !important;
-  overflow: hidden;
-  position: relative;
-}
-/* Shimmer sweep on hover */
-.ev-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%);
-  transition: left 0.55s ease;
-  pointer-events: none;
-  z-index: 2;
-}
-.ev-card:hover::after { left: 130%; }
-.ev-card:hover {
-  transform: translateY(-4px) scale(1.008) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
-  border-color: rgba(79,109,138,0.35) !important;
-}
-
-/* ── Date badge — pop-in animation ───────────────────────────────────── */
-.ev-card__date {
-  animation: ev-date-badge-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
-  transition: transform 0.2s ease;
-}
-.ev-card:hover .ev-card__date {
-  transform: scale(1.04);
-}
-
-/* ── Upcoming date badge — gradient shimmer ───────────────────────────── */
-.ev-card--upcoming .ev-card__date {
-  background: linear-gradient(160deg, #1f3a5f 0%, #4f6d8a 55%, #3f8f8c 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(31,58,95,0.3);
-}
-
-/* ── Past date badge ──────────────────────────────────────────────────── */
-.ev-card--past .ev-card__date {
-  background: linear-gradient(160deg, #475569 0%, #64748b 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-/* ── Day number — big and bold ────────────────────────────────────────── */
-.ev-card__day {
-  font-size: 1.75rem !important;
-  font-weight: 900 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.02em;
-}
-
-/* ── Card body — subtle left gradient on hover ────────────────────────── */
-.ev-card__body {
-  position: relative;
-  z-index: 1;
-  transition: background 0.2s ease;
-}
-.ev-card:hover .ev-card__body {
-  background: linear-gradient(90deg, rgba(31,58,95,0.025) 0%, transparent 30%);
-}
-
-/* ── Title — color shift on hover ─────────────────────────────────────── */
-.ev-card__title {
-  transition: color 0.2s ease;
-}
-.ev-card:hover .ev-card__title {
-  color: #1d4ed8;
-}
-
-/* ── Pagination — entrance + button spring ────────────────────────────── */
-.ev-pagination {
-  animation: ev-pagination-in 0.4s ease 0.3s both;
-}
-.ev-pagination__btn {
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  border-radius: 10px !important;
-}
-.ev-pagination__btn:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.05) !important;
-  box-shadow: 0 4px 12px rgba(37,99,235,0.2) !important;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
-  border-color: #93c5fd !important;
-}
-.ev-pagination__btn:active:not(:disabled) {
-  transform: scale(0.96) !important;
-  transition-duration: 0.08s !important;
+  animation: ev-search-focus-in 0.2s ease forwards;
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .events-view-page::before,
-  .events-view-page::after,
   .ev-search-tabs-row,
   .events-view-tabs .events-view-tab,
   .ev-card-list,
   .ev-card-list .ev-card,
-  .ev-card__date,
-  .ev-pagination {
-    animation: none !important;
-  }
-  .ev-card::after,
-  .events-view-tab.active::after { display: none; }
+  .ev-pagination { animation: none !important; }
   .ev-card:hover,
-  .events-view-tab:hover,
-  .ev-pagination__btn:hover {
-    transform: none !important;
-  }
+  .ev-pagination__btn:hover { transform: none !important; }
 }
 
 

@@ -332,17 +332,23 @@ export default function EventsView() {
 
   return (
     <div className="dashboard dashboard-page events-view-page">
-      {/* topbar */}
-      <div className="dashboard-topbar">
-        <div className="dashboard-topbar-left">
-          <h1 className="dashboard-title">{tabLabel}</h1>
-          <p className="dashboard-subtitle">{tabSubtitle}</p>
+      {/* topbar — styled like dashboard-panel-overview */}
+      <section className="dashboard-panel dashboard-panel-overview ev-hero-panel">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-overview-titleblock">
+            <h1 className="dashboard-title">{tabLabel}</h1>
+            <p className="dashboard-subtitle">
+              Overview of COROPOTI Programs, Activities and Plans for CY 2026
+            </p>
+          </div>
+          <div className="dashboard-overview-side">
+            <div className="dashboard-actions">
+              <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
+              <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
+            </div>
+          </div>
         </div>
-        <div className="dashboard-actions">
-          <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
-          <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
-        </div>
-      </div>
+      </section>
 
       {/* search row + tabs combined */}
       <div className="ev-search-tabs-row">

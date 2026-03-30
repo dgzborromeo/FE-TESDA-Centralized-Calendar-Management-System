@@ -1,19 +1,24 @@
 import { Link } from 'react-router-dom';
 import './Info.css';
+import './Dashboard.css';
 
 export default function About() {
   return (
     <div className="info-page">
-      <div className="info-topbar">
-        <div>
-          <h1 className="info-title">About COROPOTI</h1>
-          <p className="info-subtitle">Centralized Schedule Management System — overview and features.</p>
+      <section className="dashboard-panel dashboard-panel-overview ev-hero-panel">
+        <div className="dashboard-overview-top">
+          <div className="dashboard-overview-titleblock">
+            <h1 className="dashboard-title">About COROPOTI</h1>
+            <p className="dashboard-subtitle">Centralized Schedule Management System — overview and features.</p>
+          </div>
+          <div className="dashboard-overview-side">
+            <div className="dashboard-actions">
+              <Link to="/dashboard" className="dashboard-btn">Back to Dashboard</Link>
+              <Link to="/calendar" className="dashboard-btn">View Calendar</Link>
+            </div>
+          </div>
         </div>
-        <div className="info-actions">
-          <Link to="/dashboard" className="info-btn">Back to Dashboard</Link>
-          <Link to="/calendar" className="info-btn">View Calendar</Link>
-        </div>
-      </div>
+      </section>
 
       <div className="info-grid">
         <section className="info-card">
