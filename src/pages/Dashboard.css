@@ -96,38 +96,41 @@
     dash-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ── Overview panel — hero style ─────────────────────────────────────────── */
+/* ── Overview panel — deep blue glowing hero ─────────────────────────────── */
 .dashboard-panel-overview {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(135deg, #1a3354 0%, #1f3a5f 30%, #2d5282 60%, #3f8f8c 100%) !important;
-  border: none !important;
+    linear-gradient(135deg, #0d1f45 0%, #162d55 30%, #1a3a7a 65%, #2255b0 100%) !important;
+  border: 1px solid rgba(56,189,248,0.2) !important;
   box-shadow:
-    0 12px 40px rgba(31, 58, 95, 0.4),
-    0 4px 12px rgba(31, 58, 95, 0.25),
-    inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    0 12px 40px rgba(13,31,69,0.5),
+    0 4px 12px rgba(13,31,69,0.3),
+    0 0 60px rgba(56,189,248,0.1),
+    inset 0 1px 0 rgba(56,189,248,0.14) !important;
   border-radius: 22px !important;
 }
-/* Subtle dot mesh texture on hero */
+/* Calendar grid texture on hero */
 .dashboard-panel-overview::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
   pointer-events: none;
   z-index: 1;
   animation: none;
 }
-/* Glowing orb top-right */
+/* Glowing orb top-right — blue */
 .dashboard-panel-overview::after {
   content: '';
   position: absolute;
   top: -80px; right: -80px;
-  width: 300px; height: 300px;
+  width: 350px; height: 350px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(63,143,140,0.3) 0%, rgba(255,255,255,0.04) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(56,189,248,0.22) 0%, rgba(20,80,180,0.1) 50%, transparent 70%);
   animation: dash-glow-pulse 5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -140,40 +143,40 @@
   animation: dash-shimmer 3s linear 0.6s 1 forwards, dash-fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both;
 }
 .dashboard-panel-overview .dashboard-subtitle {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.75);
   font-size: clamp(0.9rem, 0.82rem + 0.3vw, 1.05rem);
 }
 .dashboard-panel-overview .dashboard-overview-chip {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.22);
+  background: rgba(56,189,248,0.12);
+  border-color: rgba(56,189,248,0.28);
   color: rgba(255,255,255,0.95);
   backdrop-filter: blur(12px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .dashboard-panel-overview .dashboard-btn {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.28);
+  background: rgba(56,189,248,0.1);
+  border-color: rgba(56,189,248,0.3);
   color: rgba(255,255,255,0.95);
   backdrop-filter: blur(12px);
 }
 .dashboard-panel-overview .dashboard-btn:hover {
-  background: rgba(255,255,255,0.22);
+  background: rgba(56,189,248,0.2);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  border-color: rgba(56,189,248,0.5);
 }
 .dashboard-panel-overview .dashboard-btn-primary {
-  background: rgba(255,255,255,0.95);
-  color: #1f3a5f;
-  border-color: transparent;
+  background: linear-gradient(135deg, #1a3a7a 0%, #2255b0 50%, #2a6acc 100%);
+  color: #fff;
+  border: 1px solid rgba(56,189,248,0.35);
   font-weight: 800;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 16px rgba(20,50,130,0.45);
 }
 .dashboard-panel-overview .dashboard-btn-primary:hover {
-  background: #fff;
-  color: #1a3354;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  background: linear-gradient(135deg, #142e65 0%, #1a4a9e 50%, #2060bb 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(20,50,130,0.55), 0 0 0 1px rgba(56,189,248,0.3);
   transform: translateY(-3px);
 }
 
@@ -1392,14 +1395,14 @@
 }
 
 .events-view-tab:hover {
-  color: #1e40af;
-  background: rgba(255,255,255,0.8);
+  color: #1e6bb8;
+  background: rgba(56,189,248,0.08);
 }
 
 .events-view-tab.active {
   color: #fff;
-  background: linear-gradient(135deg, #1f3a5f 0%, #4f6d8a 50%, #3f8f8c 100%);
-  box-shadow: 0 2px 10px rgba(31,58,95,0.3);
+  background: linear-gradient(135deg, #1a3a7a 0%, #2255b0 50%, #2a6acc 100%);
+  box-shadow: 0 2px 10px rgba(20,50,130,0.35);
 }
 
 /* ── EventsView cards ───────────────────────────────────────────────────── */
@@ -1445,7 +1448,7 @@
 }
 
 .ev-card--upcoming .ev-card__date {
-  background: linear-gradient(160deg, #1f3a5f 0%, #2d5282 55%, #3f8f8c 100%);
+  background: linear-gradient(160deg, #0d1f45 0%, #1a3a7a 55%, #2255b0 100%);
   color: #fff;
 }
 

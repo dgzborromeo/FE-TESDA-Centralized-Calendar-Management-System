@@ -35,6 +35,18 @@ export default function LandingPage() {
         <div className="landing-hero-orb landing-hero-orb-1" />
         <div className="landing-hero-orb landing-hero-orb-2" />
         <div className="landing-hero-orb landing-hero-orb-3" />
+        <div className="landing-hero-orb landing-hero-orb-4" />
+        {/* Bokeh sparkle particles */}
+        <div className="landing-bokeh landing-bokeh-1" />
+        <div className="landing-bokeh landing-bokeh-2" />
+        <div className="landing-bokeh landing-bokeh-3" />
+        <div className="landing-bokeh landing-bokeh-4" />
+        <div className="landing-bokeh landing-bokeh-5" />
+        <div className="landing-bokeh landing-bokeh-6" />
+        <div className="landing-bokeh landing-bokeh-7" />
+        <div className="landing-bokeh landing-bokeh-8" />
+        {/* Gold streak */}
+        
         <div className="landing-hero-inner">
           <div className="landing-hero-left">
             <div className="landing-hero-kicker">
