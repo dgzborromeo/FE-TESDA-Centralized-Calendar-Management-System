@@ -337,46 +337,43 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     .filter(Boolean);
   const hasBackendParticipants = backendParticipantLines.length > 0;
 
-  let participantsArr = [];
-  if (Array.isArray(event.participants)) {
-    participantsArr = event.participants;
-  } else if (typeof event.participants === 'string') {
+  // Parse participants field — handles JSON array, plain text, or empty
+  let participantsFromJson = [];
+  const rawParticipants = String(event.participants || '').trim();
+  if (rawParticipants.startsWith('[')) {
     try {
-      const parsed = JSON.parse(event.participants);
-      if (Array.isArray(parsed)) participantsArr = parsed;
-    } catch {
-      participantsArr = [];
-    }
+      const parsed = JSON.parse(rawParticipants);
+      if (Array.isArray(parsed)) {
+        participantsFromJson = parsed
+          .map((p) => {
+            if (!p) return '';
+            if (typeof p === 'string') return p.trim();
+            return String(p.label || p.name || p.category_name || p.focal_name || '').trim();
+          })
+          .filter(Boolean);
+      }
+    } catch { /* fall through */ }
   }
-  const participantsFromJson = participantsArr
-    .map((p) => {
-      if (!p) return '';
-      if (typeof p === 'string') return p.trim();
-      return String(p.label || p.name || p.category_name || p.focal_name || '').trim();
-    })
-    .filter(Boolean);
+
+  // Plain text participants — comma-separated string (from promoted schedules)
+  const plainParticipants = rawParticipants && !rawParticipants.startsWith('[')
+    ? rawParticipants.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
 
   const dbRdParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
   const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
   const dbEdParticipants = parseRegionalDirectorsLabel(event.executive_directors_label);
   const localRegionalDirectorParticipants = getRegionalDirectorsForEvent(event.id) || [];
   const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
-  // Build plain text participants from the participants field (from promoted schedules)
-  const plainParticipants = event.participants && String(event.participants).trim() && !String(event.participants).trim().startsWith('[')
-    ? String(event.participants).trim().split(',').map(s => s.trim()).filter(Boolean)
-    : [];
 
-  const participantLines = hasBackendParticipants
-    ? backendParticipantLines
-    : participantsFromJson.length
-      ? participantsFromJson
-    : plainParticipants.length
-      ? plainParticipants
-    : dbParticipantLines.length
-      ? dbParticipantLines
-      : localRegionalDirectorParticipants.length
-        ? localRegionalDirectorParticipants
-        : ['No participants'];
+  // Priority: JSON array > plain text > backend attendees > legacy label fields > local util
+  const participantLines =
+    participantsFromJson.length   ? participantsFromJson
+    : plainParticipants.length    ? plainParticipants
+    : hasBackendParticipants      ? backendParticipantLines
+    : dbParticipantLines.length   ? dbParticipantLines
+    : localRegionalDirectorParticipants.length ? localRegionalDirectorParticipants
+    : ['No participants'];
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';

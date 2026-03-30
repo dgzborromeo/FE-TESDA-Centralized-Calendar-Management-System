@@ -293,11 +293,6 @@ function inferParticipantKeys(participantsArr, hasOsecParticipant) {
 
   if (hasOsecParticipant) out.add('osec');
 
-  const legendByLabel = PARTICIPANT_LEGEND_ITEMS.map((item) => ({
-    key: item.key,
-    label: String(item.label || '').toLowerCase(),
-  }));
-
   for (const p of parts) {
     if (!p) continue;
     const rawName =
@@ -307,33 +302,36 @@ function inferParticipantKeys(participantsArr, hasOsecParticipant) {
     const name = String(rawName || '').toLowerCase();
     if (!name) continue;
 
-    // Match against legend labels (e.g. "DDGs", "RDs", "ADMIN", etc.)
-    for (const l of legendByLabel) {
-      if (name.includes(l.label) || l.label.includes(name)) {
-        out.add(l.key);
-      }
-    }
-
-    // Explicit mapping for some common patterns in names
+    // Director General / OSEC
+    if (name.includes('director general') && !name.includes('deputy') && !name.includes('assistant')) out.add('osec');
     if (name.includes('osec')) out.add('osec');
-    if (name.includes('ddg')) out.add('ddgs');
-    if (name.includes('executive director') || /\bed?s?\b/.test(name)) out.add('eds');
-    if (name.includes('regional director') || /\brd?s?\b/.test(name)) out.add('rds');
-    if (
-      name.includes('provincial director') ||
-      /\bpd?s?\b/.test(name) ||
-      name.includes('division director') ||
-      name.includes('dd ')
-    ) {
-      out.add('pds_dds');
-    }
-    if (name.includes('assistant executive') || name.includes('aed')) out.add('aeds');
+
+    // Deputy Director General
+    if (name.includes('deputy director general') || name.includes('ddg')) out.add('ddgs');
+
+    // Executive Director
+    if (name.includes('executive director')) out.add('eds');
+
+    // Regional Director
+    if (name.includes('regional director')) out.add('rds');
+
+    // Provincial Director / District Director
+    if (name.includes('provincial director') || name.includes('district director')) out.add('pds_dds');
+
+    // Assistant Executive Director
+    if (name.includes('assistant executive director') || name.includes('aed')) out.add('aeds');
+
+    // Admin Officer / Administrative
     if (name.includes('admin')) out.add('admin');
+
+    // Chief
     if (name.includes('chief')) out.add('chief');
+
+    // Focal
     if (name.includes('focal')) out.add('focals');
   }
 
-  // If any selected participant is a focal source, tag as focals
+  // If any selected participant is a focal source object, tag as focals
   if (parts.some((p) => p && typeof p === 'object' && String(p.source || '').toLowerCase() === 'focal')) {
     out.add('focals');
   }
@@ -817,12 +815,15 @@ function softenColor(hexColor, factor = 0.16) {
 const parsedEvents = useMemo(() => {
   return events.map(e => {
     let participantsArr = [];
-    try {
-      participantsArr = typeof e.participants === 'string' 
-        ? JSON.parse(e.participants || '[]') 
-        : (e.participants || []);
-    } catch (err) {
-      participantsArr = [];
+    const raw = String(e.participants || '').trim();
+    if (raw.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) participantsArr = parsed;
+      } catch { participantsArr = []; }
+    } else if (raw) {
+      // Plain text — comma-separated (from promoted schedules)
+      participantsArr = raw.split(',').map(s => s.trim()).filter(Boolean);
     }
     return { ...e, _parsedParticipants: participantsArr };
   });
