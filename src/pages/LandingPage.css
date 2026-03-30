@@ -103,7 +103,7 @@
 .landing-hero-inner {
   position: relative;
   z-index: 1;
-  max-width: min(96vw, 1100px);
+  max-width: min(96vw, 1200px);
   width: 100%;
   display: grid;
   grid-template-columns: 1fr auto;
@@ -111,7 +111,10 @@
   align-items: center;
   animation: land-fade-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
 }
-.landing-hero-left  { min-width: 0; margin-left: -10rem; }
+.landing-hero-left  {
+  min-width: 0;
+  transform: translateX(-4rem);
+}
 .landing-hero-right {
   display: flex;
   flex-direction: column;
@@ -119,7 +122,7 @@
   min-width: 360px;
   width: 360px;
   animation: land-fade-up 0.6s ease 0.4s both;
-  margin-right: -8rem;
+  transform: translateX(3rem);
 }
 
 /* ── Kicker badge — government style ──────────────────────────────────── */
@@ -181,7 +184,7 @@
   position: relative;
   z-index: 1;
   gap: 0;
-  margin-left: 0;
+  transform: translateX(-3rem);
 }
 .landing-one-o-wrap {
   position: relative;
@@ -189,7 +192,6 @@
   align-items: flex-start;
   justify-content: center;
   margin-right: -70px;
-  margin-left: -60px;
   z-index: 2;
   align-self: flex-start;
   margin-top: 0;
@@ -257,8 +259,8 @@
   font-family: 'Dancing Script', 'Brush Script MT', cursive;
   font-size: clamp(2.2rem, 4.5vw, 4rem);
   font-weight: 400;
-  color: #ffffff;
-  -webkit-text-fill-color: #f70606;
+  color: #f87171;
+  -webkit-text-fill-color: #fa0505;
   text-shadow:
     0 0 24px rgba(248,113,113,0.4),
     0 2px 8px rgba(0,0,0,0.3);
@@ -819,20 +821,138 @@
 @media (max-width: 1100px) {
   .landing-features-inner { grid-template-columns: repeat(2, 1fr); }
 }
+
 @media (max-width: 960px) {
-  .landing-hero-inner { grid-template-columns: 1fr; }
-  .landing-hero-right { flex-direction: row; flex-wrap: wrap; min-width: unset; width: 100%; margin-right: 0; }
-  .landing-feat-card  { flex: 1 1 180px; }
+  .landing-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .landing-hero-left  { transform: none; }
+  .landing-hero-right {
+    transform: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: unset;
+    width: 100%;
+  }
+  .landing-one-composition { transform: none; }
+  .landing-feat-card { flex: 1 1 180px; }
 }
-@media (max-width: 640px) {
-  .landing-hero { padding: 4.5rem 1rem 3rem; }
-  .landing-hero-left { margin-left: 0; }
-  .landing-one-romo { width: 130px; height: 130px; }
+
+/* ── Mobile ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .landing-hero {
+    padding: 4rem 1.25rem 2.5rem;
+  }
+  .landing-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 100%;
+  }
+  .landing-hero-left  { transform: none; }
+  .landing-hero-right {
+    transform: none;
+    width: 100%;
+    min-width: unset;
+  }
+  .landing-one-composition { transform: none; }
+  .landing-one-o-wrap {
+    margin-right: -50px;
+  }
+  .landing-one-brand {
+    margin-top: -20px;
+    margin-bottom: -0.5rem;
+  }
+  .landing-one-romo {
+    width: 120px !important;
+    height: 120px !important;
+  }
   .landing-one-n-letter,
-  .landing-one-e-letter { font-size: 5rem; }
-  .landing-one-calendar-text { font-size: 1.8rem; }
-  .landing-btn { padding: 0.75rem 1.5rem; font-size: 0.9rem; }
-  .landing-features-inner { grid-template-columns: 1fr; }
+  .landing-one-e-letter {
+    font-size: 5rem !important;
+  }
+  .landing-one-calendar-text {
+    font-size: 1.7rem !important;
+  }
+  .landing-hero-subtitle {
+    max-width: 100%;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+  .landing-hero-actions {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+  .landing-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.88rem;
+  }
+  .landing-slide-wrap {
+    height: auto;
+    min-height: 160px;
+  }
+  .landing-feat-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .landing-feat-card {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-height: 52px;
+  }
+  .landing-features-inner {
+    grid-template-columns: 1fr;
+  }
+  .landing-features {
+    padding: 3rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-hero {
+    padding: 3.5rem 1rem 2rem;
+  }
+  .landing-one-o-wrap {
+    margin-right: -40px;
+  }
+  .landing-one-romo {
+    width: 90px !important;
+    height: 90px !important;
+  }
+  .landing-one-n-letter,
+  .landing-one-e-letter {
+    font-size: 3.8rem !important;
+  }
+  .landing-one-calendar-text {
+    font-size: 1.4rem !important;
+  }
+  .landing-one-calendar-wrap {
+    bottom: 12%;
+    left: 28%;
+  }
+  .landing-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+  }
+  .landing-btn-primary::after {
+    display: none;
+  }
+  .landing-feat-card {
+    flex: 1 1 100%;
+  }
+  .landing-hero-kicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+  .landing-constellation-svg {
+    width: 220px;
+    height: 220px;
+  }
+  .landing-slide-dots {
+    margin-top: 0.5rem;
+  }
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────── */

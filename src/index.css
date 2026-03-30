@@ -161,3 +161,248 @@ a.calendar-legend-add,
 .sef-back-inline {
   position: relative;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   GLOBAL MOBILE RESPONSIVE — applies to all pages
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ── Layout ── */
+  .layout-main {
+    padding: 0.75rem !important;
+  }
+
+  /* ── Dashboard ── */
+  .dashboard {
+    padding: 0.5rem 0.5rem 2rem !important;
+  }
+  .dashboard-panels {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-cards {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-overview-top {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .dashboard-overview-side {
+    align-items: flex-start !important;
+  }
+  .dashboard-actions {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+  .dashboard-topbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .dashboard-panel-upcoming,
+  .dashboard-panel-mini-calendar {
+    min-height: auto !important;
+  }
+  .dashboard-mini-calendar-grid-wrap {
+    min-height: 220px !important;
+  }
+  .dashboard-mini-cell {
+    min-height: 40px !important;
+  }
+  .dashboard-btn {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+  .dashboard-title {
+    font-size: 1.4rem !important;
+  }
+
+  /* ── EventsView ── */
+  .ev-search-tabs-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .events-view-tabs {
+    width: 100% !important;
+    justify-content: stretch !important;
+  }
+  .events-view-tab {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 8px 10px !important;
+    font-size: 0.8rem !important;
+  }
+  .ev-card {
+    border-radius: 12px !important;
+  }
+  .ev-card__date {
+    min-width: 58px !important;
+    padding: 12px 8px !important;
+  }
+  .ev-card__day {
+    font-size: 1.5rem !important;
+  }
+  .ev-card__body {
+    padding: 10px 12px !important;
+  }
+  .ev-card__title {
+    font-size: 0.88rem !important;
+  }
+  .ev-card__meta-row {
+    gap: 6px !important;
+  }
+  .ev-card__info,
+  .ev-card__time,
+  .ev-card__loc {
+    font-size: 0.72rem !important;
+  }
+
+  /* ── EventModal ── */
+  .modal {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 92vh !important;
+    border-radius: 14px !important;
+  }
+  .modal-event-cards {
+    grid-template-columns: 1fr !important;
+  }
+  .modal-header {
+    padding: 0.85rem 1rem !important;
+  }
+  .modal-body {
+    padding: 0.85rem 1rem !important;
+  }
+  .modal-event-title {
+    font-size: 1rem !important;
+  }
+
+  /* ── Header ── */
+  .header-inner {
+    flex-wrap: wrap !important;
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  .header-logo-text {
+    font-size: 0.85rem !important;
+    max-width: 180px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .header-logo-img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .header-calendar-search {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .header-nav-scroll {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+  .header-link {
+    padding: 0.4rem 0.55rem !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── Info pages (FAQ, Help, Support, About) ── */
+  .info-page {
+    padding: 0.75rem !important;
+  }
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .info-card {
+    padding: 1rem !important;
+  }
+
+  /* ── LandingPage — handled in LandingPage.css ── */
+
+  /* ── Auth / Login ── */
+  .auth-split {
+    grid-template-columns: 1fr !important;
+  }
+  .auth-split-media {
+    min-height: 180px !important;
+  }
+  .auth-split-panel {
+    padding: 1.25rem !important;
+  }
+  .auth-card {
+    padding: 1.5rem !important;
+  }
+
+  /* ── SimpleEventForm ── */
+  .simple-event-body {
+    flex-direction: column !important;
+  }
+  .simple-event-right-panel {
+    width: 100% !important;
+  }
+  .simple-event-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .simple-event-field-pair {
+    flex-direction: column !important;
+  }
+
+  /* ── ListOfActivity ── */
+  .list-of-activity-table-wrapper {
+    overflow-x: auto !important;
+  }
+  .list-of-activity-filters-table {
+    min-width: 600px !important;
+  }
+  .list-of-activity-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ── Calendar ── */
+  .calendar-main {
+    flex-direction: column !important;
+  }
+  .calendar-sidebar {
+    width: 100% !important;
+    max-height: none !important;
+  }
+  .fc .fc-toolbar {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+  .fc .fc-toolbar-title {
+    font-size: 0.95rem !important;
+  }
+  .fc .fc-button {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.78rem !important;
+  }
+  .fc .fc-daygrid-day-number {
+    font-size: 0.75rem !important;
+  }
+  .fc .fc-event-title {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Extra small — phones under 400px */
+@media (max-width: 400px) {
+  .dashboard-title {
+    font-size: 1.2rem !important;
+  }
+  .landing-hero-title {
+    font-size: 1.8rem !important;
+  }
+  .ev-card__date {
+    min-width: 50px !important;
+  }
+  .header-logo-text {
+    max-width: 130px !important;
+  }
+  .landing-btn {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+}
