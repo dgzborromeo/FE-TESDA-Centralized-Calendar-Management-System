@@ -54,7 +54,7 @@ const handleSubmit = async (e) => {
           <img className="auth-split-img" src="/login-hero.png" alt="" />
           <div className="auth-split-overlay">
             <div className="auth-split-overlay-inner">
-              <div className="auth-split-kicker">TESDA ROMO</div>
+              <div className="auth-split-kicker">TESDA</div>
               <div className="auth-split-title">ONE Centralized Calendar System</div>
               <div className="auth-split-subtitle">Plan, coordinate, and confirm activities across all TESDA COROPOTIs.</div>
             </div>
