@@ -577,3 +577,52 @@
     transform: none !important;
   }
 }
+
+/* ── Expanded Edit Modal ───────────────────────────────────────────────── */
+.loa-edit-modal {
+  max-width: 640px !important;
+  width: min(640px, 96vw) !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+.loa-edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.loa-edit-modal-header .modal-title {
+  margin: 0;
+}
+
+.loa-edit-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.loa-edit-row .form-group {
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.modal-form .form-group textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  color: #1e293b;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-form .form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}

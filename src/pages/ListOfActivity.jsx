@@ -298,21 +298,81 @@ const filteredData = useMemo(() => {
       {/* EDIT MODAL */}
       {isModalOpen && editingItem && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <h2 className="modal-title">Edit Activity</h2>
+          <div className="modal-content loa-edit-modal">
+            <div className="loa-edit-modal-header">
+              <h2 className="modal-title">Edit Activity</h2>
+              <button type="button" className="btn-cancel" style={{ fontSize: '1.2rem', padding: '0 0.5rem' }} onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
             <form onSubmit={handleUpdate} className="modal-form">
+
+              {/* Event Title */}
               <div className="form-group">
                 <label>Event Title</label>
-                <input type="text" value={editingItem.event_title || ''} onChange={(e) => setEditingItem({...editingItem, event_title: e.target.value})} />
+                <input type="text" value={editingItem.event_title || ''} onChange={(e) => setEditingItem({...editingItem, event_title: e.target.value})} required />
               </div>
+
+              {/* Description */}
+              <div className="form-group">
+                <label>Description</label>
+                <textarea rows={3} value={editingItem.description || ''} onChange={(e) => setEditingItem({...editingItem, description: e.target.value})} placeholder="Short description of the activity" />
+              </div>
+
+              {/* Meeting Type + Location */}
+              <div className="loa-edit-row">
+                <div className="form-group">
+                  <label>Meeting Type</label>
+                  <select value={editingItem.type || 'Face to Face'} onChange={(e) => setEditingItem({...editingItem, type: e.target.value})}>
+                    <option value="Face to Face">Face to Face</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Virtual/Zoom">Virtual/Zoom</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>Location / Zoom Link</label>
+                  <input type="text" value={editingItem.location || ''} onChange={(e) => setEditingItem({...editingItem, location: e.target.value})} placeholder="e.g. TESDA Auditorium or Zoom link" />
+                </div>
+              </div>
+
+              {/* Start Date + End Date */}
+              <div className="loa-edit-row">
+                <div className="form-group">
+                  <label>Start Date</label>
+                  <input type="date" value={editingItem.start_date ? String(editingItem.start_date).slice(0,10) : ''} onChange={(e) => setEditingItem({...editingItem, start_date: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>End Date</label>
+                  <input type="date" value={editingItem.end_date ? String(editingItem.end_date).slice(0,10) : ''} onChange={(e) => setEditingItem({...editingItem, end_date: e.target.value})} />
+                </div>
+              </div>
+
+              {/* Start Time + End Time */}
+              <div className="loa-edit-row">
+                <div className="form-group">
+                  <label>Start Time</label>
+                  <input type="time" value={editingItem.start_time ? String(editingItem.start_time).slice(0,5) : ''} onChange={(e) => setEditingItem({...editingItem, start_time: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>End Time</label>
+                  <input type="time" value={editingItem.end_time ? String(editingItem.end_time).slice(0,5) : ''} onChange={(e) => setEditingItem({...editingItem, end_time: e.target.value})} required />
+                </div>
+              </div>
+
+              {/* Participants */}
+              <div className="form-group">
+                <label>Participants <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '0.82rem' }}>(comma-separated)</span></label>
+                <textarea rows={3} value={editingItem.participants || ''} onChange={(e) => setEditingItem({...editingItem, participants: e.target.value})} placeholder="e.g. Regional Director (All), Provincial Director (Cebu), Focal (All)" />
+              </div>
+
+              {/* Status */}
               <div className="form-group">
                 <label>Status</label>
-                <select value={editingItem.status} onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}>
-                    <option value="Final">Final</option>
-                    <option value="Tentative">Tentative</option>
-                    <option value="Expired">Expired</option>
+                <select value={editingItem.status || 'Tentative'} onChange={(e) => setEditingItem({...editingItem, status: e.target.value})}>
+                  <option value="Final">Final</option>
+                  <option value="Tentative">Tentative</option>
+                  <option value="Expired">Expired</option>
                 </select>
               </div>
+
               {modalMsg.text && (
                 <div className={`modal-msg modal-msg-${modalMsg.type}`}>
                   {modalMsg.type === 'success' ? '✓ ' : '✕ '}{modalMsg.text}
