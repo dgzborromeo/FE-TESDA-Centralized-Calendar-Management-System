@@ -209,16 +209,14 @@
 }
 .landing-hero-left  {
   min-width: 0;
-  transform: translateX(-4rem);
 }
 .landing-hero-right {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  min-width: 360px;
-  width: 360px;
+  min-width: 0;
+  width: clamp(280px, 30vw, 380px);
   animation: land-fade-up 0.6s ease 0.4s both;
-  transform: translateX(3rem);
 }
 
 /* ── Kicker badge — government style ──────────────────────────────────── */
@@ -258,8 +256,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
-  margin-bottom: -2rem;
-  margin-top: -60px;
+  margin-bottom: -1rem;
+  margin-top: -30px;
   animation: land-fade-up 0.6s ease 0.15s both;
   position: relative;
   width: 100%;
@@ -280,21 +278,20 @@
   position: relative;
   z-index: 1;
   gap: 0;
-  transform: translateX(-3rem);
 }
 .landing-one-o-wrap {
   position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  margin-right: -70px;
+  margin-right: clamp(-60px, -5vw, -40px);
   z-index: 2;
   align-self: flex-start;
   margin-top: 0;
 }
 .landing-one-romo {
-  width: clamp(180px, 22vw, 270px);
-  height: clamp(180px, 22vw, 270px);
+  width: clamp(140px, 18vw, 240px);
+  height: clamp(140px, 18vw, 240px);
   object-fit: contain;
   filter: brightness(1.2)
     drop-shadow(0 0 24px rgba(56,189,248,0.55))
@@ -323,7 +320,7 @@
 }
 .landing-one-n-letter,
 .landing-one-e-letter {
-  font-size: clamp(6rem, 11vw, 10rem);
+  font-size: clamp(4.5rem, 9vw, 9rem);
   font-weight: 900;
   font-family: 'Georgia', 'Times New Roman', serif;
   line-height: 1;
@@ -375,7 +372,7 @@
 }
 .landing-one-calendar-text {
   font-family: 'Dancing Script', 'Brush Script MT', cursive;
-  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
   font-weight: 700;
   background: linear-gradient(
     135deg,
@@ -946,6 +943,15 @@
 .landing-footer-links a:hover { color: rgba(255,255,255,0.82); }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
+@media (min-width: 1400px) {
+  .landing-hero-inner {
+    max-width: min(96vw, 1400px);
+  }
+  .landing-hero-right {
+    width: clamp(320px, 28vw, 420px);
+  }
+}
+
 @media (max-width: 1100px) {
   .landing-features-inner { grid-template-columns: repeat(2, 1fr); }
 }
@@ -992,15 +998,15 @@
     margin-bottom: -0.5rem;
   }
   .landing-one-romo {
-    width: 120px !important;
-    height: 120px !important;
+    width: 110px !important;
+    height: 110px !important;
   }
   .landing-one-n-letter,
   .landing-one-e-letter {
-    font-size: 5rem !important;
+    font-size: 4.5rem !important;
   }
   .landing-one-calendar-text {
-    font-size: 1.7rem !important;
+    font-size: 1.6rem !important;
   }
   .landing-hero-subtitle {
     max-width: 100%;
@@ -1044,15 +1050,15 @@
     margin-right: -40px;
   }
   .landing-one-romo {
-    width: 90px !important;
-    height: 90px !important;
+    width: 80px !important;
+    height: 80px !important;
   }
   .landing-one-n-letter,
   .landing-one-e-letter {
-    font-size: 3.8rem !important;
+    font-size: 3.5rem !important;
   }
   .landing-one-calendar-text {
-    font-size: 1.4rem !important;
+    font-size: 1.3rem !important;
   }
   .landing-one-calendar-wrap {
     bottom: 12%;
