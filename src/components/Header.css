@@ -426,3 +426,10 @@
   transform: translateY(0);
   background: rgba(255, 255, 255, 0.2);
 }
+
+.header-logo-accent {
+  font-size: 1.23em;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+}

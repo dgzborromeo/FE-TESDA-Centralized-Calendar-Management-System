@@ -1228,6 +1228,12 @@
   border-radius: 10px;
   transition: background 0.2s, color 0.2s;
 }
+
+/* Move day number to the left */
+.fc .fc-daygrid-day-top {
+  flex-direction: row;
+}
+
 .fc .fc-day-today .fc-daygrid-day-number {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;

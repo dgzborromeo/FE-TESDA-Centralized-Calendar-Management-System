@@ -157,6 +157,11 @@ export default function EventsView() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
+  // filter states
+  const [filterOffice, setFilterOffice] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterQuarter, setFilterQuarter] = useState('');
+
   // upcoming state
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [upcomingLoading, setUpcomingLoading] = useState(false);
@@ -189,7 +194,7 @@ export default function EventsView() {
     setUpcomingLoading(true);
     const now = new Date();
     const rangeStart = new Date(now); rangeStart.setDate(rangeStart.getDate() - 7);
-    const rangeEnd = new Date(now); rangeEnd.setDate(rangeEnd.getDate() + 60);
+    const rangeEnd = new Date(now.getFullYear(), 11, 31); // Dec 31 of current year
     eventsApi
       .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
       .then((rows) => setUpcomingEvents(Array.isArray(rows) ? rows : []))
@@ -200,7 +205,8 @@ export default function EventsView() {
   const refreshRecent = () => {
     setRecentLoading(true);
     const now = new Date();
-    const rangeStart = new Date(now); rangeStart.setDate(rangeStart.getDate() - 60);
+    // Fetch from start of current year to cover all past events
+    const rangeStart = new Date(now.getFullYear(), 0, 1); // Jan 1 of current year
     const rangeEnd = new Date(now); rangeEnd.setDate(rangeEnd.getDate() + 7);
     eventsApi
       .list({ start: toLocalYMD(rangeStart), end: toLocalYMD(rangeEnd) })
@@ -228,8 +234,11 @@ export default function EventsView() {
   // lazy-load other tabs on first visit
   useEffect(() => {
     if (activeTab === 'Upcoming' && !upcomingFetched && !upcomingLoading) refreshUpcoming();
-    if (activeTab === 'By Year' && yearEvents.length === 0 && !yearLoading) refreshYear(year);
+    if (activeTab === 'By Year') refreshYear(year);
     setSearchQuery('');
+    setFilterOffice('');
+    setFilterMonth('');
+    setFilterQuarter('');
     setPage(1);
   }, [activeTab]);
 
@@ -254,14 +263,31 @@ export default function EventsView() {
   const nowMins = now.getHours() * 60 + now.getMinutes();
   const searchLower = searchQuery.trim().toLowerCase();
 
+  // Shared extra filters
+  const applyFilters = (e) => {
+    if (filterOffice && String(e.creator_name || '').toLowerCase() !== filterOffice.toLowerCase()) return false;
+    if (filterMonth) {
+      const m = String(e.date || '').slice(5, 7);
+      if (m !== filterMonth) return false;
+    }
+    if (filterQuarter) {
+      const month = parseInt(String(e.date || '').slice(5, 7), 10);
+      const q = filterQuarter === 'Q1' ? [1,2,3] : filterQuarter === 'Q2' ? [4,5,6] : filterQuarter === 'Q3' ? [7,8,9] : [10,11,12];
+      if (!q.includes(month)) return false;
+    }
+    return true;
+  };
+
   const upcoming = upcomingEvents
     .filter((e) => e.date > today || (e.date === today && timeToMinutes(e.end_time) > nowMins))
     .filter((e) => !searchLower || [e.title, e.location, e.description].some((v) => v && String(v).toLowerCase().includes(searchLower)))
+    .filter(applyFilters)
     .sort((a, b) => (a.date + a.start_time).localeCompare(b.date + b.start_time));
 
   const recent = recentEvents
     .filter((e) => e.date < today || (e.date === today && timeToMinutes(e.end_time) <= nowMins))
     .filter((e) => !searchLower || [e.title, e.location, e.description].some((v) => v && String(v).toLowerCase().includes(searchLower)))
+    .filter(applyFilters)
     .sort((a, b) => (b.date + (b.start_time || '')).localeCompare(a.date + (a.start_time || '')));
 
   const byYear = yearEvents
@@ -270,6 +296,7 @@ export default function EventsView() {
       return [e.title, e.location, e.description, e.creator_name, e.participants_summary, e.type]
         .filter(Boolean).join(' ').toLowerCase().includes(searchLower);
     })
+    .filter(applyFilters)
     .sort((a, b) => (String(a.date || '') + String(a.start_time || '')).localeCompare(String(b.date || '') + String(b.start_time || '')));
 
   const hostOptions = useMemo(() => {
@@ -317,6 +344,20 @@ export default function EventsView() {
     || (activeTab === 'By Year' && yearLoading);
 
   const activeList = activeTab === 'Upcoming' ? upcoming : activeTab === 'Recent' ? recent : byYear;
+
+  // Build unique office list — exclude cluster accounts and admin/romo
+  const officeOptions = useMemo(() => {
+    const names = new Set(
+      users
+        .filter(u => {
+          const email = String(u.email || '').toLowerCase();
+          return !email.startsWith('cluster.') && u.role !== 'admin';
+        })
+        .map(u => u.name)
+        .filter(Boolean)
+    );
+    return Array.from(names).sort();
+  }, [users]);
   const activeCount = activeList.length;
   const totalPages = Math.max(1, Math.ceil(activeCount / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -350,7 +391,7 @@ export default function EventsView() {
         </div>
       </section>
 
-      {/* search row + tabs combined */}
+      {/* tabs + search + filters — all in one row */}
       <div className="ev-search-tabs-row">
         <div className="events-view-tabs">
           {TABS.map((tab) => (
@@ -365,7 +406,15 @@ export default function EventsView() {
           ))}
         </div>
 
-        <div className="dashboard-search">
+        <input
+          type="search"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+          className="dashboard-search-input ev-search-inline"
+        />
+
+        <div className="ev-toolbar-right">
           {activeTab === 'By Year' && (
             <div className="dashboard-year-control">
               <label htmlFor="year-events-select">Year:</label>
@@ -379,20 +428,56 @@ export default function EventsView() {
               </select>
             </div>
           )}
-        <input
-          type="search"
-          placeholder={`Search ${activeTab.toLowerCase()}...`}
-          value={searchQuery}
-          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-          className="dashboard-search-input"
-        />
+
+          <select
+            className="ev-filter-select"
+            value={filterOffice}
+            onChange={(e) => { setFilterOffice(e.target.value); setPage(1); }}
+          >
+            <option value="">All Offices</option>
+            {officeOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+
+          <select
+            className="ev-filter-select"
+            value={filterMonth}
+            onChange={(e) => { setFilterMonth(e.target.value); setFilterQuarter(''); setPage(1); }}
+          >
+            <option value="">All Months</option>
+            {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+              <option key={m} value={m}>
+                {new Date(2000, i).toLocaleString('en-US', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="ev-filter-select"
+            value={filterQuarter}
+            onChange={(e) => { setFilterQuarter(e.target.value); setFilterMonth(''); setPage(1); }}
+          >
+            <option value="">All Quarters</option>
+            <option value="Q1">Q1 — Jan–Mar</option>
+            <option value="Q2">Q2 — Apr–Jun</option>
+            <option value="Q3">Q3 — Jul–Sep</option>
+            <option value="Q4">Q4 — Oct–Dec</option>
+          </select>
+
+          {(filterOffice || filterMonth || filterQuarter) && (
+            <button
+              className="ev-filter-clear"
+              onClick={() => { setFilterOffice(''); setFilterMonth(''); setFilterQuarter(''); setPage(1); }}
+              title="Clear filters"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
-      {/* section head */}
+      {/* section head — count pill only */}
       <div className="dashboard-section-head">
-        <h2>{activeTab === 'By Year' ? `${year} Events` : activeTab}</h2>
-        <span className={`dashboard-count-pill ${activeCount ? 'active' : ''}`}>{activeCount}</span>
+        <span className={`dashboard-count-pill ${activeCount ? 'active' : ''}`}>{activeCount} event{activeCount !== 1 ? 's' : ''}</span>
       </div>
 
       {/* list */}
