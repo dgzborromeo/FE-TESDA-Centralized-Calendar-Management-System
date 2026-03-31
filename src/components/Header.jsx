@@ -83,7 +83,7 @@ export default function Header() {
         <div className="header-left">
           <Link to="/dashboard" className="header-logo">
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-            <span className="header-logo-text">ONE Centralized Calendar System</span>
+            <span className="header-logo-text">Operations Network and Events System</span>
           </Link>
           {isCalendarPage && (
             <input
