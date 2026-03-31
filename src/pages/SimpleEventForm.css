@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: column;
   color: #0f172a;
+  overflow-x: hidden;
 }
 
 /* Logo is now a clickable link to dashboard */
@@ -182,7 +183,7 @@
 /* Two-column layout: form (75%) + right panel (25%) */
 .simple-event-body {
   display: grid;
-  grid-template-columns: 75% 1fr;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
   gap: 1.25rem;
   align-items: stretch;
   margin-top: 1rem;
@@ -889,6 +890,7 @@ select.modern-select {
     border-radius: 12px;
     overflow: visible;
     animation: dropdownFadeIn 0.18s ease-out;
+    max-width: min(600px, 90vw);
 }
 
 @keyframes dropdownFadeIn {
@@ -982,7 +984,8 @@ select.modern-select {
 
 /* Container adjustment */
 .dropdown-list-sub {
-  min-width: 350px; /* Mas malapad para sa mahabang office names */
+  min-width: 260px;
+  max-width: min(350px, 50vw);
   max-height: 450px;
   display: flex;
   flex-direction: column;
@@ -1449,27 +1452,16 @@ input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
   animation: sef-input-glow 0.25s ease forwards;
 }
 
-/* ── Submit button — looping shimmer + spring hover ───────────────────── */
+/* ── Submit button ─────────────────────────────────────────────────────── */
 .simple-event-submit {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease !important;
-}
-.simple-event-submit::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
-  pointer-events: none;
-  animation: sef-btn-shimmer 2.4s ease-in-out infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 .simple-event-submit:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 16px 36px rgba(15,23,42,0.35) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(15,23,42,0.28) !important;
 }
 .simple-event-submit:active:not(:disabled) {
-  transform: scale(0.97) !important;
+  transform: scale(0.98) !important;
   transition-duration: 0.08s !important;
 }
 
@@ -1481,24 +1473,13 @@ input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
   animation: sef-success-icon-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s both !important;
 }
 
-/* ── Success OK button — shimmer ──────────────────────────────────────── */
+/* ── Success OK button ─────────────────────────────────────────────────── */
 .sef-success-btn {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease !important;
-}
-.sef-success-btn::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 55%; height: 100%;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.3) 50%, transparent 65%);
-  pointer-events: none;
-  animation: sef-btn-shimmer 2.8s ease-in-out 0.5s infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 .sef-success-btn:hover {
-  transform: translateY(-2px) scale(1.03) !important;
-  box-shadow: 0 6px 18px rgba(37,99,235,0.4) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.35) !important;
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────── */

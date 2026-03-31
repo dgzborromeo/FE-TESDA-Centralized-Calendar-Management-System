@@ -336,7 +336,7 @@ a.calendar-legend-add,
 
   /* ── SimpleEventForm ── */
   .simple-event-body {
-    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
   }
   .simple-event-right-panel {
     width: 100% !important;
