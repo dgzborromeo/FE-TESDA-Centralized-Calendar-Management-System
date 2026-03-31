@@ -496,8 +496,8 @@ const [filterHost, setFilterHost] = useState('');
     if (!el) return;
 
     const onClickCapture = async (e) => {
-      // Public / viewer-like accounts: navigate to day view instead of create form
-      if (isViewerLike) return; // handled by dateClick below
+      // All users: date click goes to day view, not create form
+      // Only the "+ Add Schedule" button navigates to create form
 
       // Prevent "click-to-create" from firing after a drag-drop (mouseup can trigger click)
       if (isDraggingRef.current) return;
@@ -514,7 +514,7 @@ const [filterHost, setFilterHost] = useState('');
       }
       e.preventDefault();
       e.stopPropagation();
-      navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+      navigate(`/calendar/day/${d}`);
     };
 
     el.addEventListener('click', onClickCapture, true);
@@ -1442,12 +1442,8 @@ return parsedEvents
                 await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
                 return;
               }
-              if (isViewerLike) {
-                // Public user — go to day view for that date
-                navigate(`/calendar/day/${ymd}`);
-                return;
-              }
-              navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+              // All users go to day view on date click
+              navigate(`/calendar/day/${ymd}`);
             }}
             eventClick={async (info) => {
               info.jsEvent.preventDefault();
