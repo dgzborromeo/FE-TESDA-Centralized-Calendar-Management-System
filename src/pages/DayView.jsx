@@ -2,25 +2,67 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { events as eventsApi } from '../api';
 import EventModal from '../components/EventModal';
+import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import './DayView.css';
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 6); // 6 AM to 6 PM
+const HOURS = Array.from({ length: 15 }, (_, i) => i + 6); // 6 AM to 8 PM
 
-// Ibalik natin ang configuration ng kulay
 const OFFICE_COLORS = {
-  'ROMO': { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' },
-  'PLO': { bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' },
-  'QSO': { bg: '#fef9c3', text: '#a16207', border: '#fef08a' },
-  'PIO': { bg: '#ffedd5', text: '#9a3412', border: '#fed7aa' },
-  'SMO': { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' },
-  'PO': { bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
-  'AS': { bg: '#fae8ff', text: '#86198f', border: '#f5d0fe' },
-  'ICTO': { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-  'CLGEO': { bg: '#f1f5f9', text: '#334155', border: '#e2e8f0' },
-  'EBETO': { bg: '#fff1f2', text: '#9f1239', border: '#ffe4e6' },
-  'FMS': { bg: '#ecfdf5', text: '#047857', border: '#d1fae5' },
-  'CO': { bg: '#fff7ed', text: '#c2410c', border: '#ffedd5' },
+  'ROMO':  { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' },
+  'PLO':   { bg: '#ede9fe', text: '#6d28d9', border: '#c4b5fd' },
+  'QSO':   { bg: '#fce7f3', text: '#9d174d', border: '#f9a8d4' },
+  'PIO':   { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' },
+  'SMO':   { bg: '#f3e8ff', text: '#7e22ce', border: '#d8b4fe' },
+  'PO':    { bg: '#dcfce7', text: '#15803d', border: '#86efac' },
+  'AS':    { bg: '#cffafe', text: '#0e7490', border: '#67e8f9' },
+  'ICTO':  { bg: '#e0e7ff', text: '#3730a3', border: '#a5b4fc' },
+  'CLGEO': { bg: '#fef9c3', text: '#a16207', border: '#fde047' },
+  'EBETO': { bg: '#ffe4e6', text: '#be123c', border: '#fda4af' },
+  'FMS':   { bg: '#ccfbf1', text: '#0f766e', border: '#5eead4' },
+  'CO':    { bg: '#ffedd5', text: '#c2410c', border: '#fdba74' },
 };
+
+const DEFAULT_COLOR = { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' };
+
+function getOfficeStyle(name) {
+  const key = String(name || '').toUpperCase();
+  const match = Object.keys(OFFICE_COLORS).find(k => key.includes(k));
+  return OFFICE_COLORS[match] || DEFAULT_COLOR;
+}
+
+function getAbbreviation(name) {
+  const n = String(name || '').trim();
+  const m = n.match(/\(([^)]+)\)/);
+  if (m) return m[1].toUpperCase().slice(0, 6);
+  return n.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 4) || '?';
+}
+
+function formatFullTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hour = parseInt(h);
+  return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+function formatHour(h) {
+  return `${h % 12 || 12} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function renderParticipants(data) {
+  if (!data) return 'TBA';
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    if (Array.isArray(parsed)) return parsed.map(p => p.name || p).join(', ') || 'TBA';
+  } catch (_) {}
+  return String(data);
+}
+
+function getModeLabel(e) {
+  const loc = String(e.location || '').toLowerCase();
+  if (loc.includes('zoom') || e.type === 'zoom') return { label: 'Virtual / Zoom', cls: 'zoom' };
+  if (loc.includes('zoom') && loc.includes('|')) return { label: 'Hybrid', cls: 'hybrid' };
+  return { label: 'Face to Face', cls: 'meeting' };
+}
 
 export default function DayView() {
   const { date: dateParam } = useParams();
@@ -30,28 +72,13 @@ export default function DayView() {
 
   const dateYmd = dateParam?.slice(0, 10) || new Date().toISOString().split('T')[0];
 
-  // Helper function para sa styling
-  const getOfficeStyle = (name) => {
-    const key = String(name || '').toUpperCase();
-    // I-check kung may match sa abbreviation (e.g. QSO) o sa buong pangalan
-    const match = Object.keys(OFFICE_COLORS).find(k => key.includes(k));
-    return OFFICE_COLORS[match] || { bg: '#f8fafc', text: '#64748b', border: '#e2e8f0' };
-  };
-
-  const getAbbreviation = (name) => {
-    const n = String(name || '').trim();
-    const match = n.match(/\(([^)]+)\)/);
-    if (match) return match[1].toUpperCase();
-    return n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 4);
-  };
-
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const list = await eventsApi.list({ start: dateYmd, end: dateYmd });
       setEvents(list || []);
     } catch (err) {
-      console.error("Error:", err);
+      console.error('DayView fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -63,129 +90,157 @@ export default function DayView() {
     const map = {};
     HOURS.forEach(h => { map[h] = []; });
     events.forEach(e => {
-      const hour = parseInt(e.start_time?.split(':')[0]);
-      if (map[hour]) map[hour].push(e);
+      const hour = parseInt((e.start_time || '08:00').split(':')[0]);
+      const slot = HOURS.includes(hour) ? hour : HOURS[0];
+      map[slot].push(e);
     });
     return map;
   }, [events]);
 
-  const formatHour = (h) => {
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayHour = h % 12 || 12;
-    return `${displayHour} ${period}`;
-  };
+  const totalEvents = events.length;
 
-  const formatFullTime = (timeStr) => {
-    if (!timeStr) return '';
-    const [h, m] = timeStr.split(':');
-    const hour = parseInt(h);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    return `${hour % 12 || 12}:${m} ${period}`;
-  };
-const renderParticipants = (participantsData) => {
-  if (!participantsData) return 'To Follow';
-  
-  try {
-    // I-check kung string ito na kailangang i-parse o array na talaga
-    const data = typeof participantsData === 'string' 
-      ? JSON.parse(participantsData) 
-      : participantsData;
-
-    if (Array.isArray(data)) {
-      // Kunin lang ang 'name' property ng bawat object at pagsamahin gamit ang comma
-      return data.map(p => p.name).join(', ');
-    }
-    return String(participantsData);
-  } catch (err) {
-    // Fallback kung hindi pala valid JSON
-    return String(participantsData);
-  }
-};
   return (
     <div className="day-view-container">
+      <div className="day-view-inner">
       <header className="day-view-header">
         <div className="day-view-back">
-          <Link to={`/calendar?date=${dateYmd}`} className="day-view-link">← Back</Link>
+          <Link to={`/calendar?date=${dateYmd}`} className="day-view-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Calendar
+          </Link>
         </div>
-        <h1 className="day-view-title">
-          {new Date(dateYmd).toLocaleDateString('en-US', { dateStyle: 'full' })}
-        </h1>
+        <div className="day-view-header-center">
+          <h1 className="day-view-title">
+            {new Date(dateYmd + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </h1>
+          {!loading && (
+            <div className="day-view-event-count">
+              {totalEvents === 0 ? 'No events scheduled' : `${totalEvents} event${totalEvents !== 1 ? 's' : ''} scheduled`}
+            </div>
+          )}
+        </div>
       </header>
 
       {loading ? (
-        <div className="day-view-loading">Loading schedule...</div>
+        <div className="day-view-loading">
+          <div className="day-view-loading-bar" />
+          Loading schedule...
+        </div>
+      ) : totalEvents === 0 ? (
+        <div className="day-view-empty">
+          <div className="day-view-empty-icon">📅</div>
+          <strong>No events on this day</strong>
+          <span>Nothing scheduled yet.</span>
+        </div>
       ) : (
         <div className="timeline-list">
-          {HOURS.map(hour => (
-            <div key={hour} className="hour-section">
-              <div className="hour-header">
-                <span className="hour-text">{formatHour(hour)}</span>
-                <div className="hour-line"></div>
-              </div>
-              
-              <div className="hour-content">
-                {eventsByHour[hour].length > 0 ? (
-                  <div className="event-table-container">
-                    <table className="event-list-table">
-                      <thead>
-                        <tr>
-                          <th style={{ width: '35%' }}>ACTIVITY</th>
-                          <th style={{ width: '10%' }}>HOST</th>
-                          <th style={{ width: '15%' }}>MODE</th>
-                          <th style={{ width: '20%' }}>VENUE</th>
-                          <th style={{ width: '20%' }}>PARTICIPANTS</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {eventsByHour[hour].map((e) => {
-                          const style = getOfficeStyle(e.creator_name || e.office);
-                          const hostAbbr = getAbbreviation(e.creator_name || e.office);
-                          const modeDisplay = e.type === 'zoom' ? 'Online / Zoom' : (e.location ? 'Face-to-Face' : 'Hybrid');
+          {HOURS.map(hour => {
+            const hourEvents = eventsByHour[hour] || [];
+            return (
+              <div key={hour} className="hour-section">
+                {/* Hour label */}
+                <div className="hour-label-col">
+                  <span className="hour-text">{formatHour(hour)}</span>
+                </div>
 
-                          return (
-                            <tr key={e.id} onClick={() => setSelectedEvent(e.id)} className="clickable-row">
-                              <td className="col-activity">
-                                <div className="activity-title">{e.title}</div>
-                                <div className="time-indicator">
-                                  {formatFullTime(e.start_time)} - {formatFullTime(e.end_time)}
-                                </div>
-                              </td>
-                              <td className="col-host">
-                                <span 
-                                  className="host-abbr-badge" 
-                                  style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
-                                >
-                                  {hostAbbr}
-                                </span>
-                              </td>
-                              <td className="col-mode">
-                                <span className={`mode-text ${e.type}`}>
-                                  {modeDisplay}
-                                </span>
-                              </td>
-                              <td className="col-venue">{e.location || 'N/A'}</td>
-                              <td className="col-participants">{renderParticipants(e.participants)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="no-events-spacer"></div>
-                )}
+                {/* Track line + dot */}
+                <div className="hour-track-col">
+                  <div className="hour-dot" />
+                  <div className="hour-line-track" />
+                </div>
+
+                {/* Events */}
+                <div className="hour-events-col">
+                  {hourEvents.length === 0 ? (
+                    <div className="hour-events-empty" />
+                  ) : (
+                    hourEvents.map((e, idx) => {
+                      const style = getOfficeStyle(e.creator_name);
+                      const abbr = getAbbreviation(e.creator_name);
+                      const mode = getModeLabel(e);
+                      const tentative = parseTentativeDescription(e.description || '');
+                      const participants = renderParticipants(e.participants);
+
+                      return (
+                        <div
+                          key={e.id}
+                          className="dv-event-card"
+                          style={{ '--dv-card-color': e.color || style.border, animationDelay: `${0.05 + idx * 0.06}s` }}
+                          onClick={() => setSelectedEvent(e.id)}
+                        >
+                          {/* Top row: title + time */}
+                          <div className="dv-card-top">
+                            <span className="dv-card-title">{e.title}</span>
+                            <span className="dv-card-time">
+                              {formatFullTime(e.start_time)} – {formatFullTime(e.end_time)}
+                            </span>
+                          </div>
+
+                          {/* Meta row */}
+                          <div className="dv-card-meta">
+                            {/* Host badge */}
+                            <span
+                              className="dv-host-badge"
+                              style={{
+                                background: e.color ? `${e.color}22` : style.bg,
+                                color: e.color || style.text,
+                                borderColor: e.color ? `${e.color}55` : style.border
+                              }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                              {abbr}
+                            </span>
+
+                            {/* Mode */}
+                            <span className={`dv-mode-badge ${mode.cls}`}>
+                              {mode.cls === 'zoom' ? (
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+                              ) : (
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
+                              )}
+                              {mode.label}
+                            </span>
+
+                            {/* Location */}
+                            {e.location && (
+                              <span className="dv-meta-item">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                {e.location}
+                              </span>
+                            )}
+
+                            {/* Tentative badge */}
+                            {tentative.isTentative && (
+                              <span className="dv-tentative-badge">Tentative</span>
+                            )}
+                          </div>
+
+                          {/* Participants */}
+                          {participants && participants !== 'TBA' && (
+                            <div className="dv-card-participants">
+                              <span className="dv-participants-label">Participants:</span>
+                              {participants}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
+      </div>{/* end day-view-inner */}
+
       {selectedEvent && (
-        <EventModal 
-          eventId={selectedEvent} 
-          onClose={() => setSelectedEvent(null)} 
-          onEdit={fetchEvents} 
-          onDelete={fetchEvents} 
+        <EventModal
+          eventId={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={fetchEvents}
+          onDelete={fetchEvents}
         />
       )}
     </div>

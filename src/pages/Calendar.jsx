@@ -496,17 +496,15 @@ const [filterHost, setFilterHost] = useState('');
     if (!el) return;
 
     const onClickCapture = async (e) => {
-      // Public / viewer-like accounts are view-only: do not open create-event form on day click.
-      if (isViewerLike) return;
+      // Public / viewer-like accounts: navigate to day view instead of create form
+      if (isViewerLike) return; // handled by dateClick below
 
       // Prevent "click-to-create" from firing after a drag-drop (mouseup can trigger click)
       if (isDraggingRef.current) return;
       if (Date.now() - lastDropAtRef.current < 400) return;
 
       const target = e.target;
-      // Only handle clicks that actually happen inside the FullCalendar grid area.
       if (!target?.closest?.('.fc')) return;
-      // Don't hijack event clicks / "+more" links
       if (target?.closest?.('.fc-event, .fc-more-link, .fc-daygrid-more-link')) return;
       const d = getDateFromRects(el, e.clientX, e.clientY) || getDateFromPoint(e.clientX, e.clientY);
       if (!d) return;
@@ -516,10 +514,6 @@ const [filterHost, setFilterHost] = useState('');
       }
       e.preventDefault();
       e.stopPropagation();
-      if (isViewerLike) {
-        setShowLoginModal(true);
-        return;
-      }
       navigate('/simple-event-form', { state: { backTo: '/calendar' } });
     };
 
@@ -1448,12 +1442,12 @@ return parsedEvents
                 await dialog.alert('Weekends are locked. Please select a weekday.', { title: 'Date Not Allowed' });
                 return;
               }
-                      if (!isViewerLike) {
-                navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+              if (isViewerLike) {
+                // Public user — go to day view for that date
+                navigate(`/calendar/day/${ymd}`);
                 return;
               }
-              setShowLoginModal(true);
-              return;
+              navigate('/simple-event-form', { state: { backTo: '/calendar' } });
             }}
             eventClick={async (info) => {
               info.jsEvent.preventDefault();
