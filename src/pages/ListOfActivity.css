@@ -626,3 +626,60 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
 }
+
+/* ── Posted column ─────────────────────────────────────────────────────── */
+.posted-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.posted-toggle {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(148,163,184,0.35);
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+}
+
+.posted-btn {
+  padding: 0.28rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: #f8fafc;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.4;
+}
+
+.posted-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.posted-btn--yes.posted-btn--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.posted-btn--no.posted-btn--active {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.posted-btn--yes:not(.posted-btn--active):hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.posted-btn--no:not(.posted-btn--active):hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.posted-na {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}

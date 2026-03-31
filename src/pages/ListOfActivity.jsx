@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { config as scheduleAPI } from '../api'; 
+import { config as scheduleAPI, events as eventsAPI } from '../api'; 
 import './ListOfActivity.css';
 
 export default function ListOfActivity() {
@@ -20,6 +20,7 @@ export default function ListOfActivity() {
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [modalMsg, setModalMsg] = useState({ type: '', text: '' });
+  const [togglingPosted, setTogglingPosted] = useState(null); // id of item being toggled
 
   // PDF VIEWER STATE
   const [viewingPdf, setViewingPdf] = useState(null);
@@ -39,6 +40,22 @@ export default function ListOfActivity() {
   useEffect(() => {
     fetchSchedules();
   }, []);
+
+  const handleTogglePosted = async (item, newVal) => {
+    setTogglingPosted(item.id);
+    try {
+      const result = await scheduleAPI.toggleSchedulePosted(item.id, newVal);
+      setSchedules(prev => prev.map(s =>
+        s.id === item.id
+          ? { ...s, is_posted: newVal, promoted_event_id: result.promoted_event_id ?? s.promoted_event_id }
+          : s
+      ));
+    } catch (err) {
+      alert('Failed to update posted status: ' + err.message);
+    } finally {
+      setTogglingPosted(null);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this activity?")) {
@@ -183,13 +200,14 @@ const filteredData = useMemo(() => {
                 <th className="list-of-activity-filter-th">Participants</th>
                 <th className="list-of-activity-filter-th">Schedule & Time</th>
                 <th className="list-of-activity-filter-th">Status</th>
+                <th className="list-of-activity-filter-th">Posted</th>
                 <th className="list-of-activity-filter-th">Attachment</th>
                 <th className="list-of-activity-filter-th">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="7" className="text-center">Loading data...</td></tr>
+                <tr><td colSpan="8" className="text-center">Loading data...</td></tr>
               ) : filteredData.length > 0 ? (
                 filteredData.map((item) => (
                   <tr key={item.id}>
@@ -227,6 +245,34 @@ const filteredData = useMemo(() => {
                         <span className={`status-pill ${item.status?.toLowerCase()}`}>{item.status}</span>
                         {item.expiry_warning && (
                           <span className="expiry-warning">⚠️ {item.days_until_expiry}d left</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="list-of-activity-filter-td">
+                      <div className="posted-cell">
+                        {item.status === 'Expired' ? (
+                          <span className="posted-btn posted-btn--no posted-btn--active" style={{cursor:'default', borderRadius:'8px', display:'inline-block'}}>No</span>
+                        ) : (item.status === 'Final' || item.status === 'Tentative') ? (
+                          <div className="posted-toggle">
+                            <button
+                              className={`posted-btn posted-btn--yes ${item.is_posted ? 'posted-btn--active' : ''}`}
+                              onClick={() => handleTogglePosted(item, true)}
+                              disabled={togglingPosted === item.id || item.is_posted === true}
+                              title="Post to calendar"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              className={`posted-btn posted-btn--no ${!item.is_posted ? 'posted-btn--active' : ''}`}
+                              onClick={() => handleTogglePosted(item, false)}
+                              disabled={togglingPosted === item.id || !item.is_posted}
+                              title="Remove from calendar"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="posted-na">—</span>
                         )}
                       </div>
                     </td>

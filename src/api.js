@@ -58,6 +58,7 @@ export const events = {
     }),
   update: (id, body) => api(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (id) => api(`/events/${id}`, { method: 'DELETE' }),
+  togglePosted: (id, is_posted) => api(`/events/${id}/posted`, { method: 'POST', body: JSON.stringify({ is_posted }) }),
   rsvp: (id, body) => api(`/events/${id}/rsvp`, { method: 'POST', body: JSON.stringify(body) }),
   cancel: (id, body) => api(`/events/${id}/cancel`, { method: 'POST', body: JSON.stringify(body) }),
   uploadPostDocument: (id, file) => {
@@ -228,6 +229,7 @@ export const config = {
     method: 'DELETE' 
   }),
   renewSchedule: (id) => api(`/renew-schedule/${id}`, { method: 'POST' }),
+  toggleSchedulePosted: (id, is_posted) => api(`/schedule-posted/${id}`, { method: 'POST', body: JSON.stringify({ is_posted }) }),
 
 
     getFocalships: () => api('/focalship'),
