@@ -1183,7 +1183,7 @@
 .fc .fc-col-header-cell {
   padding: 0.6rem 0.35rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #334155;
@@ -1217,7 +1217,7 @@
 }
 .fc .fc-daygrid-day-number {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 900;
   color: #334155;
   margin: 0.35rem 0.4rem;
   width: 1.6rem;
@@ -1270,7 +1270,7 @@
 }
 .fc .fc-toolbar-title {
   font-size: 1.35rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: -0.02em;
   color: #0f172a;
 }
