@@ -145,130 +145,6 @@ function currentYear() {
   return new Date().getFullYear();
 }
 
-// ── QuarterView component ─────────────────────────────────────────────────────
-
-const QUARTER_MONTHS = {
-  Q1: [0, 1, 2],   // Jan Feb Mar
-  Q2: [3, 4, 5],   // Apr May Jun
-  Q3: [6, 7, 8],   // Jul Aug Sep
-  Q4: [9, 10, 11], // Oct Nov Dec
-};
-
-const FLAG_META_QV = {
-  suspended: { icon: '🚫', label: 'Suspended', cls: 'suspended' },
-  wfh:       { icon: '🏠', label: 'Work From Home', cls: 'wfh' },
-};
-
-function QuarterView({ quarter, activeList, dayFlagsMap, onEventClick }) {
-  const months = QUARTER_MONTHS[quarter] || [];
-
-  // group events by YYYY-MM-DD
-  const eventsByDay = useMemo(() => {
-    const map = {};
-    for (const e of activeList) {
-      const ymd = String(e.date || '').slice(0, 10);
-      if (!ymd) continue;
-      if (!map[ymd]) map[ymd] = [];
-      map[ymd].push(e);
-    }
-    return map;
-  }, [activeList]);
-
-  // derive year from the events (or current year)
-  const year = useMemo(() => {
-    const dates = activeList.map(e => String(e.date || '').slice(0, 4)).filter(Boolean);
-    if (dates.length) return parseInt(dates[0], 10);
-    return new Date().getFullYear();
-  }, [activeList]);
-
-  const quarterLabel = {
-    Q1: 'Q1 — January to March',
-    Q2: 'Q2 — April to June',
-    Q3: 'Q3 — July to September',
-    Q4: 'Q4 — October to December',
-  }[quarter] || quarter;
-
-  return (
-    <div className="ev-quarter-view">
-      <div className="ev-quarter-header">
-        <span className="ev-quarter-title">{quarterLabel} · {year}</span>
-        <span className="ev-quarter-count">{activeList.length} event{activeList.length !== 1 ? 's' : ''}</span>
-      </div>
-      <div className="ev-quarter-grid">
-        {months.map((monthIdx) => {
-          const monthDate = new Date(year, monthIdx, 1);
-          const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'long' });
-          const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
-
-          // collect all days in this month that have events or flags
-          const rows = [];
-          for (let d = 1; d <= daysInMonth; d++) {
-            const ymd = `${year}-${String(monthIdx + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const dayEvents = eventsByDay[ymd] || [];
-            const flag = dayFlagsMap[ymd];
-            if (dayEvents.length > 0 || flag) {
-              rows.push({ ymd, dayEvents, flag });
-            }
-          }
-
-          return (
-            <div key={monthIdx} className="ev-quarter-month">
-              <div className="ev-quarter-month-header">
-                <span className="ev-quarter-month-name">{monthLabel}</span>
-                <span className="ev-quarter-month-count">{rows.reduce((s, r) => s + r.dayEvents.length, 0)}</span>
-              </div>
-              <div className="ev-quarter-month-body">
-                {rows.length === 0 && (
-                  <p className="ev-quarter-empty">No events</p>
-                )}
-                {rows.map(({ ymd, dayEvents, flag }) => {
-                  const dayDate = new Date(ymd + 'T12:00:00');
-                  const dayLabel = dayDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
-                  const flagMeta = flag ? (FLAG_META_QV[flag.type] || FLAG_META_QV.suspended) : null;
-                  return (
-                    <div key={ymd} className="ev-quarter-day">
-                      <div className="ev-quarter-day-header">
-                        <span className="ev-quarter-day-label">{dayLabel}</span>
-                        {flagMeta && (
-                          <span className={`ev-quarter-flag ev-quarter-flag--${flagMeta.cls}`}>
-                            {flagMeta.icon} {flagMeta.label}
-                          </span>
-                        )}
-                      </div>
-                      {dayEvents.map((e) => {
-                        const tentative = parseTentativeDescription(e.description || '');
-                        return (
-                          <button
-                            key={e.id}
-                            type="button"
-                            className="ev-quarter-event"
-                            onClick={() => onEventClick(e.id)}
-                          >
-                            <span className="ev-quarter-event-time">
-                              {formatTime(e.start_time)}
-                            </span>
-                            <div className="ev-quarter-event-body">
-                              <span className="ev-quarter-event-title">{e.title}</span>
-                              <span className="ev-quarter-event-host">👤 {e.creator_name || 'Unknown'}</span>
-                            </div>
-                            {tentative.isTentative && (
-                              <span className="ev-quarter-event-badge ev-quarter-event-badge--tentative">Tentative</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── main component ────────────────────────────────────────────────────────────
 
 const TABS = ['Recent', 'Upcoming', 'By Year'];
@@ -730,19 +606,7 @@ export default function EventsView() {
         <span className={`dashboard-count-pill ${activeCount ? 'active' : ''}`}>{activeCount} event{activeCount !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Quarter overview — shown when a quarter filter is active */}
-      {filterQuarter && !isLoading && (
-        <QuarterView
-          quarter={filterQuarter}
-          activeList={activeList}
-          dayFlagsMap={dayFlagsMap}
-          onEventClick={(id) => setSelectedEvent(id)}
-        />
-      )}
-
-      {/* list — hidden when quarter view is active */}
-      {!filterQuarter && (
-      <>
+      {/* list */}
       {isLoading ? (
         <div className="dashboard-loading">Loading...</div>
       ) : activeCount === 0 ? (
@@ -847,8 +711,6 @@ export default function EventsView() {
 
           {/* pagination removed — all days shown in grouped view */}
         </>
-      )}
-      </>
       )}
 
       {/* event modal */}
