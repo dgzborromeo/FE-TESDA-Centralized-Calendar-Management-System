@@ -1420,6 +1420,100 @@
   gap: 8px;
 }
 
+/* collapsed empty-day gap row */
+.ev-empty-gap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.ev-empty-gap__line {
+  flex: 1;
+  height: 1px;
+  background: #94a3b8;
+}
+
+.ev-empty-gap__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.ev-empty-gap__count {
+  font-size: 0.7rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ── EventsView day flag row ─────────────────────────────────────────────── */
+.ev-day-flag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+}
+
+.ev-day-flag--suspended {
+  background: #fffbeb;
+  border-color: #fbbf24;
+}
+
+.ev-day-flag--wfh {
+  background: #fffde7;
+  border-color: #f59e0b;
+}
+
+.ev-day-flag__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.ev-day-flag__date {
+  font-weight: 700;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.ev-day-flag__time {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.ev-day-flag__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ev-day-flag--suspended .ev-day-flag__badge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ev-day-flag--wfh .ev-day-flag__badge {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+.ev-day-flag__note {
+  font-size: 0.78rem;
+  color: #92400e;
+  font-style: italic;
+}
+
 .ev-card {
   display: flex;
   align-items: stretch;

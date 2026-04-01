@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { events as eventsApi, users as usersApi, config as configApi } from '../api';
+import { events as eventsApi, users as usersApi, config as configApi, dayFlags as dayFlagsApi } from '../api';
 import EventModal from '../components/EventModal';
 import { useAppDialog } from '../components/AppDialogProvider';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +25,7 @@ const EVENT_COLORS = {
   hybrid: '#3F8F8C', // teal
   virtual: '#F28E2B', // orange highlight
 };
-const HOLIDAY_COLOR = '#4F6D8A';
+const HOLIDAY_COLOR = '#fee2e2'; // soft rose background
 
 function lastMondayOfAugust(year) {
   // National Heroes Day (PH): last Monday of August
@@ -68,8 +68,8 @@ function holidayEventsForRange(startDate, endDateExclusive) {
         end: `${h.date}T23:59:59`,
         allDay: true,
         backgroundColor: HOLIDAY_COLOR,
-        borderColor: HOLIDAY_COLOR,
-        textColor: '#fff',
+        borderColor: '#fca5a5',
+        textColor: '#991b1b',
         editable: false,
         startEditable: false,
         durationEditable: false,
@@ -408,6 +408,7 @@ export default function Calendar() {
   const [error, setError] = useState('');
   const [events, setEvents] = useState([]);
   const [holidayEvents, setHolidayEvents] = useState([]);
+  const [dayFlagEvents, setDayFlagEvents] = useState([]);
   const [users, setUsers] = useState([]);
   const [clusterLegend, setClusterLegend] = useState([]);
   const [legendLoading, setLegendLoading] = useState(false);
@@ -553,6 +554,17 @@ const [filterHost, setFilterHost] = useState('');
     if (searchQuery.trim()) params.q = searchQuery.trim();
     const rows = await eventsApi.list(params);
     setEvents(rows);
+
+    // Fetch day flags for the visible year(s) — fetch each year independently so one failure doesn't kill all
+    const startYear = rangeStart.getFullYear();
+    const endYear = inclusiveEnd.getFullYear();
+    const flagResults = [];
+    for (let y = startYear; y <= endYear; y++) {
+      const flags = await dayFlagsApi.list(y).catch(() => []);
+      flagResults.push(...(Array.isArray(flags) ? flags : []));
+    }
+    // Normalize date to YYYY-MM-DD to avoid UTC timezone shift
+    setDayFlagEvents(flagResults.map(f => ({ ...f, date: String(f.date || '').slice(0, 10) })));
   };
 
   const fetchLegend = async () => {
@@ -571,10 +583,17 @@ const [filterHost, setFilterHost] = useState('');
 
   useEffect(() => {
     fetchLegend();
-    // Categories are only needed for the (currently hidden) participant filter UI.
-    // Avoid calling a missing endpoint and spamming the console with 404s.
     setCategories([]);
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
+    // Pre-load day flags for current year on mount
+    const yr = new Date().getFullYear();
+    dayFlagsApi.list(yr)
+      .then(flags => {
+        if (Array.isArray(flags) && flags.length > 0) {
+          setDayFlagEvents(flags.map(f => ({ ...f, date: String(f.date || '').slice(0, 10) })));
+        }
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -849,6 +868,36 @@ const sortedHostDropdownOptions = useMemo(() => {
     })
     .sort((a, b) => a.shortName.localeCompare(b.shortName));
 }, [users]);
+
+ const dayFlagFcEvents = useMemo(() => {
+  const FLAG_CONFIG = {
+    suspended:      { bg: '#fffbeb', border: '#fbbf24', text: '#92400e', label: '🚫 Suspended' },
+    wfh:            { bg: '#fffde7', border: '#f59e0b', text: '#78350f', label: '🏠 Work From Home' },
+  };
+  return dayFlagEvents.map((f) => {
+    const cfg = FLAG_CONFIG[f.type] || FLAG_CONFIG.suspended;
+    const timeStr = f.time ? f.time.slice(0,5) + (f.time_end ? `–${f.time_end.slice(0,5)}` : '') : '';
+    return {
+      id: `flag-${f.id}`,
+      title: cfg.label,
+      start: f.date,          // YYYY-MM-DD — FullCalendar treats as local date
+      allDay: true,
+      display: 'auto',
+      backgroundColor: cfg.bg,
+      borderColor: cfg.border,
+      textColor: cfg.text,
+      classNames: [`fc-day-flag`, `fc-day-flag--${f.type}`],
+      extendedProps: {
+        isDayFlag: true,
+        flagType: f.type,
+        flagLabel: cfg.label,
+        flagTime: timeStr,
+        flagMemoSubject: f.memo_subject || '',
+        flagMemoNumber: f.memo_number || '',
+      },
+    };
+  });
+}, [dayFlagEvents]);
 
  const fcEvents = useMemo(() => {
 return parsedEvents
@@ -1414,7 +1463,7 @@ return parsedEvents
               minute: '2-digit',
               meridiem: 'short'
             }}
-            events={[...holidayEvents, ...fcEvents]}
+            events={[...holidayEvents, ...dayFlagFcEvents, ...fcEvents]}
             datesSet={async (arg) => {
               try { syncToolbarTabs(); } catch { /* ignore */ }
               try {
@@ -1455,6 +1504,7 @@ return parsedEvents
             }}
             eventDidMount={(arg) => {
               if (arg.event.extendedProps?.isHoliday) return;
+              if (arg.event.extendedProps?.isDayFlag) return;
               const el = arg.el;
               // Match reference: only the LEFT stripe uses host color (not the whole border).
               try {
@@ -1626,6 +1676,19 @@ return parsedEvents
               }
             }}
             eventContent={(arg) => {
+              // Day flag — custom compact rendering
+              if (arg.event.extendedProps?.isDayFlag) {
+                const ext = arg.event.extendedProps;
+                return (
+                  <div className="fc-day-flag-content">
+                    <span className="fc-day-flag-label">{ext.flagLabel}</span>
+                    {ext.flagTime && <span className="fc-day-flag-meta">🕐 {ext.flagTime}</span>}
+                    {ext.flagMemoSubject && <span className="fc-day-flag-meta">📋 {ext.flagMemoSubject}</span>}
+                    {ext.flagMemoNumber && <span className="fc-day-flag-meta">#{ext.flagMemoNumber}</span>}
+                  </div>
+                );
+              }
+
               const conflict = (arg.event.extendedProps?.conflict_count || 0) > 0;
               const tooltip = arg.event.extendedProps?.tooltip || arg.event.title;
               const done = Boolean(arg.event.extendedProps?.done);

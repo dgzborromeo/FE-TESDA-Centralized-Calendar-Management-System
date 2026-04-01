@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { config as configApi, users as usersApi } from '../api';
+import { dayFlags as dayFlagsApi } from '../api';
 import './UserConfig.css';
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'pos-setup', label: 'Position Setup' },
   { id: 'focals', label: 'Focalships' },
   { id: 'ttis', label: 'TTIs' }, // Bago
+  { id: 'day-flags', label: 'Day Flags' },
 ];
 
 export default function UserConfig() {
@@ -72,6 +74,44 @@ const [ttiFormData, setTtiFormData] = useState({
   address: '', 
   email: '' 
 });
+
+// Day Flags state
+const [dayFlagsList, setDayFlagsList] = useState([]);
+const [dayFlagForm, setDayFlagForm] = useState({ date: '', type: 'suspended', time: '', time_end: '', memo_subject: '', memo_number: '', note: '' });
+const [dayFlagEditId, setDayFlagEditId] = useState(null);
+const [dayFlagFormOpen, setDayFlagFormOpen] = useState(false);
+const [dayFlagError, setDayFlagError] = useState('');
+const [dayFlagYear, setDayFlagYear] = useState(new Date().getFullYear());
+
+const loadDayFlags = (yr) => {
+  dayFlagsApi.list(yr || dayFlagYear)
+    .then(data => setDayFlagsList(Array.isArray(data) ? data : []))
+    .catch(() => setDayFlagsList([]));
+};
+
+const handleDayFlagSubmit = async (e) => {
+  e.preventDefault();
+  setDayFlagError('');
+  try {
+    if (dayFlagEditId) {
+      await dayFlagsApi.update(dayFlagEditId, dayFlagForm);
+    } else {
+      await dayFlagsApi.create(dayFlagForm);
+    }
+    setDayFlagFormOpen(false);
+    setDayFlagEditId(null);
+    setDayFlagForm({ date: '', type: 'suspended', time: '', time_end: '', memo_subject: '', memo_number: '', note: '' });
+    loadDayFlags(dayFlagYear);
+  } catch (err) {
+    setDayFlagError(err?.response?.data?.error || err.message || 'Failed to save.');
+  }
+};
+
+const handleDayFlagDelete = async (id) => {
+  if (!window.confirm('Delete this day flag?')) return;
+  await dayFlagsApi.remove(id).catch(() => {});
+  loadDayFlags(dayFlagYear);
+};
 const loadTTIs = useCallback(() => {
   setLoading(true);
   configApi.getTTIs()
@@ -412,6 +452,9 @@ useEffect(() => {
     case 'ttis':
       loadTTIs();
       loadProvinces(); // Siguradong loaded ang options para sa dropdown
+      break;
+    case 'day-flags':
+      loadDayFlags();
       break;
     default:
       break;
@@ -1334,6 +1377,116 @@ const handleDelete = async (id) => {
               </li>
             ))}
             {!loading && ttis.length === 0 && <p className="user-config-empty">No TTIs found.</p>}
+          </ul>
+        </section>
+      )}
+
+      {/* DAY FLAGS TAB */}
+      {activeTab === 'day-flags' && (
+        <section className="user-config-panel">
+          <div className="panel-header-inline">
+            <h2 className="user-config-panel-title">Day Flags</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <select
+                value={dayFlagYear}
+                onChange={(e) => { setDayFlagYear(Number(e.target.value)); loadDayFlags(Number(e.target.value)); }}
+                className="ev-filter-select"
+              >
+                {[2024,2025,2026,2027].map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              {!dayFlagFormOpen && (
+                <button className="btn-add-toggle" onClick={() => { setDayFlagFormOpen(true); setDayFlagEditId(null); setDayFlagForm({ date: '', type: 'suspended', note: '' }); }}>
+                  + Add Flag
+                </button>
+              )}
+            </div>
+          </div>
+
+          {dayFlagFormOpen && (
+            <form className="day-flag-form" onSubmit={handleDayFlagSubmit}>
+              <div className="day-flag-form-grid">
+                <div className="day-flag-field">
+                  <label>Date</label>
+                  <input type="date" required value={dayFlagForm.date}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, date: e.target.value })} />
+                </div>
+                <div className="day-flag-field">
+                  <label>Type</label>
+                  <select value={dayFlagForm.type}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, type: e.target.value })}>
+                    <option value="suspended">🚫 Suspended</option>
+                    <option value="wfh">🏠 Work From Home</option>
+                  </select>
+                </div>
+                <div className="day-flag-field">
+                  <label>Time</label>
+                  <input type="time" value={dayFlagForm.time}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, time: e.target.value })} />
+                </div>
+                <div className="day-flag-field">
+                  <label>Time End</label>
+                  <input type="time" value={dayFlagForm.time_end}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, time_end: e.target.value })} />
+                </div>
+                <div className="day-flag-field day-flag-field--note">
+                  <label>Memorandum Subject</label>
+                  <input type="text" placeholder="e.g. Suspension of Work" value={dayFlagForm.memo_subject}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, memo_subject: e.target.value })} />
+                </div>
+                <div className="day-flag-field">
+                  <label>Memo Number</label>
+                  <input type="text" placeholder="e.g. Memo No. 2026-001" value={dayFlagForm.memo_number}
+                    onChange={(e) => setDayFlagForm({ ...dayFlagForm, memo_number: e.target.value })} />
+                </div>
+              </div>
+              {dayFlagError && <p className="day-flag-error">{dayFlagError}</p>}
+              <div className="inline-form-btns" style={{ marginTop: '12px' }}>
+                <button type="submit" className="btn-inline-save">
+                  {dayFlagEditId ? 'Update Flag' : 'Save Flag'}
+                </button>
+                <button type="button" className="btn-inline-cancel" onClick={() => { setDayFlagFormOpen(false); setDayFlagEditId(null); setDayFlagError(''); }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          <ul className="day-flag-list">
+            {dayFlagsList.length === 0 && <p className="user-config-empty">No day flags for {dayFlagYear}.</p>}
+            {dayFlagsList.map((f) => (
+              <li key={f.id} className={`day-flag-item day-flag-item--${f.type}`}>
+                <span className="day-flag-icon">
+                  {f.type === 'suspended' ? '🚫' : f.type === 'wfh' ? '🏠' : '🚫🏠'}
+                </span>
+                <div className="day-flag-info">
+                  <div className="day-flag-info-top">
+                    <span className="day-flag-date">
+                      {new Date(String(f.date).slice(0,10) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <span className={`day-flag-badge day-flag-badge--${f.type}`}>
+                      {f.type === 'suspended' ? 'Suspended' : 'Work From Home'}
+                    </span>
+                  </div>
+                  <div className="day-flag-info-sub">
+                    {f.time && (
+                      <span className="day-flag-time">
+                        🕐 {f.time.slice(0,5)}{f.time_end ? ` – ${f.time_end.slice(0,5)}` : ''}
+                      </span>
+                    )}
+                    {f.memo_subject && <span className="day-flag-note">📋 {f.memo_subject}</span>}
+                    {f.memo_number && <span className="day-flag-note">#{f.memo_number}</span>}
+                  </div>
+                </div>
+                <div className="item-actions">
+                  <button className="btn-action-edit" onClick={() => {
+                    setDayFlagEditId(f.id);
+                    setDayFlagForm({ date: f.date, type: f.type, time: f.time || '', time_end: f.time_end || '', memo_subject: f.memo_subject || '', memo_number: f.memo_number || '', note: f.note || '' });
+                    setDayFlagFormOpen(true);
+                  }}>Edit</button>
+                  <button className="btn-action-delete" onClick={() => handleDayFlagDelete(f.id)}>Delete</button>
+                </div>
+              </li>
+            ))}
           </ul>
         </section>
       )}

@@ -265,3 +265,10 @@ export const config = {
   }),
   getTTIsByProvince: (provinceId) => api(`/provinces/${provinceId}/ttis`),
 };
+
+export const dayFlags = {
+  list: (year) => api(`/day-flags${year ? `?year=${year}` : ''}`),
+  create: (body) => api('/day-flags', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id, body) => api(`/day-flags/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  remove: (id) => api(`/day-flags/${id}`, { method: 'DELETE' }),
+};

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { events as eventsApi, users as usersApi } from '../api';
+import { dayFlags as dayFlagsApi } from '../api';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
@@ -181,6 +182,9 @@ export default function EventsView() {
   const [yearEvents, setYearEvents] = useState([]);
   const [yearLoading, setYearLoading] = useState(false);
 
+  // day flags
+  const [dayFlagsMap, setDayFlagsMap] = useState({}); // ymd → flag object
+
   const yearOptions = useMemo(() => {
     const now = currentYear();
     const out = [];
@@ -229,6 +233,19 @@ export default function EventsView() {
     refreshRecent();
     usersApi.legendClusters().then((rows) => setClusterLegend(Array.isArray(rows) ? rows : [])).catch(() => setClusterLegend([]));
     usersApi.list().then((rows) => setUsers(Array.isArray(rows) ? rows : [])).catch(() => setUsers([]));
+    // load day flags for current year and adjacent years
+    const yr = currentYear();
+    Promise.all([dayFlagsApi.list(yr - 1), dayFlagsApi.list(yr), dayFlagsApi.list(yr + 1)])
+      .then((results) => {
+        const map = {};
+        for (const flag of results.flat()) {
+          // Use only the YYYY-MM-DD part to avoid timezone shift
+          const ymd = String(flag.date || '').slice(0, 10);
+          if (ymd) map[ymd] = { ...flag, date: ymd };
+        }
+        setDayFlagsMap(map);
+      })
+      .catch(() => {});
   }, []);
 
   // lazy-load other tabs on first visit
@@ -244,6 +261,15 @@ export default function EventsView() {
 
   useEffect(() => {
     if (activeTab === 'By Year') refreshYear(year);
+    // reload flags for the selected year
+    dayFlagsApi.list(year).then(data => {
+      const map = {};
+      for (const f of (Array.isArray(data) ? data : [])) {
+        const ymd = String(f.date || '').slice(0, 10);
+        if (ymd) map[ymd] = { ...f, date: ymd };
+      }
+      setDayFlagsMap(prev => ({ ...prev, ...map }));
+    }).catch(() => {});
   }, [year]);
 
   // close host filter on outside click
@@ -358,10 +384,64 @@ export default function EventsView() {
     );
     return Array.from(names).sort();
   }, [users]);
+  // ── group events by day, filling empty days in range ─────────────────────
+  const groupedDays = useMemo(() => {
+    if (activeList.length === 0) return [];
+
+    const dates = activeList.map((e) => String(e.date || '').slice(0, 10)).filter(Boolean);
+    const minDate = dates.reduce((a, b) => (a < b ? a : b));
+    const maxDate = dates.reduce((a, b) => (a > b ? a : b));
+
+    const map = new Map();
+    const coveredDates = new Set();
+
+    for (const e of activeList) {
+      const start = String(e.date || '').slice(0, 10);
+      const end = String(e.end_date || e.date || '').slice(0, 10);
+      if (!start) continue;
+      if (!map.has(start)) map.set(start, []);
+      map.get(start).push(e);
+      const cur = new Date(start + 'T12:00:00');
+      const endD = new Date((end || start) + 'T12:00:00');
+      while (cur <= endD) { coveredDates.add(toLocalYMD(cur)); cur.setDate(cur.getDate() + 1); }
+    }
+
+    const rows = [];
+    const cur = new Date(minDate + 'T12:00:00');
+    const end = new Date(maxDate + 'T12:00:00');
+    let emptyStreak = [];
+
+    const flushEmpty = () => {
+      if (emptyStreak.length === 0) return;
+      rows.push({ type: 'empty-gap', ymds: [...emptyStreak] });
+      emptyStreak = [];
+    };
+
+    while (cur <= end) {
+      const ymd = toLocalYMD(cur);
+      const flag = dayFlagsMap[ymd];
+
+      if (map.has(ymd)) {
+        flushEmpty();
+        if (flag) rows.push({ type: 'day-flag', ymd, flag });
+        rows.push({ type: 'events', ymd, events: map.get(ymd) });
+      } else if (coveredDates.has(ymd)) {
+        flushEmpty();
+        if (flag) rows.push({ type: 'day-flag', ymd, flag });
+      } else if (flag) {
+        flushEmpty();
+        rows.push({ type: 'day-flag', ymd, flag });
+      } else {
+        emptyStreak.push(ymd);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    flushEmpty();
+    return rows;
+  }, [activeList, dayFlagsMap]);
+
   const activeCount = activeList.length;
-  const totalPages = Math.max(1, Math.ceil(activeCount / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = activeList.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  // (pagination removed — all days shown grouped)
 
   const tabLabel = activeTab === 'Upcoming' ? 'Upcoming Events/Meetings'
     : activeTab === 'Recent' ? 'Recent Events/Meetings'
@@ -488,80 +568,102 @@ export default function EventsView() {
       ) : (
         <>
           <ul className="ev-card-list">
-            {pageItems.map((e) => {
-              const tentative = parseTentativeDescription(e.description || '');
-              const isPast = activeTab === 'Recent';
-              return (
-                <li key={e.id}>
-                  <button type="button" className={`ev-card ${isPast ? 'ev-card--past' : 'ev-card--upcoming'}`} onClick={() => setSelectedEvent(e.id)}>
-                    {/* date badge */}
-                    <div className="ev-card__date">
-                      <span className="ev-card__month">
-                        {new Date((activeTab === 'By Year' ? e.date : e.date) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
-                      </span>
-                      <span className="ev-card__day">
-                        {new Date(e.date + 'T12:00:00').getDate()}
-                      </span>
-                      <span className="ev-card__dow">
-                        {new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
-                      </span>
-                    </div>
+            {groupedDays.map((row) => {
+              if (row.type === 'empty-gap') {
+                const { ymds } = row;
+                const first = new Date(ymds[0] + 'T12:00:00');
+                const last = new Date(ymds[ymds.length - 1] + 'T12:00:00');
+                const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const label = ymds.length === 1
+                  ? fmt(first)
+                  : `${fmt(first)} – ${fmt(last)}`;
+                const count = ymds.length;
+                return (
+                  <li key={ymds[0]} className="ev-empty-gap">
+                    <span className="ev-empty-gap__line" />
+                    <span className="ev-empty-gap__label">{label}</span>
+                    <span className="ev-empty-gap__count">{count} day{count !== 1 ? 's' : ''} · no scheduled activity</span>
+                    <span className="ev-empty-gap__line" />
+                  </li>
+                );
+              }
 
-                    {/* main content */}
-                    <div className="ev-card__body">
-                      <div className="ev-card__top">
-                        <span className="ev-card__title">{e.title}</span>
-                        {e.conflict_count > 0 && <span className="ev-card__conflict" title="Has conflict">⚠</span>}
-                        {tentative.isTentative && <span className="ev-card__badge ev-card__badge--tentative">Tentative</span>}
-                      </div>
+              if (row.type === 'day-flag') {
+                const { ymd, flag } = row;
+                const FLAG_META = {
+                  suspended: { icon: '🚫', label: 'Suspended', cls: 'suspended' },
+                  wfh:       { icon: '🏠', label: 'Work From Home', cls: 'wfh' },
+                };
+                const meta = FLAG_META[flag.type] || FLAG_META.suspended;
+                const dateLabel = new Date(ymd + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                return (
+                  <li key={`flag-${ymd}`} className={`ev-day-flag ev-day-flag--${meta.cls}`}>
+                    <span className="ev-day-flag__icon">{meta.icon}</span>
+                    <span className="ev-day-flag__date">{dateLabel}</span>
+                    {flag.time && (
+                      <span className="ev-day-flag__time">
+                        {flag.time.slice(0,5)}{flag.time_end ? ` – ${flag.time_end.slice(0,5)}` : ''}
+                      </span>
+                    )}
+                    <span className="ev-day-flag__badge">{meta.label}</span>
+                    {flag.memo_subject && <span className="ev-day-flag__note">{flag.memo_subject}</span>}
+                    {flag.memo_number && <span className="ev-day-flag__note">{flag.memo_number}</span>}
+                  </li>
+                );
+              }
 
-                      <div className="ev-card__meta-row">
-                        <span className="ev-card__time">
-                          🕐 {formatTime(e.start_time)}{e.end_time ? ` – ${formatTime(e.end_time)}` : ''}
+              // row.type === 'events'
+              return row.events.map((e) => {
+                const tentative = parseTentativeDescription(e.description || '');
+                const isPast = activeTab === 'Recent';
+                return (
+                  <li key={e.id}>
+                    <button type="button" className={`ev-card ${isPast ? 'ev-card--past' : 'ev-card--upcoming'}`} onClick={() => setSelectedEvent(e.id)}>
+                      <div className="ev-card__date">
+                        <span className="ev-card__month">
+                          {new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
                         </span>
-                        {e.location && <span className="ev-card__loc">📍 {e.location}</span>}
+                        <span className="ev-card__day">
+                          {new Date(e.date + 'T12:00:00').getDate()}
+                        </span>
+                        <span className="ev-card__dow">
+                          {new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
+                        </span>
                       </div>
 
-                      <div className="ev-card__meta-row">
-                        <span className="ev-card__info">👤 {e.creator_name || 'Unknown'}</span>
-                        <span className="ev-card__info">👥 {getParticipantsLabel(e)}</span>
-                      </div>
-
-                      {activeTab === 'By Year' && e.end_date && e.end_date !== e.date && (
-                        <div className="ev-card__meta-row">
-                          <span className="ev-card__info">📅 Until {formatDateFull(e.end_date)}</span>
+                      <div className="ev-card__body">
+                        <div className="ev-card__top">
+                          <span className="ev-card__title">{e.title}</span>
+                          {e.conflict_count > 0 && <span className="ev-card__conflict" title="Has conflict">⚠</span>}
+                          {tentative.isTentative && <span className="ev-card__badge ev-card__badge--tentative">Tentative</span>}
                         </div>
-                      )}
-                    </div>
-                  </button>
-                </li>
-              );
+
+                        <div className="ev-card__meta-row">
+                          <span className="ev-card__time">
+                            🕐 {formatTime(e.start_time)}{e.end_time ? ` – ${formatTime(e.end_time)}` : ''}
+                          </span>
+                          {e.location && <span className="ev-card__loc">📍 {e.location}</span>}
+                        </div>
+
+                        <div className="ev-card__meta-row">
+                          <span className="ev-card__info">👤 {e.creator_name || 'Unknown'}</span>
+                          <span className="ev-card__info">👥 {getParticipantsLabel(e)}</span>
+                        </div>
+
+                        {activeTab === 'By Year' && e.end_date && e.end_date !== e.date && (
+                          <div className="ev-card__meta-row">
+                            <span className="ev-card__info">📅 Until {formatDateFull(e.end_date)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                );
+              });
             })}
           </ul>
 
-          {/* pagination */}
-          {totalPages > 1 && (
-            <div className="ev-pagination">
-              <button
-                className="ev-pagination__btn"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-              >
-                ← Prev
-              </button>
-              <span className="ev-pagination__info">
-                Page {safePage} of {totalPages}
-                <span className="ev-pagination__count"> ({activeCount} events)</span>
-              </span>
-              <button
-                className="ev-pagination__btn"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          )}
+          {/* pagination removed — all days shown in grouped view */}
         </>
       )}
 

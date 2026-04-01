@@ -1243,6 +1243,52 @@
   background: linear-gradient(180deg, rgba(37, 99, 235, 0.06) 0%, transparent 30%);
 }
 
+/* ── Day Flag events ─────────────────────────────────────────────────────── */
+.fc .fc-day-flag {
+  border-radius: 4px !important;
+  border-left-width: 3px !important;
+  cursor: default !important;
+  pointer-events: none;
+}
+
+.fc-day-flag-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 4px;
+  min-width: 0;
+}
+
+.fc-day-flag-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-day-flag-meta {
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.fc .fc-day-flag--suspended {
+  background: #fffbeb !important;
+  border-color: #fbbf24 !important;
+  color: #92400e !important;
+}
+
+.fc .fc-day-flag--wfh {
+  background: #fffde7 !important;
+  border-color: #f59e0b !important;
+  color: #78350f !important;
+}
+
 /* Lock weekends visually (still viewable, but creation/drag is blocked in logic) */
 .fc .fc-day-sat,
 .fc .fc-day-sun,
@@ -1582,9 +1628,9 @@
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.02em;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: rgba(153, 27, 27, 0.1);
+  border: 1px solid rgba(153, 27, 27, 0.22);
+  color: #991b1b;
   flex: 0 0 auto;
 }
 

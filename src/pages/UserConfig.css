@@ -956,3 +956,143 @@
   text-transform: uppercase;
   font-size: 0.75rem;
 }
+
+/* ── Day Flags ─────────────────────────────────────────────────────────── */
+.day-flag-form {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.day-flag-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.day-flag-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 160px;
+}
+
+.day-flag-field--note {
+  flex: 1 1 240px;
+}
+
+.day-flag-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.day-flag-field input,
+.day-flag-field select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.day-flag-error {
+  color: #dc2626;
+  font-size: 0.82rem;
+  margin: 0.4rem 0 0;
+}
+
+.day-flag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-flag-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.day-flag-item--suspended {
+  border-left: 4px solid #fbbf24;
+  background: #fffbeb;
+}
+
+.day-flag-item--wfh {
+  border-left: 4px solid #f59e0b;
+  background: #fffde7;
+}
+
+.day-flag-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.day-flag-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.day-flag-info-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.day-flag-info-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.day-flag-date {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.day-flag-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.day-flag-badge--suspended {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.day-flag-badge--wfh {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+.day-flag-note {
+  font-size: 0.8rem;
+  color: #92400e;
+  font-style: italic;
+}
+
+.day-flag-time {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #78350f;
+}
