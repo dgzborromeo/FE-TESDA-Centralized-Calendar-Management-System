@@ -55,7 +55,10 @@ const handleSubmit = async (e) => {
           <div className="auth-split-overlay">
             <div className="auth-split-overlay-inner">
               <div className="auth-split-kicker">TESDA</div>
-              <div className="auth-split-title">Operations Network and Events System</div>
+              <div className="auth-split-title">
+                Operations Network and Events
+                <span className="auth-split-title-sub"> Centralized Calendar System</span>
+              </div>
               <div className="auth-split-subtitle">Plan, coordinate, and confirm activities across all TESDA COROPOTIs.</div>
             </div>
           </div>
@@ -67,7 +70,10 @@ const handleSubmit = async (e) => {
               <span className="auth-logo" aria-hidden="true">
                 <Logo src="/tesda-logo.png" alt="" transparentBlack className="auth-logo-img" />
               </span>
-              <h1>Operations Network and Events System</h1>
+              <h1 className="auth-brand-title">
+                <span className="auth-brand-one">ONE</span>
+                <span className="auth-brand-cursive">Centralized Calendar System</span>
+              </h1>
               <p>Sign in to continue</p>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">

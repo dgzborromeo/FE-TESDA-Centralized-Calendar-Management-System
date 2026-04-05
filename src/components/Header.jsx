@@ -83,7 +83,7 @@ export default function Header() {
         <div className="header-left">
           <Link to="/dashboard" className="header-logo">
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-            <span className="header-logo-text"><span className="header-logo-accent">O</span>perations <span className="header-logo-accent">N</span>etwork and <span className="header-logo-accent">E</span>vents System</span>
+            <span className="header-logo-text"><span className="header-logo-accent">O</span>perations <span className="header-logo-accent">N</span>etwork and <span className="header-logo-accent">E</span>vents Centralized Calendar System</span>
           </Link>
           {isCalendarPage && (
             <input

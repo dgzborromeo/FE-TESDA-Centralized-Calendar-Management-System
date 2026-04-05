@@ -329,51 +329,59 @@
   letter-spacing: -0.05em;
 }
 .landing-one-n-letter {
-  /* Chrome/metallic white like the image */
   background: linear-gradient(180deg,
     #ffffff 0%,
-    #e0f2fe 20%,
-    #bae6fd 40%,
-    #ffffff 55%,
-    #7dd3fc 70%,
-    #e0f2fe 85%,
+    #e0f2fe 15%,
+    #7dd3fc 35%,
+    #38bdf8 50%,
+    #bae6fd 65%,
+    #e0f2fe 80%,
     #ffffff 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 18px rgba(56,189,248,0.6)) drop-shadow(0 0 40px rgba(56,189,248,0.25));
+  filter: drop-shadow(0 0 20px rgba(56,189,248,0.9)) drop-shadow(0 0 50px rgba(56,189,248,0.5)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));
   animation: land-ne-glow 4s ease-in-out infinite;
   margin-right: 1.5rem;
 }
 .landing-one-e-letter {
   background: linear-gradient(180deg,
     #ffffff 0%,
-    #bae6fd 25%,
-    #38bdf8 50%,
-    #7dd3fc 70%,
-    #e0f2fe 85%,
+    #bae6fd 20%,
+    #38bdf8 45%,
+    #0ea5e9 60%,
+    #7dd3fc 75%,
+    #e0f2fe 90%,
     #ffffff 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 22px rgba(56,189,248,0.7)) drop-shadow(0 0 50px rgba(56,189,248,0.3));
+  filter: drop-shadow(0 0 24px rgba(56,189,248,1)) drop-shadow(0 0 60px rgba(14,165,233,0.6)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));
   animation: land-ne-glow 4s ease-in-out 0.5s infinite;
 }
 .landing-one-calendar-wrap {
   position: absolute;
-  bottom: 20%;
-  left: 36%;
-  transform: rotate(-7deg);
+  bottom: 17%;
+  left: 65%;
+  transform: translateX(-50%) rotate(-7deg);
   z-index: 10;
   white-space: nowrap;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-one-centralized {
+  display: none;
 }
 .landing-one-calendar-text {
   font-family: 'Dancing Script', 'Brush Script MT', cursive;
-  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
+  font-size: clamp(1.4rem, 2.8vw, 2.8rem);
   font-weight: 700;
+  -webkit-text-stroke: 0.6px #cc0000;
   background: linear-gradient(
     135deg,
     #ff6b6b 0%,
@@ -1058,11 +1066,12 @@
     font-size: 3.5rem !important;
   }
   .landing-one-calendar-text {
-    font-size: 1.3rem !important;
+    font-size: 1.1rem !important;
   }
   .landing-one-calendar-wrap {
-    bottom: 12%;
-    left: 28%;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
   }
   .landing-btn {
     width: 100%;

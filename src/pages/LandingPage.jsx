@@ -123,7 +123,7 @@ export default function LandingPage() {
                   <span className="landing-one-e-letter">E</span>
                 </div>
                 <div className="landing-one-calendar-wrap">
-                  <span className="landing-one-calendar-text">Calendar System</span>
+                  <span className="landing-one-calendar-text">Centralized Calendar System</span>
                 </div>
               </div>
             </div>
