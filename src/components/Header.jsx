@@ -85,18 +85,23 @@ export default function Header() {
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
             <span className="header-logo-text"><span className="header-logo-accent">O</span>perations <span className="header-logo-accent">N</span>etwork and <span className="header-logo-accent">E</span>vents Centralized Calendar System</span>
           </Link>
-          {isCalendarPage && (
-            <input
-              type="search"
-              className="header-calendar-search"
-              placeholder="Search events..."
-              value={calendarSearch}
-              onChange={(e) => handleCalendarSearchChange(e.target.value)}
-            />
-          )}
         </div>
         <nav className="header-nav">
           <div className="header-nav-scroll">
+            {isCalendarPage && (
+              <div className="header-search-wrap">
+                <svg className="header-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input
+                  type="search"
+                  className="header-calendar-search"
+                  placeholder="Search..."
+                  value={calendarSearch}
+                  onChange={(e) => handleCalendarSearchChange(e.target.value)}
+                />
+              </div>
+            )}
             {user?.role === 'admin' && (
               <Link to="/list-of-activity" className="header-link">List of Activity</Link>
             )}
@@ -105,7 +110,6 @@ export default function Header() {
               <Link to="/user-config" className="header-link">User Configuration</Link>
             )}
           </div>
-
           <div className="header-help" ref={helpRef}>
             <button
               type="button"
