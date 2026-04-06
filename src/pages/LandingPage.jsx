@@ -151,44 +151,56 @@ export default function LandingPage() {
           <div className="landing-hero-right">
             <div className={`landing-slide-wrap ${entering ? 'landing-slide-enter' : visible ? 'landing-slide-in' : 'landing-slide-out'}`}>
 
-              {/* SLIDE 0 — Feature cards */}
+              {/* SLIDE 0 — Activity Pulse */}
               {slide === 0 && (
-                <div className="landing-feat-stack">
-                  <div className="landing-feat-card">
-                    <div className="landing-feat-icon landing-feat-icon--blue">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <div className="landing-pulse-slide">
+                  <div className="landing-pulse-header">
+                    <span className="landing-pulse-live-dot" />
+                    <span className="landing-pulse-live-text">System Live</span>
+                    <span className="landing-pulse-year">CY 2026</span>
+                  </div>
+                  <div className="landing-pulse-grid">
+                    <div className="landing-pulse-stat landing-pulse-stat--blue">
+                      <div className="landing-pulse-stat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                      </div>
+                      <span className="landing-pulse-stat-value">16</span>
+                      <span className="landing-pulse-stat-label">Regions</span>
                     </div>
-                    <div className="landing-feat-text">
-                      <span className="landing-feat-label">Centralized</span>
-                      <span className="landing-feat-title">Calendar</span>
+                    <div className="landing-pulse-stat landing-pulse-stat--teal">
+                      <div className="landing-pulse-stat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                      </div>
+                      <span className="landing-pulse-stat-value">7</span>
+                      <span className="landing-pulse-stat-label">Clusters</span>
+                    </div>
+                    <div className="landing-pulse-stat landing-pulse-stat--amber">
+                      <div className="landing-pulse-stat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                      </div>
+                      <span className="landing-pulse-stat-value">20+</span>
+                      <span className="landing-pulse-stat-label">Offices</span>
+                    </div>
+                    <div className="landing-pulse-stat landing-pulse-stat--green">
+                      <div className="landing-pulse-stat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                      </div>
+                      <span className="landing-pulse-stat-value">Q2</span>
+                      <span className="landing-pulse-stat-label">Active Quarter</span>
                     </div>
                   </div>
-                  <div className="landing-feat-card">
-                    <div className="landing-feat-icon landing-feat-icon--teal">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                  <div className="landing-pulse-bar-wrap">
+                    <div className="landing-pulse-bar-label">
+                      <span>Annual Progress</span>
+                      <span className="landing-pulse-bar-pct">~25%</span>
                     </div>
-                    <div className="landing-feat-text">
-                      <span className="landing-feat-label">Activity</span>
-                      <span className="landing-feat-title">Validation</span>
-                    </div>
-                  </div>
-                  <div className="landing-feat-card">
-                    <div className="landing-feat-icon landing-feat-icon--amber">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    </div>
-                    <div className="landing-feat-text">
-                      <span className="landing-feat-label">Conflict</span>
-                      <span className="landing-feat-title">Detection</span>
+                    <div className="landing-pulse-bar-track">
+                      <div className="landing-pulse-bar-fill" />
                     </div>
                   </div>
-                  <div className="landing-feat-card">
-                    <div className="landing-feat-icon landing-feat-icon--green">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/><path d="M10 16h4"/></svg>
-                    </div>
-                    <div className="landing-feat-text">
-                      <span className="landing-feat-label">Schedule</span>
-                      <span className="landing-feat-title">Submission</span>
-                    </div>
+                  <div className="landing-pulse-footer">
+                    <span className="landing-pulse-footer-dot landing-pulse-footer-dot--blue" />
+                    CO &amp; ROs coordinated on one platform
                   </div>
                 </div>
               )}
@@ -247,80 +259,111 @@ export default function LandingPage() {
               {slide === 2 && (
                 <div className="landing-constellation">
                   <svg className="landing-constellation-svg" viewBox="-20 -20 360 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="160" cy="160" r="90"  stroke="rgba(255,255,255,0.06)" strokeWidth="0.8" strokeDasharray="4 6"/>
-                    <circle cx="160" cy="160" r="130" stroke="rgba(255,255,255,0.04)" strokeWidth="0.8" strokeDasharray="3 8"/>
-                    <line x1="160" y1="160" x2="160" y2="70"  stroke="rgba(59,130,246,0.3)"  strokeWidth="0.8"/>
-                    <line x1="160" y1="160" x2="235" y2="115" stroke="rgba(236,72,153,0.3)"  strokeWidth="0.8"/>
-                    <line x1="160" y1="160" x2="235" y2="205" stroke="rgba(245,158,11,0.3)"  strokeWidth="0.8"/>
-                    <line x1="160" y1="160" x2="160" y2="250" stroke="rgba(34,197,94,0.3)"   strokeWidth="0.8"/>
-                    <line x1="160" y1="160" x2="85"  y2="205" stroke="rgba(139,92,246,0.3)"  strokeWidth="0.8"/>
-                    <line x1="160" y1="160" x2="85"  y2="115" stroke="rgba(6,182,212,0.3)"   strokeWidth="0.8"/>
-                    <circle cx="160" cy="160" r="26" stroke="rgba(59,130,246,0.2)" strokeWidth="0.8" className="lc-pulse-1"/>
-                    <circle cx="160" cy="160" r="34" stroke="rgba(59,130,246,0.1)" strokeWidth="0.8" className="lc-pulse-2"/>
-                    <circle cx="160" cy="160" r="22" fill="rgba(59,130,246,0.28)" stroke="#3b82f6" strokeWidth="1.5"/>
-                    <text x="160" y="157" textAnchor="middle" fill="white" fontSize="8.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">ROMO</text>
-                    <text x="160" y="167" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="6" fontFamily="Plus Jakarta Sans,sans-serif">Central</text>
-                    <circle cx="160" cy="70"  r="17" fill="rgba(59,130,246,0.22)"  stroke="#3b82f6" strokeWidth="1.2" className="lc-node"/>
-                    <text x="160" y="68"  textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">TESDO</text>
-                    <text x="160" y="77"  textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5.5" fontFamily="Plus Jakarta Sans,sans-serif">CO · ROMO</text>
-                    <circle cx="235" cy="115" r="17" fill="rgba(236,72,153,0.22)"  stroke="#ec4899" strokeWidth="1.2" className="lc-node"/>
-                    <text x="235" y="113" textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">PP</text>
-                    <text x="235" y="122" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5.5" fontFamily="Plus Jakarta Sans,sans-serif">PO · QSO</text>
-                    <circle cx="235" cy="205" r="17" fill="rgba(245,158,11,0.22)"  stroke="#f59e0b" strokeWidth="1.2" className="lc-node"/>
-                    <text x="235" y="203" textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">SC</text>
-                    <text x="235" y="212" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5.5" fontFamily="Plus Jakarta Sans,sans-serif">CLGEO</text>
-                    <circle cx="160" cy="250" r="17" fill="rgba(34,197,94,0.22)"   stroke="#22c55e" strokeWidth="1.2" className="lc-node"/>
-                    <text x="160" y="248" textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">FLA</text>
-                    <text x="160" y="257" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5.5" fontFamily="Plus Jakarta Sans,sans-serif">FMS</text>
-                    <circle cx="85"  cy="205" r="17" fill="rgba(139,92,246,0.22)"  stroke="#8b5cf6" strokeWidth="1.2" className="lc-node"/>
-                    <text x="85"  y="203" textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">PL</text>
-                    <text x="85"  y="212" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5" fontFamily="Plus Jakarta Sans,sans-serif">PLO · EBETO</text>
-                    <circle cx="85"  cy="115" r="17" fill="rgba(6,182,212,0.22)"   stroke="#06b6d4" strokeWidth="1.2" className="lc-node"/>
-                    <text x="85"  y="113" textAnchor="middle" fill="white" fontSize="7.5" fontWeight="700" fontFamily="Plus Jakarta Sans,sans-serif">AI</text>
-                    <text x="85"  y="122" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="5.5" fontFamily="Plus Jakarta Sans,sans-serif">AS · ICTO</text>
-                    <circle r="3" fill="#3b82f6" opacity="0.9"><animateMotion dur="3s" repeatCount="indefinite" path="M160,160 L160,70"/></circle>
-                    <circle r="3" fill="#ec4899" opacity="0.9"><animateMotion dur="3.5s" repeatCount="indefinite" begin="0.8s" path="M160,160 L235,115"/></circle>
-                    <circle r="3" fill="#f59e0b" opacity="0.9"><animateMotion dur="4s" repeatCount="indefinite" begin="1.4s" path="M160,160 L235,205"/></circle>
-                    <circle r="3" fill="#22c55e" opacity="0.9"><animateMotion dur="3.2s" repeatCount="indefinite" begin="0.4s" path="M160,160 L160,250"/></circle>
-                    <circle r="3" fill="#8b5cf6" opacity="0.9"><animateMotion dur="3.8s" repeatCount="indefinite" begin="1.1s" path="M160,160 L85,205"/></circle>
-                    <circle r="3" fill="#06b6d4" opacity="0.9"><animateMotion dur="2.9s" repeatCount="indefinite" begin="0.6s" path="M160,160 L85,115"/></circle>
+                    <circle cx="160" cy="160" r="110" stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray="4 6"/>
+                    <circle cx="160" cy="160" r="148" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 8"/>
+                    <line x1="160" y1="160" x2="160" y2="45"  stroke="rgba(59,130,246,0.45)"  strokeWidth="1.2"/>
+                    <line x1="160" y1="160" x2="255" y2="90"  stroke="rgba(236,72,153,0.45)"  strokeWidth="1.2"/>
+                    <line x1="160" y1="160" x2="255" y2="230" stroke="rgba(245,158,11,0.45)"  strokeWidth="1.2"/>
+                    <line x1="160" y1="160" x2="160" y2="275" stroke="rgba(34,197,94,0.45)"   strokeWidth="1.2"/>
+                    <line x1="160" y1="160" x2="65"  y2="230" stroke="rgba(139,92,246,0.45)"  strokeWidth="1.2"/>
+                    <line x1="160" y1="160" x2="65"  y2="90"  stroke="rgba(6,182,212,0.45)"   strokeWidth="1.2"/>
+                    {/* Center pulse rings */}
+                    <circle cx="160" cy="160" r="38" stroke="rgba(59,130,246,0.2)" strokeWidth="1" className="lc-pulse-1"/>
+                    <circle cx="160" cy="160" r="48" stroke="rgba(59,130,246,0.1)" strokeWidth="1" className="lc-pulse-2"/>
+                    {/* Center node — ROMO */}
+                    <circle cx="160" cy="160" r="32" fill="rgba(59,130,246,0.32)" stroke="#3b82f6" strokeWidth="2"/>
+                    <text x="160" y="156" textAnchor="middle" fill="white" fontSize="11" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">ROMO</text>
+                    <text x="160" y="169" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="8" fontFamily="Plus Jakarta Sans,sans-serif">Central</text>
+                    {/* Outer nodes */}
+                    <circle cx="160" cy="45"  r="26" fill="rgba(59,130,246,0.28)"  stroke="#3b82f6" strokeWidth="1.8" className="lc-node"/>
+                    <text x="160" y="41"  textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">TESDO</text>
+                    <text x="160" y="53"  textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7.5" fontFamily="Plus Jakarta Sans,sans-serif">CO · ROMO</text>
+                    <circle cx="255" cy="90"  r="26" fill="rgba(236,72,153,0.28)"  stroke="#ec4899" strokeWidth="1.8" className="lc-node"/>
+                    <text x="255" y="86"  textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">PP</text>
+                    <text x="255" y="98"  textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7.5" fontFamily="Plus Jakarta Sans,sans-serif">PO · QSO</text>
+                    <circle cx="255" cy="230" r="26" fill="rgba(245,158,11,0.28)"  stroke="#f59e0b" strokeWidth="1.8" className="lc-node"/>
+                    <text x="255" y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">SC</text>
+                    <text x="255" y="238" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7.5" fontFamily="Plus Jakarta Sans,sans-serif">CLGEO</text>
+                    <circle cx="160" cy="275" r="26" fill="rgba(34,197,94,0.28)"   stroke="#22c55e" strokeWidth="1.8" className="lc-node"/>
+                    <text x="160" y="271" textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">FLA</text>
+                    <text x="160" y="283" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7.5" fontFamily="Plus Jakarta Sans,sans-serif">FMS</text>
+                    <circle cx="65"  cy="230" r="26" fill="rgba(139,92,246,0.28)"  stroke="#8b5cf6" strokeWidth="1.8" className="lc-node"/>
+                    <text x="65"  y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">PL</text>
+                    <text x="65"  y="238" textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7" fontFamily="Plus Jakarta Sans,sans-serif">PLO · EBETO</text>
+                    <circle cx="65"  cy="90"  r="26" fill="rgba(6,182,212,0.28)"   stroke="#06b6d4" strokeWidth="1.8" className="lc-node"/>
+                    <text x="65"  y="86"  textAnchor="middle" fill="white" fontSize="10" fontWeight="800" fontFamily="Plus Jakarta Sans,sans-serif">AI</text>
+                    <text x="65"  y="98"  textAnchor="middle" fill="rgba(255,255,255,0.55)" fontSize="7.5" fontFamily="Plus Jakarta Sans,sans-serif">AS · ICTO</text>
+                    {/* Animated signal dots */}
+                    <circle r="4" fill="#3b82f6" opacity="0.9"><animateMotion dur="3s" repeatCount="indefinite" path="M160,160 L160,45"/></circle>
+                    <circle r="4" fill="#ec4899" opacity="0.9"><animateMotion dur="3.5s" repeatCount="indefinite" begin="0.8s" path="M160,160 L255,90"/></circle>
+                    <circle r="4" fill="#f59e0b" opacity="0.9"><animateMotion dur="4s" repeatCount="indefinite" begin="1.4s" path="M160,160 L255,230"/></circle>
+                    <circle r="4" fill="#22c55e" opacity="0.9"><animateMotion dur="3.2s" repeatCount="indefinite" begin="0.4s" path="M160,160 L160,275"/></circle>
+                    <circle r="4" fill="#8b5cf6" opacity="0.9"><animateMotion dur="3.8s" repeatCount="indefinite" begin="1.1s" path="M160,160 L65,230"/></circle>
+                    <circle r="4" fill="#06b6d4" opacity="0.9"><animateMotion dur="2.9s" repeatCount="indefinite" begin="0.6s" path="M160,160 L65,90"/></circle>
                   </svg>
                   <div className="landing-constellation-caption">COROPOTI Office Network</div>
                 </div>
               )}
 
-              {/* SLIDE 3 — CY 2026 system info */}
+              {/* SLIDE 3 — Mini Calendar Heatmap */}
               {slide === 3 && (
-                <div className="landing-info-slide">
-                  <div className="landing-info-slide-header">
-                    <span className="landing-info-slide-dot" />
-                    COROPOTI · CY 2026
+                <div className="landing-heatmap-slide">
+                  <div className="landing-heatmap-header">
+                    <div className="landing-heatmap-month-label">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                      April 2026
+                    </div>
+                    <span className="landing-heatmap-badge">CY 2026</span>
                   </div>
-                  <div className="landing-info-grid">
-                    <div className="landing-info-item">
-                      <span className="landing-info-value">16</span>
-                      <span className="landing-info-label">Regions</span>
+                  <div className="landing-heatmap-grid-wrap">
+                    <div className="landing-heatmap-dow">
+                      {['S','M','T','W','T','F','S'].map((d,i) => (
+                        <span key={i} className="landing-heatmap-dow-cell">{d}</span>
+                      ))}
                     </div>
-                    <div className="landing-info-item">
-                      <span className="landing-info-value">7</span>
-                      <span className="landing-info-label">Clusters</span>
-                    </div>
-                    <div className="landing-info-item">
-                      <span className="landing-info-value">CO</span>
-                      <span className="landing-info-label">Central Office</span>
-                    </div>
-                    <div className="landing-info-item">
-                      <span className="landing-info-value">ROs</span>
-                      <span className="landing-info-label">Regional Offices</span>
+                    {/* April 2026: starts Wednesday (offset 3), 30 days */}
+                    <div className="landing-heatmap-grid">
+                      {Array.from({ length: 3 }).map((_,i) => (
+                        <span key={`e${i}`} className="landing-heatmap-cell landing-heatmap-cell--empty" />
+                      ))}
+                      {Array.from({ length: 30 }).map((_,i) => {
+                        const day = i + 1;
+                        // today = April 6
+                        const isToday = day === 6;
+                        // sample event density: high=3+, med=2, low=1, none=0
+                        const density = [3,7,10,14,15,17,21,22,24,28].includes(day) ? 'high'
+                          : [2,5,9,12,16,19,23,27,29].includes(day) ? 'med'
+                          : [1,4,8,11,13,18,20,25,26,30].includes(day) ? 'low'
+                          : 'none';
+                        return (
+                          <span
+                            key={day}
+                            className={[
+                              'landing-heatmap-cell',
+                              `landing-heatmap-cell--${density}`,
+                              isToday ? 'landing-heatmap-cell--today' : ''
+                            ].join(' ')}
+                          >
+                            {day}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="landing-info-divider" />
-                  <p className="landing-info-tagline">
-                    "One system. One calendar.<br/>All TESDA offices, coordinated."
-                  </p>
-                  <div className="landing-info-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Official · TESDA ROMO
+                  <div className="landing-heatmap-legend">
+                    <span className="landing-heatmap-legend-label">Activity density</span>
+                    <span className="landing-heatmap-legend-swatch landing-heatmap-legend-swatch--none" />
+                    <span className="landing-heatmap-legend-swatch landing-heatmap-legend-swatch--low" />
+                    <span className="landing-heatmap-legend-swatch landing-heatmap-legend-swatch--med" />
+                    <span className="landing-heatmap-legend-swatch landing-heatmap-legend-swatch--high" />
+                    <span className="landing-heatmap-legend-label">High</span>
+                  </div>
+                  <div className="landing-heatmap-footer">
+                    <span className="landing-heatmap-today-pill">
+                      <span className="landing-heatmap-today-dot" />
+                      Today · Apr 6
+                    </span>
+                    <span className="landing-heatmap-offices">20+ offices tracked</span>
                   </div>
                 </div>
               )}

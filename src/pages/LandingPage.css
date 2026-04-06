@@ -725,6 +725,280 @@
   color: rgba(255,255,255,0.25);
 }
 
+/* ── Slide 0 — Activity Pulse ──────────────────────────────────────────── */
+@keyframes land-pulse-bar {
+  from { width: 0; }
+  to   { width: 25%; }
+}
+@keyframes land-live-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(34,197,94,0.9); }
+  50%       { opacity: 0.4; box-shadow: 0 0 2px rgba(34,197,94,0.3); }
+}
+.landing-pulse-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  height: 100%;
+  justify-content: center;
+}
+.landing-pulse-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+}
+.landing-pulse-live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  animation: land-live-blink 1.6s ease-in-out infinite;
+}
+.landing-pulse-live-text { color: #86efac; }
+.landing-pulse-year { margin-left: auto; color: rgba(255,255,255,0.25); }
+.landing-pulse-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.landing-pulse-stat {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: background 0.2s ease;
+}
+.landing-pulse-stat:hover { background: rgba(255,255,255,0.09); }
+.landing-pulse-stat-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.2rem;
+}
+.landing-pulse-stat--blue  { border-left: 2.5px solid #3b82f6; }
+.landing-pulse-stat--teal  { border-left: 2.5px solid #06b6d4; }
+.landing-pulse-stat--amber { border-left: 2.5px solid #f59e0b; }
+.landing-pulse-stat--green { border-left: 2.5px solid #22c55e; }
+.landing-pulse-stat--blue  .landing-pulse-stat-icon { background: rgba(59,130,246,0.18); color: #93c5fd; }
+.landing-pulse-stat--teal  .landing-pulse-stat-icon { background: rgba(6,182,212,0.18);  color: #67e8f9; }
+.landing-pulse-stat--amber .landing-pulse-stat-icon { background: rgba(245,158,11,0.18); color: #fcd34d; }
+.landing-pulse-stat--green .landing-pulse-stat-icon { background: rgba(34,197,94,0.18);  color: #86efac; }
+.landing-pulse-stat-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.landing-pulse-stat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.landing-pulse-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.landing-pulse-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.landing-pulse-bar-pct { color: #38bdf8; }
+.landing-pulse-bar-track {
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.landing-pulse-bar-fill {
+  height: 100%;
+  width: 25%;
+  background: linear-gradient(90deg, #2563eb, #38bdf8, #7dd3fc);
+  border-radius: 99px;
+  animation: land-pulse-bar 1.4s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+  box-shadow: 0 0 8px rgba(56,189,248,0.5);
+}
+.landing-pulse-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.28);
+  letter-spacing: 0.06em;
+}
+.landing-pulse-footer-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.landing-pulse-footer-dot--blue { background: #38bdf8; box-shadow: 0 0 5px rgba(56,189,248,0.7); }
+
+/* ── Slide 3 — Mini Calendar Heatmap ──────────────────────────────────── */
+@keyframes land-heatmap-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.landing-heatmap-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  height: 100%;
+  justify-content: center;
+}
+.landing-heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.landing-heatmap-month-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.04em;
+}
+.landing-heatmap-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.22);
+  border-radius: 99px;
+  padding: 0.2rem 0.55rem;
+}
+.landing-heatmap-grid-wrap {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 0.75rem 0.8rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.landing-heatmap-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 0.35rem;
+}
+.landing-heatmap-dow-cell {
+  text-align: center;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+.landing-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.landing-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  transition: transform 0.15s ease;
+  animation: land-heatmap-pop 0.3s ease both;
+}
+/* stagger pop-in per cell */
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(1)  { animation-delay: 0.02s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(5)  { animation-delay: 0.04s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(10) { animation-delay: 0.06s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(15) { animation-delay: 0.08s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(20) { animation-delay: 0.10s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(25) { animation-delay: 0.12s; }
+.landing-heatmap-grid .landing-heatmap-cell:nth-child(30) { animation-delay: 0.14s; }
+.landing-heatmap-cell--empty { background: transparent; pointer-events: none; }
+.landing-heatmap-cell--none  { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.3); }
+.landing-heatmap-cell--low   { background: rgba(56,189,248,0.12);  color: rgba(255,255,255,0.6); }
+.landing-heatmap-cell--med   { background: rgba(56,189,248,0.28);  color: rgba(255,255,255,0.82); box-shadow: 0 0 6px rgba(56,189,248,0.2); }
+.landing-heatmap-cell--high  { background: rgba(56,189,248,0.52);  color: #fff; font-weight: 700; box-shadow: 0 0 10px rgba(56,189,248,0.35); }
+.landing-heatmap-cell--today {
+  background: #2563eb !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 0 2px rgba(56,189,248,0.6), 0 0 14px rgba(37,99,235,0.5) !important;
+  border-radius: 50% !important;
+}
+.landing-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.landing-heatmap-legend-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.landing-heatmap-legend-label:last-child { margin-left: 0; }
+.landing-heatmap-legend-swatch {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.landing-heatmap-legend-swatch--none { background: rgba(255,255,255,0.06); }
+.landing-heatmap-legend-swatch--low  { background: rgba(56,189,248,0.18); }
+.landing-heatmap-legend-swatch--med  { background: rgba(56,189,248,0.38); }
+.landing-heatmap-legend-swatch--high { background: rgba(56,189,248,0.6); }
+.landing-heatmap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.landing-heatmap-today-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #93c5fd;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(37,99,235,0.3);
+  border-radius: 99px;
+  padding: 0.25rem 0.6rem;
+}
+.landing-heatmap-today-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px rgba(59,130,246,0.8);
+  flex-shrink: 0;
+}
+.landing-heatmap-offices {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.05em;
+}
+
 /* ── Slide 3 — CY 2026 info ────────────────────────────────────────────── */
 .landing-info-slide {
   display: flex;
