@@ -25,6 +25,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import SimpleEventForm from './pages/SimpleEventForm';
 import LandingPage from './pages/LandingPage';
+import MyEvents from './pages/MyEvents';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -67,6 +68,7 @@ function AppRoutes() {
         {/* Auth-only pages (require login) */}
         <Route path="user-config" element={<ProtectedRoute><UserConfig /></ProtectedRoute>} />
         <Route path="invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>} />
+        <Route path="my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
         <Route path="events/new" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
         <Route path="events/:id/edit" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
         <Route path="events/:id/details" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />

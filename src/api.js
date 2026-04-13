@@ -72,6 +72,7 @@ export const events = {
     form.append('document_type', type || 'attendance_sheet');
     return api(`/events/${id}/supporting-document`, { method: 'POST', body: form });
   },
+  my: () => api('/events/my'),
   conflicts: () => api('/events/conflicts'),
   conflictsList: () => api('/events/conflicts/list'),
   checkConflict: (body) => api('/events/check-conflict', { method: 'POST', body: JSON.stringify(body) }),

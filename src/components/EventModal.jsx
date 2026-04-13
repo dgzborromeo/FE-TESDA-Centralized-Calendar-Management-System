@@ -53,6 +53,7 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const isAdmin = user?.role === 'admin';
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [repName, setRepName] = useState('');
   const [declineReason, setDeclineReason] = useState('');
@@ -79,10 +80,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   useEffect(() => {
     if (!eventId) return;
     setLoading(true);
+    setFetchError(null);
     eventsApi.get(eventId)
       .then((e) => {
         setEvent(e);
-        // Reset inputs each time we open a modal
         setRepName('');
         setDeclineReason('');
         setCancelMode('cancel');
@@ -95,8 +96,10 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
         setPhoto2File(null);
         setPhoto3File(null);
       })
-      .catch(() => onClose())
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error('EventModal fetch error:', err);
+        setFetchError(err?.message || 'Failed to load event.');
+      })      .finally(() => setLoading(false));
     // Intentionally only refetch when the selected event changes.
     // Including onClose here can cause repeated refetches when parent re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,7 +237,15 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     return (
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-loading">Loading...</div>
+          {fetchError ? (
+            <div className="modal-loading" style={{ color: '#dc2626' }}>
+              {fetchError}
+              <br />
+              <button onClick={onClose} style={{ marginTop: '1rem', cursor: 'pointer' }}>Close</button>
+            </div>
+          ) : (
+            <div className="modal-loading">Loading...</div>
+          )}
         </div>
       </div>
     );
