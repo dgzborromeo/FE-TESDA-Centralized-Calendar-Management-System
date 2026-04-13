@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
-import MyEvents from './pages/MyEvents';
+
 export default function SimpleEventForm() {
   const navigate = useNavigate();
   const location = useLocation();
