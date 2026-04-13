@@ -724,19 +724,7 @@ useEffect(() => {
                   rows={3}
                 />
               </div>
-                {liveConflicts.some(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location')) && (
-    <div className="sef-live-conflict-box venue-conflict-style" style={{ marginBottom: '15px' }}>
-      <div className="sef-live-conflict-header">
-        <span className="sef-live-conflict-icon">⚠</span>
-        <strong>Venue Conflict Detected</strong>
-      </div>
-      <ul className="sef-live-conflict-list">
-        {liveConflicts
-          .filter(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location'))
-          .map((msg, i) => <li key={i}>{msg}</li>)}
-      </ul>
-    </div>
-  )}
+
                 <div className="simple-event-field-pair simple-event-field-full">
                 <div className="simple-event-field">
                   <label className="simple-event-label" htmlFor="startDate">
@@ -933,6 +921,19 @@ useEffect(() => {
 
             </div>
           </section>
+                          {liveConflicts.some(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location')) && (
+    <div className="sef-live-conflict-box venue-conflict-style" style={{ marginBottom: '15px' }}>
+      <div className="sef-live-conflict-header">
+        <span className="sef-live-conflict-icon">⚠</span>
+        <strong>Venue Conflict Detected</strong>
+      </div>
+      <ul className="sef-live-conflict-list">
+        {liveConflicts
+          .filter(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location'))
+          .map((msg, i) => <li key={i}>{msg}</li>)}
+      </ul>
+    </div>
+  )}
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Participants</h2>
 
