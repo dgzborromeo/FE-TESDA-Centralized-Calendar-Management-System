@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
+import MyEvents from './pages/MyEvents';
 export default function SimpleEventForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,6 +35,10 @@ const [selectedRegionIdForTTI, setSelectedRegionIdForTTI] = useState(null);
 const [selectedProvinceIdForTTI, setSelectedProvinceIdForTTI] = useState(null);
 const [tempProvincesForTTI, setTempProvincesForTTI] = useState([]);
 const [tempTtis, setTempTtis] = useState([]);
+const [selectedLocationData, setSelectedLocationData] = useState({
+    id: null,
+    table: null
+});
 // Para sa UI logic ng cascading
 const [subType, setSubType] = useState(null); // 'cluster', 'office', 'region', 'province'
 const [tempRegions, setTempRegions] = useState([]);
@@ -56,18 +61,22 @@ const [newFocalName, setNewFocalName] = useState('');
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [posRes, focalRes, clusterRes, officeRes, regionRes] = await Promise.all([
+        const [posRes, focalRes, clusterRes, officeRes, regionRes, allProvRes, allTtiRes] = await Promise.all([
           scheduleAPI.getPositions(),
           scheduleAPI.getFocalships(),
           scheduleAPI.getClusters(), // Siguraduhin na may ganito sa API index.js
           scheduleAPI.getOffices(),
-          scheduleAPI.getRegions()
+          scheduleAPI.getRegions(),
+          scheduleAPI.getAllProvinces(), // Dapat may endpoint ka na kumukuha ng lahat, hindi lang per region
+          scheduleAPI.getTTIs()
         ]);
         setPositions(posRes || []);
         setFocalships(focalRes || []);
         setClusters(clusterRes || []);
       setOffices(officeRes || []);
       setRegions(regionRes || []);
+      setProvinces(allProvRes || []); // I-load lahat para searchable
+        setTempTtis(allTtiRes || []);   
       } catch (err) {
         console.error("Failed to fetch participant data", err);
       }
@@ -108,13 +117,20 @@ const [newFocalName, setNewFocalName] = useState('');
   }, [form.startDate]);
 
   // Live conflict check via backend — triggers on participant/date/time change
-  useEffect(() => {
-    if (!selectedPositions.length || !form.startDate || !form.startTime || !form.endTime) {
+useEffect(() => {
+    // 1. Check muna kung kumpleto ang basic info para sa API call
+    const hasDateTime = form.startDate && form.startTime && form.endTime;
+    const hasSubject = selectedPositions.length > 0 || selectedLocationData.id;
+
+    if (!hasDateTime || !hasSubject) {
       setLiveConflicts([]);
       setConflictMap({});
       return;
     }
+
     let cancelled = false;
+
+    // 2. Ihanda ang payload ng participants
     const payload = selectedPositions.map(p => ({
       designationId: parseInt(p.designationId ?? p.id, 10),
       targetId: p.targetId ? parseInt(p.targetId, 10) : null,
@@ -122,14 +138,17 @@ const [newFocalName, setNewFocalName] = useState('');
       isAll: !!p.isAll,
     })).filter(p => !isNaN(p.designationId));
 
-    if (!payload.length) return;
+    // --- DITO MO TINANGGAL YUNG "if (!payload.length) return;" ---
+    // Ngayon, kahit empty ang payload, tutuloy siya sa API call para i-check ang Location ID.
 
     scheduleAPI.checkScheduleConflict({
-      selectedPositions: payload,
+      selectedPositions: payload, // Pwedeng empty array [] kung venue lang iche-check
       start_date: form.startDate,
       end_date: form.endDate || form.startDate,
       start_time: form.startTime,
       end_time: form.endTime,
+      location_id: selectedLocationData.id,
+      location_table: selectedLocationData.table
     }).then(result => {
       if (cancelled) return;
       setLiveConflicts(result.messages || []);
@@ -137,10 +156,22 @@ const [newFocalName, setNewFocalName] = useState('');
       (result.scheduleIds || []).forEach(id => { map[id] = 'time'; });
       setConflictMap(map);
     }).catch(() => {
-      if (!cancelled) { setLiveConflicts([]); setConflictMap({}); }
+      if (!cancelled) { 
+        setLiveConflicts([]); 
+        setConflictMap({}); 
+      }
     });
+    
     return () => { cancelled = true; };
-  }, [selectedPositions, form.startDate, form.endDate, form.startTime, form.endTime]);
+  }, [
+    form.location, 
+    selectedPositions, 
+    selectedLocationData, 
+    form.startDate, 
+    form.endDate, 
+    form.startTime, 
+    form.endTime
+  ]);
 
   const updateParticipantsText = useCallback((selPos, selFocals) => {
     const posNames = selPos.map(p => p.name);
@@ -468,110 +499,159 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setConflictError(null);
-    // Final Validations
+
+    // --- START OF VALIDATIONS ---
     if (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) {
-      alert('Please enter a valid Zoom link.');
-      return;
+        alert('Please enter a valid Zoom link.');
+        setLoading(false); // Added to stop spinner
+        return;
     }
     if (hasBlockingErrors) {
-      alert('Please fix the date requirements before saving.');
-      return;
+        alert('Please fix the date requirements before saving.');
+        setLoading(false); // Added to stop spinner
+        return;
     }
 
-    setLoading(true);
+    // NEW STRICT LOCATION CHECK (RO, PO, TI)
+    const dbRequiredTables = ['regions', 'provinces', 'ttis'];
+    if (form.meetingType !== 'virtual') {
+        // Kapag RO, PO, o TI ang category pero walang piniling item sa dropdown (walang ID)
+        if (dbRequiredTables.includes(selectedLocationData.table) && !selectedLocationData.id) {
+            alert(`Please select a proper venue for ${selectedLocationData.table.toUpperCase()}. Choose on the list only.`);
+            setLoading(false);
+            return;
+        }
+    }
+    // --- END OF VALIDATIONS ---
 
     try {
-      // Prepare FormData for Backend (Supports File Upload)
-      const formData = new FormData();
-      
-      formData.append('host_name', form.office);
-      formData.append('host_division', form.division);
-      formData.append('event_title', form.title);
-      formData.append('description', form.description);
-      formData.append('start_date', form.startDate);
-      formData.append('end_date', form.endDate);
-      formData.append('start_time', form.startTime);
-      formData.append('end_time', form.endTime);
-      formData.append('participants', form.participants); // String version para sa display
+        const formData = new FormData();
+        
+        // Basic Info
+        formData.append('host_name', form.office);
+        formData.append('host_division', form.division);
+        formData.append('event_title', form.title);
+        formData.append('description', form.description);
+        formData.append('start_date', form.startDate);
+        formData.append('end_date', form.endDate || form.startDate); // Use start if end is empty
+        formData.append('start_time', form.startTime);
+        formData.append('end_time', form.endTime);
+        formData.append('participants', form.participants);
 
-      // IMPORTANT: Ito ang gagamitin ng backend para sa Conflict Checking
-      // I-map natin ang selectedPositions para magtugma sa expected columns sa DB
-// HANAPIN ITO SA IYONG CODE:
-const participantDetails = selectedPositions.map(p => ({
-  designationId: parseInt(p.designationId || p.id),
-  targetId: p.isAll ? null : (p.targetId ? parseInt(p.targetId) : null),
-  targetType: p.targetType || null,
-  isAll: !!p.isAll // Force boolean
-}));
+        // LOCATION LOGIC (Dito inayos ang ENUM at IDs)
+        const locationEnumMapping = {
+            'offices': 'CO',
+            'regions': 'RO',
+            'provinces': 'PO',
+            'ttis': 'TI'
+        };
 
-// I-filter ang mga entries na walang valid designationId (NaN)
-const finalPayload = participantDetails.filter(p => !isNaN(p.designationId));
+        let finalLocType = 'Others'; 
+        if (selectedPositions.length === 0 && selectedFocals.length === 0) {
+            alert('Please select at least one participant or focalship.');
+            setLoading(false);
+            return;
+        }
+        if (form.meetingType !== 'virtual' && selectedLocationData.table) {
+            finalLocType = locationEnumMapping[selectedLocationData.table] || 'Others';
+        }
 
-formData.append('selectedPositions', JSON.stringify(finalPayload));
-      // Meeting Type & Location Logic
-      const typeMapping = { 'face-to-face': 'Face to Face', 'hybrid': 'Hybrid', 'virtual': 'Virtual/Zoom' };
-      formData.append('type', typeMapping[form.meetingType]);
+        formData.append('location_type', finalLocType); 
+        formData.append('location_table', selectedLocationData.table || '');
+        
+        // I-append ang ID kung meron (Optional for CO and Others)
+        if (selectedLocationData.id) {
+            formData.append('location_id', parseInt(selectedLocationData.id));
+        }
 
-      let finalLocation = form.location;
-      if (form.meetingType === 'virtual') finalLocation = `Zoom: ${form.zoomLink}`;
-      if (form.meetingType === 'hybrid') finalLocation = `${form.location} | Zoom: ${form.zoomLink}`;
-      formData.append('location', finalLocation);
+        // PARTICIPANTS PAYLOAD (Conflict Checking)
+        const participantDetails = selectedPositions.map(p => ({
+            designationId: parseInt(p.designationId || p.id),
+            targetId: p.isAll ? null : (p.targetId ? parseInt(p.targetId) : null),
+            targetType: p.targetType || null,
+            isAll: !!p.isAll 
+        }));
 
-      if (form.attachment) formData.append('attachment_file', form.attachment);
+        const finalPayload = participantDetails.filter(p => !isNaN(p.designationId));
+        formData.append('selectedPositions', JSON.stringify(finalPayload));
 
-      // API CALL
-      const response = await scheduleAPI.addSchedule(formData);
+        // MEETING TYPE LOGIC
+        const typeMapping = { 
+            'face-to-face': 'Face to Face', 
+            'hybrid': 'Hybrid', 
+            'virtual': 'Virtual/Zoom' 
+        };
+        formData.append('type', typeMapping[form.meetingType]);
 
-if (response) {
-      setShowSuccessModal(true);
-      
-      // RESET FORM (Para hindi na kailangan mag-reload)
-      setForm({
-        office: '',
-        division: '',
-        email: '',
-        contactPerson: '',
-        contactNumner: '',
-        title: '',
-        description: '',
-        meetingType: 'face-to-face',
-        startDate: '',
-        endDate: '',
-        startTime: '08:00',
-        endTime: '17:00',
-        location: '',
-        zoomLink: '',
-        participants: '',
-        attachment: null,
-      });
+        // FINAL LOCATION TEXT
+        let finalLocation = form.location;
+        if (form.meetingType === 'virtual') finalLocation = `Zoom: ${form.zoomLink}`;
+        if (form.meetingType === 'hybrid') finalLocation = `${form.location} | Zoom: ${form.zoomLink}`;
+        formData.append('location', finalLocation);
 
-      // Clear the file input manually (React state doesn't clear the file input's visual value easily)
-      e.target.reset();
-    }
+        if (form.attachment) formData.append('attachment_file', form.attachment);
+
+        // API CALL
+        const response = await scheduleAPI.addSchedule(formData);
+
+        if (response) {
+            setShowSuccessModal(true);
+            
+            // RESET FORM
+            setForm({
+                office: '',
+                division: '',
+                email: '',
+                contactPerson: '',
+                contactNumber: '', // Fixed typo from 'contactNumner'
+                title: '',
+                description: '',
+                meetingType: 'face-to-face',
+                startDate: '',
+                endDate: '',
+                startTime: '08:00',
+                endTime: '17:00',
+                location: '',
+                zoomLink: '',
+                participants: '',
+                attachment: null,
+            });
+
+            e.target.reset();
+        }
     } catch (err) {
-      console.error('Submission error:', err);
+        console.error('Submission error:', err);
+        const errorData = err.response?.data;
 
-      // Dito na natin mahuhuli yung JSON mula sa api.js
-      const errorData = err.response?.data;
-
-      if (errorData && errorData.conflicts) {
-        // Ipapakita nito ang pula na box sa UI
-        setConflictError(errorData);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        // Kung hindi conflict (halimbawa: Wrong URL o Server Down), alert ang lalabas
-        alert('Error: ' + (errorData?.error || err.message));
-      }
+        if (errorData && errorData.conflicts) {
+            setConflictError(errorData);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            alert('Error: ' + (errorData?.error || err.message));
+        }
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   // Guard: all hooks done — now safe to redirect if not logged in
+
+const handleVenueSelection = (id, table, name) => {
+    // Importante: i-save ang table kahit null ang id (para sa manual typing sa CO/Others)
+    setSelectedLocationData({ id: id || null, table: table });
+    setForm(prev => ({ ...prev, location: name }));
+};
+
+// Idagdag din ito para ma-clear ang conflict kapag naging Virtual ang meeting
+useEffect(() => {
+    if (form.meetingType === 'virtual') {
+        setSelectedLocationData({ id: null, table: null });
+    }
+}, [form.meetingType]);
+
   if (!authLoading && !user) {
     return <Navigate to="/dashboard" replace state={{ showLoginModal: true }} />;
   }
-
   return (
     <div className="simple-event-page">
       <Header />
@@ -644,39 +724,20 @@ if (response) {
                   rows={3}
                 />
               </div>
-
-              <div className={`simple-event-type-location-row simple-event-type-location-${form.meetingType}`}>
-                <div className="simple-event-field">
-                  <label className="simple-event-label" htmlFor="meetingType">Meeting Type</label>
-                  <select id="meetingType" name="meetingType" value={form.meetingType} onChange={handleChange} className="simple-event-input">
-                    <option value="face-to-face">Face to Face</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="virtual">Virtual/Zoom</option>
-                  </select>
-                </div>
-                <div className="simple-event-field">
-                  <label className="simple-event-label" htmlFor="location">
-                    {form.meetingType === 'virtual' ? 'Zoom Link' : 'Location'}
-                  </label>
-                  {form.meetingType === 'virtual' ? (
-                    <>
-                      <input id="location" name="zoomLink" type="url" value={form.zoomLink} onChange={handleChange} className="simple-event-input" placeholder="https://zoom.us/j/123456789" required />
-                      {form.zoomLink && !isZoomLink(form.zoomLink) && (
-                        <span className="simple-event-hint simple-event-hint-error">Please enter a valid Zoom link</span>
-                      )}
-                    </>
-                  ) : (
-                    <input id="location" name="location" type="text" value={form.location} onChange={handleChange} className="simple-event-input" placeholder="e.g. TESDA Auditorium, Room 101" required />
-                  )}
-                </div>
-                {form.meetingType === 'hybrid' && (
-                  <div className="simple-event-field">
-                    <label className="simple-event-label" htmlFor="zoomLink">Zoom Link</label>
-                    <input id="zoomLink" name="zoomLink" type="url" value={form.zoomLink} onChange={handleChange} className="simple-event-input" placeholder="https://zoom.us/j/123456789" required />
-                  </div>
-                )}
-              </div>
-              <div className="simple-event-field-pair simple-event-field-full">
+                {liveConflicts.some(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location')) && (
+    <div className="sef-live-conflict-box venue-conflict-style" style={{ marginBottom: '15px' }}>
+      <div className="sef-live-conflict-header">
+        <span className="sef-live-conflict-icon">⚠</span>
+        <strong>Venue Conflict Detected</strong>
+      </div>
+      <ul className="sef-live-conflict-list">
+        {liveConflicts
+          .filter(msg => msg.toLowerCase().includes('venue') || msg.toLowerCase().includes('location'))
+          .map((msg, i) => <li key={i}>{msg}</li>)}
+      </ul>
+    </div>
+  )}
+                <div className="simple-event-field-pair simple-event-field-full">
                 <div className="simple-event-field">
                   <label className="simple-event-label" htmlFor="startDate">
                     Start Date
@@ -768,20 +829,124 @@ if (response) {
                   </select>
                 </div>
               </div>
+              <div className={`simple-event-type-location-row simple-event-type-location-${form.meetingType}`}>
+                <div className="simple-event-field">
+                  <label className="simple-event-label" htmlFor="meetingType">Meeting Type</label>
+                  <select id="meetingType" name="meetingType" value={form.meetingType} onChange={handleChange} className="simple-event-input">
+                    <option value="face-to-face">Face to Face</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="virtual">Virtual/Zoom</option>
+                  </select>
+                </div>
+
+<div className="simple-event-field">
+  <label className="simple-event-label" htmlFor="location">
+    {form.meetingType === 'virtual' ? 'Zoom Link' : 'Location'}
+  </label>
+
+  {form.meetingType === 'virtual' ? (
+    <>
+      <input 
+        id="location" name="zoomLink" type="url" 
+        value={form.zoomLink} onChange={handleChange} 
+        className="simple-event-input" placeholder="https://zoom.us/j/123456789" required 
+      />
+      {form.zoomLink && !isZoomLink(form.zoomLink) && (
+        <span className="simple-event-hint simple-event-hint-error">Please enter a valid Zoom link</span>
+      )}
+    </>
+  ) : (
+    <div className="location-cascading-group" style={{ display: 'flex', gap: '10px' }}>
+      {/* 1. Location Type Selector */}
+      <select 
+        className="simple-event-input" 
+        style={{ width: '120px' }}
+        value={selectedLocationData.table || ''}
+        onChange={(e) => {
+          const table = e.target.value;
+          setSelectedLocationData({ id: null, table: table });
+          setForm(prev => ({ ...prev, location: '' })); // Reset name
+        }}
+        required
+      >
+        <option value="">-- Type --</option>
+        <option value="offices">CO</option>
+        <option value="regions">RO</option>
+        <option value="provinces">PO</option>
+        {/* <option value="ttis">TI</option> */}
+        <option value="others">Others</option>
+      </select>
+
+      {/* 2. Specific Location Input/Search */}
+      {selectedLocationData.table === 'offices' || selectedLocationData.table === 'others' ? (
+        // Manual Input for CO and Others
+        <input 
+          type="text"
+          className="simple-event-input"
+          placeholder={selectedLocationData.table === 'offices' ? "Enter CO Office Name" : "Enter Specific Location"}
+          value={form.location}
+          onChange={(e) => handleVenueSelection(null, selectedLocationData.table, e.target.value)}
+          required
+        />
+      ) : (
+        // Searchable Dropdown using Datalist for RO, PO, TI
+        <div style={{ flex: 1, position: 'relative' }}>
+          <input 
+            list="location-options"
+            className="simple-event-input modern-select"
+            placeholder={`Search/Select ${selectedLocationData.table?.slice(0, -1).toUpperCase()}...`}
+            value={form.location}
+            onChange={(e) => {
+              const val = e.target.value;
+              setForm(prev => ({ ...prev, location: val }));
+              
+              // Find the ID based on the name selected
+              let found;
+              if (selectedLocationData.table === 'regions') found = regions.find(r => r.region === val);
+              if (selectedLocationData.table === 'provinces') found = provinces.find(p => p.name === val);
+              // if (selectedLocationData.table === 'ttis') found = ttis.find(t => t.name === val);
+
+              if (found) {
+                handleVenueSelection(found.id, selectedLocationData.table, val);
+              }
+            }}
+            required
+          />
+          <datalist id="location-options">
+            {selectedLocationData.table === 'regions' && regions.map(r => <option key={r.id} value={r.region} />)}
+            {selectedLocationData.table === 'provinces' && provinces.map(p => <option key={p.id} value={p.name} />)}
+            {selectedLocationData.table === 'ttis' && ttis.map(t => <option key={t.id} value={t.name} />)}
+          </datalist>
+        </div>
+      )}
+    </div>
+  )}
+</div>
+                {form.meetingType === 'hybrid' && (
+                  <div className="simple-event-field">
+                    <label className="simple-event-label" htmlFor="zoomLink">Zoom Link</label>
+                    <input id="zoomLink" name="zoomLink" type="url" value={form.zoomLink} onChange={handleChange} className="simple-event-input" placeholder="https://zoom.us/j/123456789" required />
+                  </div>
+                )}
+              </div>
+
 
             </div>
           </section>
           <section className="simple-event-section">
             <h2 className="simple-event-section-title">Participants</h2>
 
-            {liveConflicts.length > 0 && (
+          {liveConflicts.some(msg => !msg.toLowerCase().includes('venue') && !msg.toLowerCase().includes('location')) && (
               <div className="sef-live-conflict-box">
                 <div className="sef-live-conflict-header">
                   <span className="sef-live-conflict-icon">⚠</span>
-                  <strong>Schedule Conflict Detected ({liveConflicts.length})</strong>
+                  <strong>Participant Schedule Conflict</strong>
                 </div>
                 <ul className="sef-live-conflict-list">
-                  {liveConflicts.map((msg, i) => <li key={i}>{msg}</li>)}
+                  {/* I-filter para ang lumabas lang dito ay yung mga tao/participants */}
+                  {liveConflicts
+                    .filter(msg => !msg.toLowerCase().includes('venue') && !msg.toLowerCase().includes('location'))
+                    .map((msg, i) => <li key={i}>{msg}</li>)}
                 </ul>
                 <div className="sef-conflict-resolution">
                   <p className="sef-conflict-resolution-label">To resolve this conflict, you may:</p>
@@ -809,7 +974,7 @@ if (response) {
   {/* Positions Group */}
 {/* Heads Group with Custom Dropdown */}
 <div className="input-group-inline" style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-  <label className="simple-event-label">Heads</label>
+  {/* <label className="simple-event-label">Heads</label> */}
 
   {/* Custom Trigger */}
   <div
@@ -1079,13 +1244,12 @@ if (response) {
 
   {/* Focals Group */}
   <div className="input-group-inline">
-    <label className="simple-event-label">Focals</label>
     <select 
       className="simple-event-input modern-select" 
       onChange={handleFocalDropdownChange}
       defaultValue=""
     >
-      <option value="" disabled>-- Select Participant--</option>
+      <option value="" disabled>-- Select Focals--</option>
       {focalships.map(f => (
         <option key={f.id} value={f.name}>{f.name}</option>
       ))}
@@ -1178,7 +1342,13 @@ if (response) {
           <button
             type="submit"
             className="simple-event-submit"
-            disabled={loading || (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || hasBlockingErrors}
+           disabled={
+              loading || 
+              hasBlockingErrors || 
+              liveConflicts.length > 0 || // STOP pag may detected schedule conflict
+              (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || 
+              (selectedPositions.length === 0 && selectedFocals.length === 0)
+            }
           >
             {loading ? 'Saving...' : 'Save Event'}
           </button>
@@ -1282,7 +1452,7 @@ if (response) {
             </div>
             <button
               className="sef-success-btn"
-              onClick={() => { setShowSuccessModal(false); navigate('/dashboard'); }}
+              onClick={() => { setShowSuccessModal(false); navigate('/my-events'); }}
             >
               OK
             </button>

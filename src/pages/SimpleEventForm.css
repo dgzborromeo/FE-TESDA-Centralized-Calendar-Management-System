@@ -1546,3 +1546,86 @@ input[type="time"].simple-event-input::-webkit-calendar-picker-indicator {
   position: relative;
   z-index: 5;
 }
+
+/* I-update ang existing CSS mo nito */
+.location-cascading-group {
+  display: flex;
+  gap: 10px;
+  width: 100%; /* Siguradong sasagad sa dulo */
+  align-items: flex-start;
+}
+
+/* Para sa Type selector (CO, RO, PO) */
+.location-cascading-group select.simple-event-input {
+  flex: 0 0 130px; /* Fixed width para hindi gumagalaw */
+}
+
+/* Para sa pangalawang input (Specific Location) */
+.location-cascading-group > input,
+.location-cascading-group > div {
+  flex: 1; /* Ito ang "sasagad" sa dulo ng row */
+}
+
+/* Siguraduhin na ang input sa loob ng div (datalist wrapper) ay 100% */
+.location-cascading-group div input {
+  width: 100%;
+}
+/* Para magmukhang dropdown ang text input na may datalist */
+input.modern-select {
+  appearance: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.75rem center / 12px 12px, #ffffff !important;
+  padding-right: 2.25rem;
+  cursor: pointer;
+}
+
+/* I-target lang ang input na may list (datalist) para alisin ang default arrow */
+input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
+/* Siguraduhin na ang date inputs ay may default o custom na calendar icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: block !important; /* Ibalik ang calendar icon */
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* 1. I-reset ang row para laging sumakop sa buong width ng form */
+.simple-event-type-location-row {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}
+
+/* 2. HYBRID: Iisang row lang silang tatlo (3 columns) */
+.simple-event-type-location-hybrid {
+  grid-template-columns: 1fr 1fr 1fr !important;
+}
+
+/* 3. VIRTUAL: Dalawang columns lang (Meeting Type + Zoom Link) 
+      Ito ang magpapatabi sa kanila at mag-a-align sa Title field */
+.simple-event-type-location-virtual {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Siguraduhin na ang Zoom Link field sa Virtual mode ay hindi kukuha ng extrang space */
+.simple-event-type-location-virtual .simple-event-field {
+  width: 100% !important;
+}
+
+/* 4. FACE-TO-FACE: Ganun din, dalawang columns */
+.simple-event-type-location-face-to-face {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Maintain consistency sa lahat ng field inside these rows */
+.simple-event-type-location-row .simple-event-field {
+  display: flex;
+  flex-direction: column;
+}
