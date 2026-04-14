@@ -163,12 +163,17 @@ export default function LandingPage() {
                 </span>
               </div>
             </div>
+
           </div>
         </div>{/* end landing-hero-inner */}
       </section>
 
       {/* Feature cards */}
       <section className="landing-features">
+        <div className="landing-features-header">
+          <div className="landing-features-kicker">What it does</div>
+          <h2 className="landing-features-title">Everything you need to manage TESDA activities</h2>
+        </div>
         <div className="landing-features-inner">
           <div className="landing-feature-card">
             <div className="landing-feature-icon">
@@ -200,8 +205,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
       <footer className="landing-footer">
         <p>© 2026 Technical Education and Skills Development Authority — Regional Operations Management Office</p>
         <div className="landing-footer-links">
