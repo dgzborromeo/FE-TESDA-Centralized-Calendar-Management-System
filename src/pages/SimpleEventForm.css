@@ -890,7 +890,7 @@ select.modern-select {
     border-radius: 12px;
     overflow: visible;
     animation: dropdownFadeIn 0.18s ease-out;
-    max-width: min(600px, 90vw);
+    max-width: min(900px, 92vw);
 }
 
 @keyframes dropdownFadeIn {
@@ -904,9 +904,8 @@ select.modern-select {
     overflow-y: auto;
     overflow-x: hidden;
     margin: 0;
-    width: 240px; /* Mas malapad para sa long names */
-    height: 380px; /* Fixed height para pantay lagi */
-    overflow-y: auto;
+    width: 220px;
+    height: 380px;
     background: #ffffff;
 }
 
@@ -935,6 +934,7 @@ select.modern-select {
     justify-content: space-between;
     align-items: center;
     transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 /* Modern Hover Effect */
@@ -984,8 +984,9 @@ select.modern-select {
 
 /* Container adjustment */
 .dropdown-list-sub {
-  min-width: 260px;
-  max-width: min(350px, 50vw);
+  min-width: 360px;
+  width: max-content;
+  max-width: min(520px, 70vw);
   max-height: 450px;
   display: flex;
   flex-direction: column;
@@ -998,7 +999,9 @@ select.modern-select {
 
 .scrollable-sub-list {
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-width: 0;
 }
 
 /* Eto ang papantay sa checkbox at text */
