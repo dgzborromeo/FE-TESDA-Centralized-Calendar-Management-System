@@ -7,6 +7,7 @@ import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import LoginRequiredModal from '../components/LoginRequiredModal';
+import { SkeletonDashboard } from '../components/SkeletonLoader';
 import './Dashboard.css';
 
 function toLocalYMD(d) {
@@ -194,7 +195,8 @@ function getEventParticipants(e) {
 }
 
 export default function Dashboard() {
-  const UPCOMING_PAGE_SIZE = 3;
+  const UPCOMING_PAGE_SIZE = 2;
+  const TODAY_PAGE_SIZE = 2;
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -206,6 +208,7 @@ export default function Dashboard() {
     () => !!location.state?.showLoginModal
   );
   const [upcomingPage, setUpcomingPage] = useState(0);
+  const [todayPage, setTodayPage] = useState(0);
   const [miniMonthDate, setMiniMonthDate] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
@@ -365,7 +368,9 @@ export default function Dashboard() {
       const isStillToday = endDate === today && endMins > nowMins;
       const isFutureDate = endDate > today;
       const startsWithinNext7 = e.date <= next7Ymd;
-      return startsWithinNext7 && (isStillToday || isFutureDate);
+      // Exclude ongoing events — already shown in Today's Schedule
+      const isOngoing = String(e.status || 'active').toLowerCase() !== 'cancelled' && isEventOngoing(e, today, nowMins);
+      return startsWithinNext7 && (isStillToday || isFutureDate) && !isOngoing;
     })
     .sort((a, b) => (a.date + (a.start_time || '')).localeCompare(b.date + (b.start_time || '')))
     ;
@@ -378,7 +383,6 @@ export default function Dashboard() {
   useEffect(() => {
     setUpcomingPage((prev) => Math.min(prev, Math.max(0, upcomingPageCount - 1)));
   }, [upcomingPageCount]);
-
   const monthInfo = useMemo(() => {
     const year = miniMonthDate.getFullYear();
     const month = miniMonthDate.getMonth();
@@ -410,7 +414,41 @@ export default function Dashboard() {
     setMiniMonthDate(new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0));
   };
 
-  if (loading) return <div className="dashboard-loading">Loading dashboard...</div>;
+  // Today's events — sorted by start time, split into ongoing / upcoming / done
+  const todayEvents = useMemo(() => {
+    return events
+      .filter((e) => isWithinRange(today, e.date, e.end_date || e.date))
+      .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  }, [events, today]);
+
+  const todayOngoing = todayEvents.filter(
+    (e) => String(e.status || 'active').toLowerCase() !== 'cancelled' && isEventOngoing(e, today, nowMins)
+  );
+  const todayUpcoming = todayEvents.filter(
+    (e) => String(e.status || 'active').toLowerCase() !== 'cancelled' &&
+      !isEventOngoing(e, today, nowMins) &&
+      !isEventDone(e, today, nowMins)
+  );
+  const todayDone = todayEvents.filter(
+    (e) => String(e.status || 'active').toLowerCase() !== 'cancelled' && isEventDone(e, today, nowMins)
+  );
+  const todayCancelled = todayEvents.filter(
+    (e) => String(e.status || 'active').toLowerCase() === 'cancelled'
+  );
+
+  // Flatten all today events into one paged list: ongoing first, then upcoming, done, cancelled
+  const todayAllFlat = [...todayOngoing, ...todayUpcoming, ...todayDone, ...todayCancelled];
+  const todayPageCount = Math.max(1, Math.ceil(todayAllFlat.length / TODAY_PAGE_SIZE));
+  const pagedTodayEvents = todayAllFlat.slice(
+    todayPage * TODAY_PAGE_SIZE,
+    (todayPage + 1) * TODAY_PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setTodayPage((prev) => Math.min(prev, Math.max(0, todayPageCount - 1)));
+  }, [todayPageCount]);
+
+  if (loading) return <SkeletonDashboard />;
 
   return (
     <div className="dashboard">
@@ -418,14 +456,34 @@ export default function Dashboard() {
         <div className="dashboard-overview-top">
           <div className="dashboard-overview-titleblock">
             <h1 className="dashboard-title">Dashboard</h1>
-            <p className="dashboard-subtitle">
-              Overview of COROPOTI Programs, Activities and Plans for CY 2026
-            </p>
-          </div>
-          <div className="dashboard-overview-side">
-            <div className="dashboard-overview-meta">
+            <div className="dashboard-overview-meta-row">
+              <p className="dashboard-subtitle">
+                Overview of COROPOTI Programs, Activities and Plans for CY 2026
+              </p>
               <span className="dashboard-overview-chip">{overviewDateLabel}</span>
             </div>
+            {/* Quick stats row */}
+            <div className="dashboard-overview-stats">
+              <span className="dashboard-overview-stat">
+                <span className="dashboard-overview-stat-dot dot-today" />
+                <span className="dashboard-overview-stat-num">{cardCounts.todayCount}</span>
+                <span className="dashboard-overview-stat-label">Today</span>
+              </span>
+              <span className="dashboard-overview-stat-divider" />
+              <span className="dashboard-overview-stat">
+                <span className="dashboard-overview-stat-dot dot-week" />
+                <span className="dashboard-overview-stat-num">{cardCounts.weekCount}</span>
+                <span className="dashboard-overview-stat-label">This Week</span>
+              </span>
+              <span className="dashboard-overview-stat-divider" />
+              <span className="dashboard-overview-stat">
+                <span className="dashboard-overview-stat-dot dot-month" />
+                <span className="dashboard-overview-stat-num">{cardCounts.monthCount}</span>
+                <span className="dashboard-overview-stat-label">This Month</span>
+              </span>
+            </div>
+          </div>
+          <div className="dashboard-overview-side">
             <div className="dashboard-actions">
               {user && user.role !== 'viewer' && (
                 <Link
@@ -450,7 +508,74 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* ── 2-col layout: [Today + Upcoming stacked left] | [Mini Calendar right] */}
       <div className="dashboard-panels">
+        <div className="dashboard-panels-left">
+      {/* ── Today's Events ─────────────────────────────────────────────── */}
+      <section className="dashboard-today-section dashboard-panel">
+        <div className="dashboard-today-header">
+          <div className="dashboard-today-header-left">
+            <span className="dashboard-today-pulse" aria-hidden="true" />
+            <h2 className="dashboard-today-title">Today's Schedule</h2>
+            <span className="dashboard-today-date">
+              {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </span>
+          </div>
+          <div className="dashboard-today-header-right">
+            <div className="dashboard-upcoming-pager">
+              <button type="button" className="dashboard-upcoming-page-btn"
+                onClick={() => setTodayPage((p) => Math.max(0, p - 1))}
+                disabled={todayAllFlat.length === 0 || todayPage === 0}>Prev</button>
+              <span className="dashboard-upcoming-page-label">
+                {todayAllFlat.length === 0 ? '0 / 0' : `${todayPage + 1} / ${todayPageCount}`}
+              </span>
+              <button type="button" className="dashboard-upcoming-page-btn"
+                onClick={() => setTodayPage((p) => Math.min(todayPageCount - 1, p + 1))}
+                disabled={todayAllFlat.length === 0 || todayPage >= todayPageCount - 1}>Next</button>
+            </div>
+            <Link to={`/calendar/day/${today}`} className="dashboard-today-view-all">
+              View Day →
+            </Link>
+          </div>
+        </div>
+
+        {todayAllFlat.length === 0 ? (
+          <div className="dashboard-today-empty">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <p>No events or meetings scheduled for today.</p>
+          </div>
+        ) : (
+          <div className="dashboard-today-columns">
+            {pagedTodayEvents.map((e) => {
+              const isCancelled = String(e.status || 'active').toLowerCase() === 'cancelled';
+              const isOngoing = !isCancelled && isEventOngoing(e, today, nowMins);
+              const isDone = !isCancelled && !isOngoing && isEventDone(e, today, nowMins);
+              const cardVariant = isCancelled ? 'cancelled' : isOngoing ? 'ongoing' : isDone ? 'done' : 'upcoming';
+              const dotVariant = cardVariant;
+              const statusLabel = isCancelled ? 'Cancelled' : isOngoing ? 'Ongoing' : isDone ? 'Done' : 'Upcoming';
+              return (
+                <button key={e.id} type="button"
+                  className={`dashboard-today-card dashboard-today-card-${cardVariant}`}
+                  onClick={() => setSelectedEvent(e.id)}>
+                  <span className="dashboard-today-card-bar" style={{ backgroundColor: isCancelled ? '#ef4444' : e.color || '#2563eb' }} />
+                  <span className="dashboard-today-card-inner">
+                    <span className="dashboard-today-card-status-row">
+                      <span className={`dashboard-today-dot dashboard-today-dot-${dotVariant}`} />
+                      <span className="dashboard-today-card-status-label">{statusLabel}</span>
+                    </span>
+                    <span className="dashboard-today-card-time">{formatTime(e.start_time)} – {formatTime(e.end_time)}</span>
+                    <span className="dashboard-today-card-title">{e.title}</span>
+                    <span className="dashboard-today-card-meta">{e.location || 'TBA'}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
         <section className="dashboard-panel dashboard-panel-upcoming">
           <div className="dashboard-section-head">
             <h2>Upcoming Events/Meetings (Next 7 Days)</h2>
@@ -516,6 +641,8 @@ export default function Dashboard() {
             </ul>
           )}
         </section>
+
+        </div>{/* end dashboard-panels-left */}
 
         <section className="dashboard-panel dashboard-panel-mini-calendar">
           <div className="dashboard-mini-calendar-head">

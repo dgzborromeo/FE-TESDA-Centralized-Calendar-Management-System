@@ -4,6 +4,7 @@ import { events as eventsApi, resolveAttachmentUrl } from '../api';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticipants';
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
+import { SkeletonEventDetails } from '../components/SkeletonLoader';
 import './EventDetails.css';
 
 function formatDate(d) {
@@ -100,7 +101,7 @@ export default function EventDetails() {
       .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
   }, [event, postDocs, requiredPostDoc]);
 
-  if (loading) return <div className="event-details-page">Loading event details...</div>;
+  if (loading) return <SkeletonEventDetails />;
   if (error) return <div className="event-details-page">{error}</div>;
   if (!event) return <div className="event-details-page">Event not found.</div>;
 

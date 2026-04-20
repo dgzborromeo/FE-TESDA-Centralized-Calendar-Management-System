@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { events as eventsApi } from '../api';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import EventModal from '../components/EventModal';
+import { SkeletonEventList } from '../components/SkeletonLoader';
 import './MyEvents.css';
 
 function toLocalYMD(d) {
@@ -209,10 +210,7 @@ export default function MyEvents() {
 
       <div className="my-events-body">
         {loading && (
-          <div className="my-events-loading">
-            <div className="my-events-loading-spinner" />
-            Loading your events...
-          </div>
+          <SkeletonEventList rows={5} />
         )}
         {error && <div className="my-events-error">{error}</div>}
         {!loading && !error && filtered.length === 0 && (

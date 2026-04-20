@@ -29,14 +29,14 @@ import MyEvents from './pages/MyEvents';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-screen">Loading...</div>;
+  if (loading) return <div className="loading-screen" aria-label="Loading..." aria-busy="true" />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function PublicOnly({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-screen">Loading...</div>;
+  if (loading) return <div className="loading-screen" aria-label="Loading..." aria-busy="true" />;
   if (user) return <Navigate to="/dashboard" replace />;
   return children;
 }

@@ -1434,7 +1434,7 @@ return parsedEvents
               return <span>{label}</span>;
             }}
             headerToolbar={{
-              left: 'prev,next today officesTab,participantsTab',
+              left: 'prev today next officesTab,participantsTab',
               center: 'title',
               right: 'addSchedule dayGridMonth,timeGridWeek,timeGridDay',
             }}

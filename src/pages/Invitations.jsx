@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { invitations as invitationsApi } from '../api';
 import EventModal from '../components/EventModal';
+import { SkeletonEventList } from '../components/SkeletonLoader';
 import './Dashboard.css';
 
 function formatDate(d) {
@@ -34,7 +35,7 @@ export default function Invitations() {
     refresh();
   }, []);
 
-  if (loading) return <div className="dashboard-loading">Loading invitations...</div>;
+  if (loading) return <SkeletonEventList rows={4} />;
 
   return (
     <div className="dashboard dashboard-page">

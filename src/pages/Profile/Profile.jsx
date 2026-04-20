@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { profiles as profilesApi, auth as authApi } from '../../api'; // Idinagdag ang authApi
-import { useAuth } from '../../context/AuthContext'; // Idagdag ito para makuha ang 'user'
+import { profiles as profilesApi, auth as authApi } from '../../api';
+import { useAuth } from '../../context/AuthContext';
+import { SkeletonCard } from '../../components/SkeletonLoader';
 import './Profile.css';
 
 export default function Profile() {
@@ -114,7 +115,11 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <div className="dashboard-loading">Loading profile...</div>;
+  if (loading) return (
+    <div className="profile-page" style={{ padding: '2rem' }}>
+      <SkeletonCard rows={6} />
+    </div>
+  );
 
   const initials = `${formData.first_name?.charAt(0) || '?'}${formData.last_name?.charAt(0) || '?'}`;
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=007bff&color=fff&size=150&bold=true`;

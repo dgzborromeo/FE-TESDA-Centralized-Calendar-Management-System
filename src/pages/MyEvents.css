@@ -49,33 +49,47 @@
 }
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
+/* v2 — layered radial gradients */
 .my-events-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 18px;
   padding: 1.75rem 2rem;
   margin-bottom: 1.75rem;
-  background: linear-gradient(135deg, #0d1f45 0%, #162d55 35%, #1a3a7a 70%, #2255b0 100%);
-  border: 1px solid rgba(56,189,248,0.2);
-  box-shadow: 0 12px 40px rgba(13,31,69,0.45), 0 4px 12px rgba(13,31,69,0.25), inset 0 1px 0 rgba(56,189,248,0.12);
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(56,130,246,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 80%, rgba(15,40,100,0.6) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(30,68,160,0.35) 0%, transparent 65%),
+    linear-gradient(160deg, #0f2a5e 0%, #1a3a7a 35%, #162d6a 65%, #0d2050 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 8px 32px rgba(10,25,70,0.4),
+    0 2px 8px rgba(10,25,70,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.07);
 }
+
+/* Horizontal light streak across the top */
 .my-events-hero::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.0) 10%,
+    rgba(255,255,255,0.25) 35%,
+    rgba(255,255,255,0.35) 50%,
+    rgba(255,255,255,0.25) 65%,
+    rgba(255,255,255,0.0) 90%,
+    transparent 100%
+  );
   pointer-events: none;
+  z-index: 1;
 }
+
 .my-events-hero::after {
-  content: '';
-  position: absolute;
-  top: -60px; right: -60px;
-  width: 280px; height: 280px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%);
-  animation: me-glow-pulse 5s ease-in-out infinite;
-  pointer-events: none;
+  content: none;
 }
 .my-events-hero-inner {
   position: relative;
@@ -92,7 +106,7 @@
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.02em;
-  background: linear-gradient(90deg, #ffffff 0%, #bae6fd 50%, #ffffff 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 50%, #ffffff 100%);
   background-size: 600px 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -102,12 +116,39 @@
 .my-events-subtitle { font-size: 0.88rem; color: rgba(255,255,255,0.6); margin: 0; }
 .my-events-hero-right { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
 
+/* ── Buttons inside hero — match Dashboard hero style ───────────────────── */
+.my-events-hero .dashboard-btn {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  color: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(8px);
+}
+.my-events-hero .dashboard-btn:hover {
+  background: rgba(255,255,255,0.18) !important;
+  border-color: rgba(255,255,255,0.4) !important;
+  color: #fff !important;
+  transform: translateY(-2px) !important;
+}
+.my-events-hero .dashboard-btn-primary {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.4) !important;
+}
+.my-events-hero .dashboard-btn-primary:hover {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(22,163,74,0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
 /* ── Search ──────────────────────────────────────────────────────────────── */
 .my-events-search-wrap { position: relative; display: flex; align-items: center; }
 .my-events-search-icon { position: absolute; left: 0.7rem; color: rgba(255,255,255,0.5); pointer-events: none; }
 .my-events-search {
   padding: 0.5rem 0.85rem 0.5rem 2.1rem;
-  border: 1px solid rgba(56,189,248,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   font-size: 0.875rem;
   outline: none;

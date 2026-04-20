@@ -1,0 +1,142 @@
+/* ── Skeleton shimmer animation ─────────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-block {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    #e8ecf2 25%,
+    #f3f5f9 50%,
+    #e8ecf2 75%
+  );
+  background-size: 600px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Layout containers ───────────────────────────────────────────────────── */
+.skeleton-dashboard,
+.skeleton-event-list,
+.skeleton-event-details {
+  max-width: min(96vw, 1860px);
+  width: 100%;
+  margin-inline: auto;
+  padding: 0.5rem clamp(0.5rem, 1.5vw, 1.25rem) 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Panel — matches .dashboard-panel */
+.skeleton-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* Stat cards row */
+.skeleton-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.skeleton-stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* Two-column panels row */
+.skeleton-panels-row {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.skeleton-panel-grow {
+  flex: 1;
+}
+
+.skeleton-mini-cal {
+  min-width: 220px;
+}
+
+/* Event rows inside upcoming panel */
+.skeleton-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0f2f6;
+}
+
+.skeleton-event-row:last-child {
+  border-bottom: none;
+}
+
+/* Mini calendar grid */
+.skeleton-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  justify-items: center;
+}
+
+/* ── Event list skeleton ─────────────────────────────────────────────────── */
+.skeleton-chips-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── EventDetails skeleton ───────────────────────────────────────────────── */
+.skeleton-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Generic card ────────────────────────────────────────────────────────── */
+.skeleton-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .skeleton-cards-row {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-panels-row {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-mini-cal {
+    display: none;
+  }
+}
