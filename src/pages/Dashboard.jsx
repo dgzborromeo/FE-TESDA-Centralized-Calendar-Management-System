@@ -517,9 +517,6 @@ export default function Dashboard() {
           <div className="dashboard-today-header-left">
             <span className="dashboard-today-pulse" aria-hidden="true" />
             <h2 className="dashboard-today-title">Today's Schedule</h2>
-            <span className="dashboard-today-date">
-              {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            </span>
           </div>
           <div className="dashboard-today-header-right">
             <div className="dashboard-upcoming-pager">
