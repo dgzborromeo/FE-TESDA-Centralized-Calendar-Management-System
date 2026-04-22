@@ -448,6 +448,24 @@ export default function Dashboard() {
     setTodayPage((prev) => Math.min(prev, Math.max(0, todayPageCount - 1)));
   }, [todayPageCount]);
 
+  const [liveClock, setLiveClock] = useState(() => {
+    const n = new Date();
+    return n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  });
+
+  const [conflictCount, setConflictCount] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLiveClock(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    eventsApi.conflicts().then((d) => setConflictCount(Number(d?.count || 0))).catch(() => {});
+  }, []);
+
   if (loading) return <SkeletonDashboard />;
 
   return (
@@ -456,49 +474,29 @@ export default function Dashboard() {
         <div className="dashboard-overview-top">
           <div className="dashboard-overview-titleblock">
             <h1 className="dashboard-title">Dashboard</h1>
-            <div className="dashboard-overview-meta-row">
-              <p className="dashboard-subtitle">
-                Overview of COROPOTI Programs, Activities and Plans for CY 2026
-              </p>
-              <span className="dashboard-overview-chip">{overviewDateLabel}</span>
-            </div>
-            {/* Quick stats row */}
-            <div className="dashboard-overview-stats">
-              <span className="dashboard-overview-stat">
-                <span className="dashboard-overview-stat-dot dot-today" />
-                <span className="dashboard-overview-stat-num">{cardCounts.todayCount}</span>
-                <span className="dashboard-overview-stat-label">Today</span>
-              </span>
-              <span className="dashboard-overview-stat-divider" />
-              <span className="dashboard-overview-stat">
-                <span className="dashboard-overview-stat-dot dot-week" />
-                <span className="dashboard-overview-stat-num">{cardCounts.weekCount}</span>
-                <span className="dashboard-overview-stat-label">This Week</span>
-              </span>
-              <span className="dashboard-overview-stat-divider" />
-              <span className="dashboard-overview-stat">
-                <span className="dashboard-overview-stat-dot dot-month" />
-                <span className="dashboard-overview-stat-num">{cardCounts.monthCount}</span>
-                <span className="dashboard-overview-stat-label">This Month</span>
-              </span>
-            </div>
+            <p className="dashboard-subtitle">
+              Overview of COROPOTI Programs, Activities and Plans for CY 2026
+            </p>
           </div>
           <div className="dashboard-overview-side">
+            {/* Clock + date + conflict badge */}
+            <div className="dashboard-overview-clock">
+              <span className="dashboard-overview-clock-time">{liveClock}</span>
+              <span className="dashboard-overview-clock-date">{overviewDateLabel}</span>
+              {conflictCount > 0 && (
+                <span className="dashboard-overview-conflict-badge">
+                  ⚠ {conflictCount} conflict{conflictCount > 1 ? 's' : ''} detected
+                </span>
+              )}
+            </div>
             <div className="dashboard-actions">
               {user && user.role !== 'viewer' && (
-                <Link
-                  to="/simple-event-form"
-                  state={{ backTo: '/dashboard' }}
-                  className="dashboard-btn dashboard-btn-primary"
-                >
+                <Link to="/simple-event-form" state={{ backTo: '/dashboard' }} className="dashboard-btn dashboard-btn-primary">
                   + Add Schedule
                 </Link>
               )}
               {!user && (
-                <button
-                  className="dashboard-btn dashboard-btn-primary"
-                  onClick={() => setShowLoginModal(true)}
-                >
+                <button className="dashboard-btn dashboard-btn-primary" onClick={() => setShowLoginModal(true)}>
                   + Add Schedule
                 </button>
               )}
@@ -507,6 +505,59 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* ── Stat cards ─────────────────────────────────────────────────────── */}
+      <div className="dashboard-cards">
+        <div className="dashboard-card">
+          <div className="dashboard-card-inner">
+            <span className="dashboard-card-icon dashboard-card-icon-today" aria-hidden>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <div className="dashboard-card-text">
+              <span className="dashboard-card-value">{cardCounts.todayCount}</span>
+              <span className="dashboard-card-label">Today</span>
+              <div className="dashboard-card-breakdown">
+                <span className="dashboard-card-breakdown-item item-done">✓ {todayBreakdown.done} done</span>
+                {todayBreakdown.cancelled > 0 && <span className="dashboard-card-breakdown-item item-cancelled">✕ {todayBreakdown.cancelled} cancelled</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="dashboard-card-inner">
+            <span className="dashboard-card-icon dashboard-card-icon-week" aria-hidden>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>
+            </span>
+            <div className="dashboard-card-text">
+              <span className="dashboard-card-value">{cardCounts.weekCount}</span>
+              <span className="dashboard-card-label">This Week</span>
+              <div className="dashboard-card-breakdown">
+                <span className="dashboard-card-breakdown-item item-final">● {weekBreakdown.final} final</span>
+                <span className="dashboard-card-breakdown-item item-tentative">● {weekBreakdown.tentative} tentative</span>
+                <span className="dashboard-card-breakdown-item item-done">✓ {weekBreakdown.done} done</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="dashboard-card-inner">
+            <span className="dashboard-card-icon dashboard-card-icon-month" aria-hidden>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </span>
+            <div className="dashboard-card-text">
+              <span className="dashboard-card-value">{cardCounts.monthCount}</span>
+              <span className="dashboard-card-label">This Month</span>
+              <div className="dashboard-card-breakdown">
+                <span className="dashboard-card-breakdown-item item-final">● {monthBreakdown.final} final</span>
+                <span className="dashboard-card-breakdown-item item-tentative">● {monthBreakdown.tentative} tentative</span>
+                <span className="dashboard-card-breakdown-item item-done">✓ {monthBreakdown.done} done</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── 2-col layout: [Today + Upcoming stacked left] | [Mini Calendar right] */}
       <div className="dashboard-panels">
@@ -602,39 +653,43 @@ export default function Dashboard() {
             <p className="dashboard-empty">No upcoming events.</p>
           ) : (
             <ul className="dashboard-upcoming-list">
-              {pagedUpcomingEvents.map((e) => (
-                <li key={e.id}>
-                  <button type="button" className="dashboard-upcoming-item" onClick={() => setSelectedEvent(e.id)}>
-                    {(() => {
-                      const status = String(e.status || 'active').toLowerCase();
-                      const ongoing = status !== 'cancelled' && isEventOngoing(e, today, nowMins);
-                      const statusLabel = status === 'cancelled' ? 'Cancelled' : ongoing ? 'Ongoing' : 'Active';
-                      const statusClass = ongoing ? 'ongoing' : status;
-                      return (
-                        <span className="dashboard-upcoming-status-line">
-                          <span className={`dashboard-status-pill dashboard-status-${statusClass}`}>
-                            {statusLabel}
-                          </span>
-                        </span>
-                      );
-                    })()}
-                    <span className="dashboard-upcoming-date">{formatDateRange(e)}</span>
-                    <span className="dashboard-upcoming-time">{formatTime(e.start_time)} - {formatTime(e.end_time)}</span>
-                    <span className="dashboard-upcoming-title">{e.title}</span>
-                    {String(e.status || 'active').toLowerCase() === 'cancelled' && Number(e.rescheduled_to_event_id) > 0 ? (
-                      <span className="dashboard-upcoming-meta dashboard-upcoming-meta-status">
-                        <span className="dashboard-status-pill dashboard-status-rescheduled">Rescheduled</span>{' '}
-                        Rescheduled to: {formatRescheduledDateRange(e) || 'Date pending'}
+              {pagedUpcomingEvents.map((e) => {
+                const status = String(e.status || 'active').toLowerCase();
+                const ongoing = status !== 'cancelled' && isEventOngoing(e, today, nowMins);
+                const statusLabel = status === 'cancelled' ? 'Cancelled' : ongoing ? 'Ongoing' : 'Active';
+                const statusClass = ongoing ? 'ongoing' : status;
+                const eventDate = new Date(`${String(e.date).slice(0,10)}T12:00:00`);
+                const monthShort = eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                const dayNum = eventDate.getDate();
+                return (
+                  <li key={e.id}>
+                    <button type="button" className="dashboard-upcoming-item" onClick={() => setSelectedEvent(e.id)}>
+                      {/* Date box */}
+                      <span className="dashboard-upcoming-datebox">
+                        <span className="dashboard-upcoming-datebox-month">{monthShort}</span>
+                        <span className="dashboard-upcoming-datebox-day">{dayNum}</span>
                       </span>
-                    ) : null}
-                    <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
-                    <span className="dashboard-upcoming-meta">
-                      Participants: {getEventParticipants(e)}
-                    </span>
-                    <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
-                  </button>
-                </li>
-              ))}
+                      {/* Content */}
+                      <span className="dashboard-upcoming-content">
+                        <span className="dashboard-upcoming-content-top">
+                          <span className={`dashboard-status-pill dashboard-status-${statusClass}`}>{statusLabel}</span>
+                          <span className="dashboard-upcoming-title">{e.title}</span>
+                          <span className="dashboard-upcoming-time">{formatTime(e.start_time)}</span>
+                        </span>
+                        <span className="dashboard-upcoming-meta">Host: {e.creator_name || 'Unknown'}</span>
+                        <span className="dashboard-upcoming-meta">Participants: {getEventParticipants(e)}</span>
+                        <span className="dashboard-upcoming-meta">Venue: {e.location || 'TBA'}</span>
+                        {status === 'cancelled' && Number(e.rescheduled_to_event_id) > 0 && (
+                          <span className="dashboard-upcoming-meta">
+                            <span className="dashboard-status-pill dashboard-status-rescheduled">Rescheduled</span>{' '}
+                            to: {formatRescheduledDateRange(e) || 'Date pending'}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -705,39 +760,6 @@ export default function Dashboard() {
             </div>
           </Link>
         </section>
-      </div>
-
-      <div className="dashboard-cards">
-        <div className="dashboard-card">
-          <span className="dashboard-card-icon dashboard-card-icon-today" aria-hidden>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </span>
-          <span className="dashboard-card-label">Today</span>
-          <span className="dashboard-card-value">{cardCounts.todayCount}</span>
-          <span className="dashboard-card-sublabel">
-            Events/Meetings · Done: {todayBreakdown.done}
-          </span>
-        </div>
-        <div className="dashboard-card">
-          <span className="dashboard-card-icon dashboard-card-icon-week" aria-hidden>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>
-          </span>
-          <span className="dashboard-card-label">This week</span>
-          <span className="dashboard-card-value">{cardCounts.weekCount}</span>
-          <span className="dashboard-card-sublabel">
-            Mon–Fri · Tentative: {weekBreakdown.tentative} · Final: {weekBreakdown.final} · Done: {weekBreakdown.done} · Cancelled: {weekBreakdown.cancelled} · Rescheduled: {weekBreakdown.rescheduled}
-          </span>
-        </div>
-        <div className="dashboard-card">
-          <span className="dashboard-card-icon dashboard-card-icon-month" aria-hidden>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </span>
-          <span className="dashboard-card-label">This month</span>
-          <span className="dashboard-card-value">{cardCounts.monthCount}</span>
-          <span className="dashboard-card-sublabel">
-            Full month · Tentative: {monthBreakdown.tentative} · Final: {monthBreakdown.final} · Done: {monthBreakdown.done} · Cancelled: {monthBreakdown.cancelled} · Rescheduled: {monthBreakdown.rescheduled}
-          </span>
-        </div>
       </div>
 
       {selectedEvent && (
