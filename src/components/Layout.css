@@ -12,8 +12,136 @@
   width: 100%;
 }
 
-@media (max-width: 768px) {
-  .layout-main {
-    padding: 1rem;
-  }
+/* ── Page transition overlay ─────────────────────────────────────────────── */
+@keyframes layout-transition-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes layout-ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes layout-cell-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes layout-cal-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+.layout-page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 25, 70, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: layout-transition-in 0.15s ease both;
+}
+
+/* Wrapper — ring + calendar stacked */
+.layout-transition-loader {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: layout-cal-bounce 1.2s ease-in-out infinite;
+}
+
+/* Spinning gradient ring */
+.layout-loader-ring {
+  position: absolute;
+  inset: 0;
+  width: 80px;
+  height: 80px;
+  animation: layout-ring-spin 1.2s linear infinite;
+}
+
+/* Calendar icon */
+.layout-loader-calendar {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.layout-cal-header {
+  background: linear-gradient(90deg, #2255b0, #38bdf8);
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.layout-cal-pin {
+  width: 3px;
+  height: 6px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 2px;
+  margin-top: -4px;
+}
+
+.layout-cal-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 3px;
+  gap: 2px;
+}
+
+.layout-cal-top-bar {
+  height: 3px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  margin-bottom: 1px;
+}
+
+.layout-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  flex: 1;
+}
+
+.layout-cal-cell {
+  border-radius: 2px;
+  transform: scale(0);
+  opacity: 0;
+  animation: layout-cell-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+/* Staggered colors per cell */
+.layout-cal-cell-0 { background: #60a5fa; animation-delay: 0.05s; }
+.layout-cal-cell-1 { background: #818cf8; animation-delay: 0.10s; }
+.layout-cal-cell-2 { background: #34d399; animation-delay: 0.15s; }
+.layout-cal-cell-3 { background: #f472b6; animation-delay: 0.20s; }
+.layout-cal-cell-4 { background: #fbbf24; animation-delay: 0.25s; }
+.layout-cal-cell-5 { background: #38bdf8; animation-delay: 0.30s; }
+.layout-cal-cell-6 { background: #a78bfa; animation-delay: 0.35s; }
+.layout-cal-cell-7 { background: #4ade80; animation-delay: 0.40s; }
+.layout-cal-cell-8 { background: #fb923c; animation-delay: 0.45s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .layout-page-transition { backdrop-filter: none; background: rgba(10,25,70,0.8); }
+  .layout-loader-ring { animation: none; }
+  .layout-transition-loader { animation: none; }
+  .layout-cal-cell { animation: none; transform: scale(1); opacity: 1; }
 }

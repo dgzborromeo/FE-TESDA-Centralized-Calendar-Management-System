@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppDialogProvider } from './components/AppDialogProvider';
 import Layout from './components/Layout';
@@ -26,6 +27,57 @@ import Privacy from './pages/Privacy';
 import SimpleEventForm from './pages/SimpleEventForm';
 import LandingPage from './pages/LandingPage';
 import MyEvents from './pages/MyEvents';
+
+/* ── Global page transition loader ──────────────────────────────────────── */
+function PageTransitionLoader() {
+  const location = useLocation();
+  const [show, setShow] = useState(false);
+  const [prev, setPrev] = useState(location.pathname);
+
+  useEffect(() => {
+    if (location.pathname !== prev) {
+      setShow(true);
+      setPrev(location.pathname);
+      const t = setTimeout(() => setShow(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [location.pathname]);
+
+  if (!show) return null;
+
+  return (
+    <div className="layout-page-transition" aria-label="Loading page..." aria-busy="true">
+      <div className="layout-transition-loader">
+        <svg className="layout-loader-ring" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.1)" strokeWidth="4"/>
+          <circle cx="40" cy="40" r="36" stroke="url(#ringGradG)" strokeWidth="4"
+            strokeLinecap="round" strokeDasharray="226" strokeDashoffset="160"/>
+          <defs>
+            <linearGradient id="ringGradG" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38bdf8"/>
+              <stop offset="50%" stopColor="#818cf8"/>
+              <stop offset="100%" stopColor="#34d399"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="layout-loader-calendar">
+          <div className="layout-cal-header">
+            <span className="layout-cal-pin" />
+            <span className="layout-cal-pin" />
+          </div>
+          <div className="layout-cal-body">
+            <div className="layout-cal-top-bar" />
+            <div className="layout-cal-grid">
+              {[...Array(9)].map((_, i) => (
+                <span key={i} className={`layout-cal-cell layout-cal-cell-${i}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -82,6 +134,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AppDialogProvider>
+        <PageTransitionLoader />
         <AppRoutes />
       </AppDialogProvider>
     </AuthProvider>

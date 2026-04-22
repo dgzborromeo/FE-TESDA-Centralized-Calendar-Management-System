@@ -698,7 +698,7 @@ export default function Dashboard() {
 
         <section className="dashboard-panel dashboard-panel-mini-calendar">
           <div className="dashboard-mini-calendar-head">
-            <h2>View Calendar</h2>
+            <h2>Monthly Overview</h2>
             <div className="dashboard-mini-calendar-controls">
               <button
                 type="button"
