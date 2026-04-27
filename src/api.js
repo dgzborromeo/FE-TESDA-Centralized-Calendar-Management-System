@@ -273,3 +273,10 @@ export const dayFlags = {
   update: (id, body) => api(`/day-flags/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   remove: (id) => api(`/day-flags/${id}`, { method: 'DELETE' }),
 };
+
+export const reports = {
+  events: (params) => {
+    const q = new URLSearchParams(params).toString();
+    return api(`/reports/events${q ? `?${q}` : ''}`);
+  },
+};

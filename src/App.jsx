@@ -27,6 +27,7 @@ import Privacy from './pages/Privacy';
 import SimpleEventForm from './pages/SimpleEventForm';
 import LandingPage from './pages/LandingPage';
 import MyEvents from './pages/MyEvents';
+import Reports from './pages/Reports';
 
 /* ── Global page transition loader ──────────────────────────────────────── */
 function PageTransitionLoader() {
@@ -121,6 +122,7 @@ function AppRoutes() {
         <Route path="user-config" element={<ProtectedRoute><UserConfig /></ProtectedRoute>} />
         <Route path="invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>} />
         <Route path="my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
+        <Route path="reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="events/new" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
         <Route path="events/:id/edit" element={<ProtectedRoute><EventForm /></ProtectedRoute>} />
         <Route path="events/:id/details" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />

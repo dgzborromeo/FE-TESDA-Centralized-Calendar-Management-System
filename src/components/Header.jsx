@@ -83,7 +83,13 @@ export default function Header() {
         <div className="header-left">
           <Link to="/dashboard" className="header-logo">
             <Logo className="header-logo-img" src="/tesda-logo.png" alt="TESDA" transparentBlack />
-            <span className="header-logo-text"><span className="header-logo-accent">O</span>perations <span className="header-logo-accent">N</span>etwork and <span className="header-logo-accent">E</span>vents Centralized Calendar System</span>
+            <span className="header-logo-text">
+              <span className="header-logo-main">
+                <span className="header-logo-one">ONE</span>
+                <span className="header-logo-rest"> Centralized Calendar System</span>
+              </span>
+              <span className="header-logo-sub">Operations Network and Events</span>
+            </span>
           </Link>
         </div>
         <nav className="header-nav">
@@ -106,6 +112,9 @@ export default function Header() {
               <Link to="/list-of-activity" className="header-link">List of Activity</Link>
             )}
             <Link to="/events" className="header-link">Events / Meetings</Link>
+            {user?.role === 'admin' && (
+              <Link to="/reports" className="header-link">Reports</Link>
+            )}
             {user?.role === 'admin' && (
               <Link to="/user-config" className="header-link">User Configuration</Link>
             )}

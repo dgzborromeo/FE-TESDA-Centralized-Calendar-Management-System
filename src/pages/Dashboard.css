@@ -65,6 +65,9 @@
 .dashboard-cards .dashboard-card:nth-child(3) {
   animation: dash-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
 }
+.dashboard-cards .dashboard-card:nth-child(4) {
+  animation: dash-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.36s both;
+}
 .dashboard-card-value {
   animation: dash-count-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
 }
@@ -377,16 +380,16 @@
 .dashboard-card-icon svg { width: 32px; height: 32px; }
 
 .dashboard-card-icon-today {
-  background: #dce8f8;
+  background: #dbeafe;
   color: #2255b0;
 }
 .dashboard-card-icon-week {
-  background: #dce8f8;
-  color: #2255b0;
+  background: #ede9fe;
+  color: #7c3aed;
 }
 .dashboard-card-icon-month {
-  background: #dce8f8;
-  color: #2255b0;
+  background: #ccfbf1;
+  color: #0d9488;
 }
 
 /* Value number */
@@ -398,9 +401,9 @@
   line-height: 1;
   animation: dash-count-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
 }
-.dashboard-cards .dashboard-card:nth-child(1) .dashboard-card-value { color: #2255b0; }
-.dashboard-cards .dashboard-card:nth-child(2) .dashboard-card-value { color: #2255b0; }
-.dashboard-cards .dashboard-card:nth-child(3) .dashboard-card-value { color: #2255b0; }
+.dashboard-cards .dashboard-card:nth-child(1) .dashboard-card-value { color: #0f172a; }
+.dashboard-cards .dashboard-card:nth-child(2) .dashboard-card-value { color: #0f172a; }
+.dashboard-cards .dashboard-card:nth-child(3) .dashboard-card-value { color: #0f172a; }
 
 /* ── Upcoming items — reference layout ──────────────────────────────────── */
 .dashboard-upcoming-item {
@@ -1028,7 +1031,7 @@
 .dashboard-card-label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #2255b0;
+  color: #64748b;
   letter-spacing: 0.01em;
   margin-top: 0.1rem;
 }
@@ -2489,4 +2492,52 @@
   height: 16px;
   background: rgba(255,255,255,0.15);
   flex-shrink: 0;
+}
+
+/* ── Completion Rate card ────────────────────────────────────────────────── */
+.dashboard-card-completion {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 55%) !important;
+}
+
+.dashboard-card-icon-completion {
+  background: #dcfce7;
+  color: #16a34a;
+  width: 64px;
+  height: 64px;
+  border-radius: 50% !important;
+}
+
+.dashboard-card-value-completion {
+  color: #0f172a !important;
+}
+
+/* Progress bar */
+.dashboard-card-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+}
+
+.dashboard-card-progress-track {
+  flex: 1;
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dashboard-card-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 4px;
+}
+
+.dashboard-card-progress-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
 }

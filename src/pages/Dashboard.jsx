@@ -557,6 +557,34 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* ── Completion Rate card ── */}
+        {(() => {
+          const monthTotal = cardCounts.monthCount;
+          const monthDone  = monthBreakdown.done;
+          const pct = monthTotal > 0 ? Math.round((monthDone / monthTotal) * 100) : 0;
+          return (
+            <div className="dashboard-card dashboard-card-completion">
+              <div className="dashboard-card-inner">
+                <span className="dashboard-card-icon dashboard-card-icon-completion" aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </span>
+                <div className="dashboard-card-text">
+                  <span className="dashboard-card-value dashboard-card-value-completion">{pct}%</span>
+                  <span className="dashboard-card-label">Monthly Completion</span>
+                  <div className="dashboard-card-progress-wrap">
+                    <div className="dashboard-card-progress-track">
+                      <div className="dashboard-card-progress-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="dashboard-card-progress-text">{monthDone}/{monthTotal}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ── 2-col layout: [Today + Upcoming stacked left] | [Mini Calendar right] */}
