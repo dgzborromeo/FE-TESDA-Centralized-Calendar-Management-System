@@ -29,6 +29,41 @@ import LandingPage from './pages/LandingPage';
 import MyEvents from './pages/MyEvents';
 import Reports from './pages/Reports';
 
+/* ── Dynamic page title ──────────────────────────────────────────────────── */
+const PAGE_TITLES = {
+  '/':                    'ONE Centralized Calendar System',
+  '/login':               'Sign In — ONE Calendar',
+  '/register':            'Register — ONE Calendar',
+  '/forgot-password':     'Forgot Password — ONE Calendar',
+  '/dashboard':           'Dashboard — ONE Calendar',
+  '/calendar':            'Calendar — ONE Calendar',
+  '/list-of-activity':    'List of Activities — ONE Calendar',
+  '/events':              'Events — ONE Calendar',
+  '/my-events':           'My Events — ONE Calendar',
+  '/invitations':         'Invitations — ONE Calendar',
+  '/reports':             'Reports — ONE Calendar',
+  '/user-config':         'Settings — ONE Calendar',
+  '/about':               'About — ONE Calendar',
+  '/help':                'Help Guide — ONE Calendar',
+  '/faq':                 'FAQ — ONE Calendar',
+  '/support':             'Support — ONE Calendar',
+  '/terms':               'Terms — ONE Calendar',
+  '/privacy':             'Privacy — ONE Calendar',
+  '/simple-event-form':   'Submit Schedule — ONE Calendar',
+};
+
+function usePageTitle() {
+  const location = useLocation();
+  useEffect(() => {
+    const path = location.pathname;
+    // exact match first, then prefix match for dynamic routes
+    const title =
+      PAGE_TITLES[path] ||
+      Object.entries(PAGE_TITLES).find(([key]) => path.startsWith(key) && key !== '/')?.[1] ||
+      'ONE Centralized Calendar System';
+    document.title = title;
+  }, [location.pathname]);
+}
 /* ── Global page transition loader ──────────────────────────────────────── */
 function PageTransitionLoader() {
   const location = useLocation();
@@ -95,6 +130,7 @@ function PublicOnly({ children }) {
 }
 
 function AppRoutes() {
+  usePageTitle();
   return (
     <Routes>
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />

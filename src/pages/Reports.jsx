@@ -190,7 +190,7 @@ export default function Reports() {
         <div className="reports-hero-inner">
           <div>
             <h1 className="reports-title">Event Reports</h1>
-            <p className="reports-subtitle">Generate and export event/schedule reports — Admin only</p>
+            <p className="reports-subtitle">Generate and export event/schedule reports</p>
           </div>
           {data && (
             <button className="reports-print-btn" onClick={handlePrint}>

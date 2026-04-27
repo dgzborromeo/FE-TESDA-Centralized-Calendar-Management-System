@@ -312,7 +312,7 @@
 .auth-form label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0;
   font-size: 0.9rem;
   font-weight: 600;
   color: rgba(255,255,255,0.65);
@@ -321,6 +321,7 @@
 .auth-form input[type="text"],
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
+  width: 100%;
   padding: 0.75rem 0.95rem;
   border: 1.5px solid rgba(56,189,248,0.15);
   border-radius: 10px;
@@ -328,6 +329,18 @@
   color: rgba(255,255,255,0.92);
   font-size: 1rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Fix browser autofill white background */
+.auth-form input:-webkit-autofill,
+.auth-form input:-webkit-autofill:hover,
+.auth-form input:-webkit-autofill:focus,
+.auth-form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 999px rgba(10, 30, 70, 0.95) inset !important;
+  box-shadow: 0 0 0 999px rgba(10, 30, 70, 0.95) inset !important;
+  -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
+  caret-color: rgba(255,255,255,0.92);
+  border-color: rgba(56,189,248,0.15) !important;
 }
 
 .auth-form input[type="text"]::placeholder,
@@ -354,6 +367,138 @@
   width: auto;
   margin-right: 0.5rem;
   accent-color: #38bdf8;
+}
+
+/* ── Input with icon ───────────────────────────────────────────────────── */
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.auth-input-wrap input {
+  width: 100%;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  display: flex;
+  align-items: center;
+  color: rgba(56,189,248,0.45);
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.auth-input-wrap:focus-within .auth-input-icon {
+  color: rgba(56,189,248,0.85);
+}
+
+.auth-input-with-icon {
+  padding-left: 2.6rem !important;
+}
+
+.auth-input-with-toggle {
+  padding-right: 3rem !important;
+}
+
+/* ── Password toggle ───────────────────────────────────────────────────── */
+.auth-pw-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  padding: 0.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.45);
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+  z-index: 2;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.auth-pw-toggle:hover {
+  color: #7dd3fc;
+  background: rgba(56,189,248,0.12);
+}
+
+.auth-pw-toggle svg {
+  display: block;
+  pointer-events: none;
+}
+
+/* ── Label text ────────────────────────────────────────────────────────── */
+.auth-label-text {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.01em;
+}
+
+/* ── Remember + forgot row ─────────────────────────────────────────────── */
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -0.25rem;
+}
+
+.auth-forgot-link {
+  font-size: 0.85rem;
+  color: #7dd3fc;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.auth-forgot-link:hover {
+  color: #bae6fd;
+}
+
+/* ── Header sub ────────────────────────────────────────────────────────── */
+.auth-header-sub {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.88rem;
+  margin-top: 0.1rem;
+}
+
+/* ── Submit arrow ──────────────────────────────────────────────────────── */
+.auth-submit-arrow {
+  display: inline-block;
+  margin-left: 0.4rem;
+  transition: transform 0.2s ease;
+}
+
+.auth-submit:hover:not(:disabled) .auth-submit-arrow {
+  transform: translateX(4px);
+}
+
+/* ── Loading spinner ───────────────────────────────────────────────────── */
+.auth-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.7s linear infinite;
+  flex-shrink: 0;
 }
 
 .auth-forgot {
@@ -469,43 +614,7 @@
   font-weight: 500;
 }
 
-/* Container para sa input at button */
-.password-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.password-input-wrapper input {
-    width: 100%;
-    padding-right: 45px; /* Space para sa icon */
-}
-
-.password-toggle-icon {
-    position: absolute;
-    right: 12px;
-    background: transparent;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255,255,255,0.4);
-    transition: color 0.2s ease;
-    border-radius: 50%;
-}
-
-.password-toggle-icon:hover {
-    color: rgba(255,255,255,0.85);
-    background-color: rgba(56,189,248,0.1);
-}
-
-.password-toggle-icon svg {
-    display: block;
-    pointer-events: none; /* Para hindi ma-block ang click ng icon */
-}
+/* (password toggle now handled by .auth-pw-toggle) */
 
 .auth-back-link {
   position: absolute;
