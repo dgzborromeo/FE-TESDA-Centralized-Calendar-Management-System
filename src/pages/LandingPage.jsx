@@ -127,15 +127,10 @@ export default function LandingPage() {
           {/* Right column — video */}
           <div className="landing-hero-right">
             <div className="landing-video-frame">
-              <div className="landing-video-frame-header">
-                <div className="landing-video-frame-dots">
-                  <span /><span /><span />
-                </div>
-                <span className="landing-video-frame-title">COROPOTI Calendar of Activities — CY 2026</span>
-                <span className="landing-video-live-badge">
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                  PREVIEW
-                </span>
+              {/* Elegant label — not browser-style */}
+              <div className="landing-video-frame-label">
+                <span className="landing-video-frame-label-dot" />
+                <span className="landing-video-frame-label-text">COROPOTI Calendar of Activities — CY 2026</span>
               </div>
               <div className="landing-video-wrap">
                 <video
