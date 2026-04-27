@@ -13,7 +13,22 @@
   position: relative;
 }
 
-/* Calendar grid overlay — same as landing page */
+/* login-bg.png — subtle background texture */
+.auth-page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Calendar grid overlay */
 .auth-page::before {
   content: '';
   position: fixed;
@@ -26,8 +41,45 @@
   z-index: 0;
 }
 
-.auth-page::after {
-  content: none;
+/* Animated background orbs */
+@keyframes auth-bg-orb-1 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.5; }
+  40%       { transform: translate(40px, -30px) scale(1.1); opacity: 0.75; }
+  70%       { transform: translate(-20px, 20px) scale(0.92); opacity: 0.4; }
+}
+@keyframes auth-bg-orb-2 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.4; }
+  35%       { transform: translate(-35px, 25px) scale(1.08); opacity: 0.65; }
+  65%       { transform: translate(25px, -18px) scale(0.95); opacity: 0.35; }
+}
+@keyframes auth-bg-orb-3 {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.3; }
+  50%       { transform: translate(20px, 30px) scale(1.12); opacity: 0.55; }
+}
+
+.auth-page-split .auth-bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-page-split .auth-bg-orb-1 {
+  width: 700px; height: 700px;
+  top: -200px; right: -150px;
+  background: radial-gradient(circle, rgba(40,120,220,0.35) 0%, rgba(20,70,150,0.2) 40%, transparent 70%);
+  animation: auth-bg-orb-1 12s ease-in-out infinite;
+}
+.auth-page-split .auth-bg-orb-2 {
+  width: 500px; height: 500px;
+  bottom: -120px; left: -100px;
+  background: radial-gradient(circle, rgba(56,189,248,0.22) 0%, rgba(20,60,130,0.15) 50%, transparent 70%);
+  animation: auth-bg-orb-2 15s ease-in-out 2s infinite;
+}
+.auth-page-split .auth-bg-orb-3 {
+  width: 350px; height: 350px;
+  top: 40%; left: 35%;
+  background: radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%);
+  animation: auth-bg-orb-3 18s ease-in-out 4s infinite;
 }
 
 .auth-page.auth-page-split {
@@ -38,15 +90,6 @@
     radial-gradient(ellipse 40% 35% at 50% 85%, rgba(10,40,100,0.55), transparent 55%),
     linear-gradient(160deg, #0d1f45 0%, #112244 35%, #162d55 65%, #0d1f45 100%);
   background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-}
-
-/* Orbs — same as landing page hero orbs */
-.auth-page-split .auth-orb {
-  display: none;
-}
-
-.auth-page.auth-page-split::after {
-  content: none;
 }
 
 .auth-page.auth-page-split .auth-split {

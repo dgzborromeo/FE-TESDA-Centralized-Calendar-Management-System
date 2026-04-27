@@ -32,6 +32,9 @@ export default function Login() {
 
   return (
     <div className="auth-page auth-page-split">
+      <div className="auth-bg-orb auth-bg-orb-1" aria-hidden="true" />
+      <div className="auth-bg-orb auth-bg-orb-2" aria-hidden="true" />
+      <div className="auth-bg-orb auth-bg-orb-3" aria-hidden="true" />
       <div className="auth-split">
 
         {/* ── Left: media panel ── */}
