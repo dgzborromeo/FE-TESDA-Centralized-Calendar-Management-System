@@ -141,6 +141,21 @@
   z-index: 1;
 }
 
+/* login-bg.png as a subtle background layer inside the hero */
+.landing-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Orbs — deep blue glowing like the NE Calendar System */
 .landing-hero-orb { position: absolute; border-radius: 50%; pointer-events: none; }
 .landing-hero-orb-1 {
