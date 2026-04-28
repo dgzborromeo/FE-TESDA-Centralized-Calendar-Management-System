@@ -55,6 +55,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const [reportLabel, setReportLabel] = useState('');
+  const [hostFilter, setHostFilter] = useState('all');
 
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
@@ -87,6 +88,7 @@ export default function Reports() {
     setLoading(true);
     setError('');
     setData(null);
+    setHostFilter('all');
     try {
       const rows = await reportsApi.events({ start: range.start, end: range.end });
       setData(rows);
@@ -103,11 +105,25 @@ export default function Reports() {
     handleGenerate(dateRange);
   }, [dateRange]);
 
+  /* Unique hosts from current data */
+  const hostOptions = useMemo(() => {
+    if (!data) return [];
+    const names = [...new Set(data.map(e => e.creator_name).filter(Boolean))].sort();
+    return names;
+  }, [data]);
+
+  /* Filtered rows */
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    if (hostFilter === 'all') return data;
+    return data.filter(e => e.creator_name === hostFilter);
+  }, [data, hostFilter]);
+
   const handlePrint = () => {
     const printWin = window.open('', '_blank', 'width=1100,height=800');
-    const cancelled = data.filter(e => String(e.status || '').toLowerCase() === 'cancelled').length;
+    const cancelled = filteredData.filter(e => String(e.status || '').toLowerCase() === 'cancelled').length;
 
-    const rows = data.map((e, i) => `
+    const rows = filteredData.map((e, i) => `
       <tr class="${String(e.status || '').toLowerCase() === 'cancelled' ? 'cancelled' : ''}">
         <td>${i + 1}</td>
         <td>${e.title || ''}</td>
@@ -158,7 +174,7 @@ export default function Reports() {
     <div class="meta">Period: ${fmt(dateRange.start)} – ${fmt(dateRange.end)} · Generated: ${generatedAt}</div>
   </div>
   <div class="summary">
-    <div class="card"><span class="card-num">${data.length}</span><span class="card-label">Total Events</span></div>
+    <div class="card"><span class="card-num">${filteredData.length}</span><span class="card-label">Total Events</span></div>
     <div class="card"><span class="card-num">${cancelled}</span><span class="card-label">Cancelled</span></div>
   </div>
   <table>
@@ -170,7 +186,7 @@ export default function Reports() {
     </thead>
     <tbody>${rows}</tbody>
   </table>
-  <div class="footer">${data.length} record${data.length !== 1 ? 's' : ''} · Generated ${generatedAt}</div>
+  <div class="footer">${filteredData.length} record${filteredData.length !== 1 ? 's' : ''} · Generated ${generatedAt}</div>
   <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }<\/script>
 </body>
 </html>`);
@@ -276,6 +292,19 @@ export default function Reports() {
           <span className="reports-date-preview-value">{fmt(dateRange.start)} – {fmt(dateRange.end)}</span>
         </div>
 
+        {/* Host filter */}
+        {data && hostOptions.length > 0 && (
+          <div className="reports-filter-group">
+            <label>Host</label>
+            <select value={hostFilter} onChange={e => setHostFilter(e.target.value)}>
+              <option value="all">All Hosts</option>
+              {hostOptions.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {loading && <span className="reports-loading-inline">Loading...</span>}
       </div>
 
@@ -305,17 +334,17 @@ export default function Reports() {
           {/* Summary */}
           <div className="reports-summary">
             <div className="reports-summary-card">
-              <span className="reports-summary-num">{data.length}</span>
+              <span className="reports-summary-num">{filteredData.length}</span>
               <span className="reports-summary-label">Total Events</span>
             </div>
             <div className="reports-summary-card">
-              <span className="reports-summary-num">{data.filter(e => String(e.status || '').toLowerCase() === 'cancelled').length}</span>
+              <span className="reports-summary-num">{filteredData.filter(e => String(e.status || '').toLowerCase() === 'cancelled').length}</span>
               <span className="reports-summary-label">Cancelled</span>
             </div>
           </div>
 
           {/* Table */}
-          {data.length === 0 ? (
+          {filteredData.length === 0 ? (
             <div className="reports-empty">No events found for the selected period.</div>
           ) : (
             <div className="reports-table-wrap">
@@ -334,7 +363,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((e, i) => (
+                  {filteredData.map((e, i) => (
                     <tr key={e.id} className={String(e.status || '').toLowerCase() === 'cancelled' ? 'row-cancelled' : ''}>
                       <td className="col-num">{i + 1}</td>
                       <td className="col-title">{e.title}</td>
@@ -357,7 +386,7 @@ export default function Reports() {
           )}
 
           <div className="reports-footer">
-            {data.length} record{data.length !== 1 ? 's' : ''} · Generated {generatedAt}
+            {filteredData.length} record{filteredData.length !== 1 ? 's' : ''} · Generated {generatedAt}
           </div>
         </div>
       )}
