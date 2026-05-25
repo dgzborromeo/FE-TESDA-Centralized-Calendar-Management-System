@@ -1,5 +1,5 @@
 .event-details-page {
-  max-width: min(96vw, 1860px);
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
   padding: clamp(0.8rem, 1.5vw, 1.2rem);

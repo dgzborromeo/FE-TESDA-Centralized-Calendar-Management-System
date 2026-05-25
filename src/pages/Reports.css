@@ -1,6 +1,6 @@
 /* ── Reports Page ────────────────────────────────────────────────────────── */
 .reports-page {
-  max-width: min(96vw, 1860px);
+  max-width: 100%;
   margin: 0 auto;
   padding: 0.5rem clamp(0.5rem, 1.5vw, 1.25rem) 3rem;
 }

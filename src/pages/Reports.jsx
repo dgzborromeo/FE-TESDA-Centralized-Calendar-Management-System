@@ -170,8 +170,8 @@ export default function Reports() {
   <div class="header">
     <div class="org">Technical Education and Skills Development Authority</div>
     <div class="system">ONE Centralized Calendar System</div>
-    <div class="report-title">${periodTab} Events Report — ${reportLabel}</div>
-    <div class="meta">Period: ${fmt(dateRange.start)} – ${fmt(dateRange.end)} · Generated: ${generatedAt}</div>
+    <div class="report-title">${periodTab} Events Report — ${reportLabel}${hostFilter !== 'all' ? ` · ${hostFilter}` : ''}</div>
+    <div class="meta">Period: ${fmt(dateRange.start)} – ${fmt(dateRange.end)}${hostFilter !== 'all' ? ` · Host: ${hostFilter}` : ''} · Generated: ${generatedAt}</div>
   </div>
   <div class="summary">
     <div class="card"><span class="card-num">${filteredData.length}</span><span class="card-label">Total Events</span></div>

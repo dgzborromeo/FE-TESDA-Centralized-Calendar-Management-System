@@ -1,5 +1,5 @@
 .list-of-activity-page {
-  max-width: min(98vw, 1600px);
+  max-width: 100%;
   margin-inline: auto;
   padding: 1rem 0.75rem 2rem;
   font-family: 'Inter', sans-serif;

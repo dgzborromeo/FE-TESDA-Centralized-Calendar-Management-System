@@ -28,6 +28,7 @@ import SimpleEventForm from './pages/SimpleEventForm';
 import LandingPage from './pages/LandingPage';
 import MyEvents from './pages/MyEvents';
 import Reports from './pages/Reports';
+import OfficeLegend from './pages/OfficeLegend';
 
 /* ── Dynamic page title ──────────────────────────────────────────────────── */
 const PAGE_TITLES = {
@@ -50,6 +51,7 @@ const PAGE_TITLES = {
   '/terms':               'Terms — ONE Calendar',
   '/privacy':             'Privacy — ONE Calendar',
   '/simple-event-form':   'Submit Schedule — ONE Calendar',
+  '/office-legend':       'Office Directory — ONE Calendar',
 };
 
 function usePageTitle() {
@@ -136,10 +138,11 @@ function AppRoutes() {
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
-      <Route path="/simple-event-form" element={<SimpleEventForm />} />
       {/* Landing page — no layout wrapper */}
       <Route path="/" element={<LandingPage />} />
       <Route element={<Layout />}>
+        <Route path="simple-event-form" element={<SimpleEventForm />} />
+        <Route path="office-legend" element={<OfficeLegend />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="calendar/day/:date" element={<DayView />} />

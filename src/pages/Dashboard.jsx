@@ -213,6 +213,7 @@ export default function Dashboard() {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0);
   });
+  const [activeFilter, setActiveFilter] = useState('today'); // 'today', 'week', 'month', 'completion'
 
   useEffect(() => {
     const now = new Date();
@@ -473,9 +474,23 @@ export default function Dashboard() {
       <section className="dashboard-panel dashboard-panel-overview">
         <div className="dashboard-overview-top">
           <div className="dashboard-overview-titleblock">
-            <h1 className="dashboard-title">Dashboard</h1>
+            <div className="dashboard-overview-kicker">
+              <span className="dashboard-overview-kicker-dot" />
+              ONE CENTRALIZED CALENDAR SYSTEM · CY 2026
+            </div>
+            <h1 className="dashboard-title">
+              {(() => {
+                const hour = new Date().getHours();
+                const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+                if (!user?.name) return 'COROPOTI Activity Dashboard';
+                return `${greeting}, ${user.name.trim()}.`;
+              })()}
+            </h1>
             <p className="dashboard-subtitle">
-              Overview of COROPOTI Programs, Activities and Plans for CY 2026
+              {user
+                ? "Here's your COROPOTI activity overview for today."
+                : "Centralized calendar of programs, activities, and plans for CY 2026."
+              }
             </p>
           </div>
           <div className="dashboard-overview-side">
@@ -508,10 +523,22 @@ export default function Dashboard() {
 
       {/* ── Stat cards ─────────────────────────────────────────────────────── */}
       <div className="dashboard-cards">
-        <div className="dashboard-card">
+        <button 
+          type="button"
+          className={`dashboard-card dashboard-card-clickable ${activeFilter === 'today' ? 'dashboard-card-active' : ''}`}
+          onClick={() => setActiveFilter('today')}
+        >
           <div className="dashboard-card-inner">
             <span className="dashboard-card-icon dashboard-card-icon-today" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {/* Filled calendar with today highlight */}
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="4" width="20" height="18" rx="3" fill="#fef08a" stroke="#d97706" strokeWidth="1.5"/>
+                <rect x="2" y="4" width="20" height="6" rx="3" fill="#f59e0b"/>
+                <rect x="2" y="8" width="20" height="2" fill="#f59e0b"/>
+                <line x1="7" y1="2" x2="7" y2="6" stroke="#d97706" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="17" y1="2" x2="17" y2="6" stroke="#d97706" strokeWidth="2" strokeLinecap="round"/>
+                <rect x="9" y="13" width="6" height="6" rx="1.5" fill="#f59e0b"/>
+              </svg>
             </span>
             <div className="dashboard-card-text">
               <span className="dashboard-card-value">{cardCounts.todayCount}</span>
@@ -522,12 +549,21 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </button>
 
         <div className="dashboard-card">
           <div className="dashboard-card-inner">
             <span className="dashboard-card-icon dashboard-card-icon-week" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>
+              {/* Week — 7 vertical bars like a mini bar chart */}
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1"  y="14" width="2.5" height="8"  rx="1.2" fill="#a78bfa"/>
+                <rect x="4.5" y="10" width="2.5" height="12" rx="1.2" fill="#8b5cf6"/>
+                <rect x="8"  y="12" width="2.5" height="10" rx="1.2" fill="#a78bfa"/>
+                <rect x="11.5" y="7" width="2.5" height="15" rx="1.2" fill="#7c3aed"/>
+                <rect x="15" y="9"  width="2.5" height="13" rx="1.2" fill="#8b5cf6"/>
+                <rect x="18.5" y="5" width="2.5" height="17" rx="1.2" fill="#6d28d9"/>
+                <rect x="22" y="11" width="2.5" height="11" rx="1.2" fill="#a78bfa"/>
+              </svg>
             </span>
             <div className="dashboard-card-text">
               <span className="dashboard-card-value">{cardCounts.weekCount}</span>
@@ -544,7 +580,20 @@ export default function Dashboard() {
         <div className="dashboard-card">
           <div className="dashboard-card-inner">
             <span className="dashboard-card-icon dashboard-card-icon-month" aria-hidden>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              {/* Month — filled calendar grid with colored dots */}
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="4" width="20" height="18" rx="3" fill="#ccfbf1" stroke="#0d9488" strokeWidth="1.5"/>
+                <rect x="2" y="4" width="20" height="6" rx="3" fill="#14b8a6"/>
+                <rect x="2" y="8" width="20" height="2" fill="#14b8a6"/>
+                <line x1="7" y1="2" x2="7" y2="6" stroke="#0d9488" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="17" y1="2" x2="17" y2="6" stroke="#0d9488" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="7"  cy="15" r="1.5" fill="#0d9488"/>
+                <circle cx="12" cy="15" r="1.5" fill="#14b8a6"/>
+                <circle cx="17" cy="15" r="1.5" fill="#0d9488"/>
+                <circle cx="7"  cy="19" r="1.5" fill="#14b8a6"/>
+                <circle cx="12" cy="19" r="1.5" fill="#0d9488"/>
+                <circle cx="17" cy="19" r="1.5" fill="#5eead4"/>
+              </svg>
             </span>
             <div className="dashboard-card-text">
               <span className="dashboard-card-value">{cardCounts.monthCount}</span>
@@ -567,8 +616,13 @@ export default function Dashboard() {
             <div className="dashboard-card dashboard-card-completion">
               <div className="dashboard-card-inner">
                 <span className="dashboard-card-icon dashboard-card-icon-completion" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  {/* Completion — filled trophy */}
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 21h8M12 17v4" stroke="#2255b0" strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M5 3H3a2 2 0 000 4c0 2.5 1.5 4.5 3.5 5.5" stroke="#2255b0" strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M19 3h2a2 2 0 010 4c0 2.5-1.5 4.5-3.5 5.5" stroke="#2255b0" strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M5 3h14v9a7 7 0 01-14 0V3z" fill="#bfdbfe" stroke="#2255b0" strokeWidth="1.5"/>
+                    <path d="M9 10l2 2 4-4" stroke="#2255b0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
                 <div className="dashboard-card-text">

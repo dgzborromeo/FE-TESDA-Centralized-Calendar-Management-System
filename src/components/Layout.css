@@ -1,15 +1,24 @@
 .layout {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .layout-main {
   flex: 1;
+  min-width: 0;
   padding: clamp(0.95rem, 1.4vw, 1.5rem);
-  max-width: min(96vw, 1920px);
-  margin: 0 auto;
-  width: 100%;
+  overflow-x: hidden;
+  background: linear-gradient(180deg, #f0f3fa 0%, #f5f7fb 30%, #ffffff 100%);
+  min-height: 100vh;
+  transition: margin-left var(--sidebar-transition);
+}
+
+/* Mobile — add top padding for the hamburger button */
+@media (max-width: 768px) {
+  .layout-main {
+    padding-top: 4rem;
+  }
 }
 
 /* ── Page transition overlay ─────────────────────────────────────────────── */

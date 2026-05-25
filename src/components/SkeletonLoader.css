@@ -20,7 +20,7 @@
 .skeleton-dashboard,
 .skeleton-event-list,
 .skeleton-event-details {
-  max-width: min(96vw, 1860px);
+  max-width: 100%;
   width: 100%;
   margin-inline: auto;
   padding: 0.5rem clamp(0.5rem, 1.5vw, 1.25rem) 2rem;

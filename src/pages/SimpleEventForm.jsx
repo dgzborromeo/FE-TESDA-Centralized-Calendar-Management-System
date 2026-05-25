@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Header from '../components/Header';
 import './SimpleEventForm.css';
 import { config as scheduleAPI } from '../api';
 
@@ -654,7 +653,6 @@ useEffect(() => {
   }
   return (
     <div className="simple-event-page">
-      <Header />
       <main className="simple-event-main">
         <div className="simple-event-body">
           <div className="simple-event-left">
