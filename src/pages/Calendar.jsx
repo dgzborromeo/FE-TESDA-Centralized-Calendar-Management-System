@@ -430,6 +430,8 @@ export default function Calendar() {
   const [moveReason, setMoveReason] = useState('');
   const [moveSubmitting, setMoveSubmitting] = useState(false);
   const [isSidePanelHidden, setIsSidePanelHidden] = useState(false);
+  const [currentView, setCurrentView] = useState('dayGridMonth');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const activeRangeRef = useRef({ start: null, end: null });
     // Idagdag ito sa tabi ng iba pang useState
@@ -1056,21 +1058,60 @@ return parsedEvents
 
   return (
     <div className="calendar-page">
-      {/* Optimized Toolbar - Filters Only */}
-      <div className="calendar-toolbar">
-        <div className="calendar-toolbar-filters">
-          {/* Compact filter bar */}
-          <div className="calendar-filter-bar">
-            {/* Host / Office filter */}
-            <div className={`calendar-filter-group ${hostLegendFilter ? 'is-active' : ''}`}>
-              <label className="calendar-filter-label">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      {/* Overview Panel */}
+      <div className="calendar-overview-panel">
+        <div className="calendar-overview-row">
+          {/* Left Section: Title, Navigation, and Filters */}
+          <div className="calendar-overview-left-section">
+            {/* Title and Navigation Row */}
+            <div className="calendar-overview-title-row">
+              <div className="calendar-overview-title-group">
+                <svg className="calendar-overview-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                Office
-              </label>
+                <h2 className="calendar-overview-title">
+                  {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h2>
+              </div>
+              
+              {/* Navigation */}
+              <div className="calendar-nav-controls">
+                <button
+                  type="button"
+                  className="calendar-nav-btn calendar-nav-prev"
+                  onClick={() => calendarRef.current?.getApi?.()?.prev?.()}
+                  title="Previous"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="calendar-nav-btn calendar-nav-today"
+                  onClick={() => calendarRef.current?.getApi?.()?.today?.()}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  className="calendar-nav-btn calendar-nav-next"
+                  onClick={() => calendarRef.current?.getApi?.()?.next?.()}
+                  title="Next"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+            
+            {/* Filters Row */}
+            <div className="calendar-filters-row">
+              <span className="calendar-filters-label">Filters:</span>
+              
+              {/* Office filter */}
               <select
-                className="calendar-filter-select"
+                className="calendar-filter-select calendar-filter-select-compact"
                 value={hostLegendFilter ? JSON.stringify({ kind: hostLegendFilter.kind, clusterId: hostLegendFilter.clusterId, officeName: hostLegendFilter.officeName ?? '' }) : ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -1090,6 +1131,7 @@ return parsedEvents
                     }
                   } catch { clearHostLegendFilter(); }
                 }}
+                title="Filter by Office"
               >
                 <option value="">All Offices</option>
                 {clusterLegend.map(cluster => (
@@ -1109,49 +1151,95 @@ return parsedEvents
                   </optgroup>
                 ))}
               </select>
-            </div>
 
-            {/* Participant filter */}
-            <div className={`calendar-filter-group ${activeParticipantKey ? 'is-active' : ''}`}>
-              <label className="calendar-filter-label">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                </svg>
-                Participant
-              </label>
+              {/* Participant filter */}
               <select
-                className="calendar-filter-select"
+                className="calendar-filter-select calendar-filter-select-compact"
                 value={activeParticipantKey}
                 onChange={(e) => {
                   setActiveParticipantKey(e.target.value);
                   if (e.target.value) setActiveTab('participants');
                   else setActiveTab('offices');
                 }}
+                title="Filter by Participant"
               >
                 <option value="">All Participants</option>
                 {PARTICIPANT_LEGEND_ITEMS.map(item => (
                   <option key={item.key} value={item.key}>{item.label}</option>
                 ))}
               </select>
-            </div>
 
-            {/* Active filter badge + reset */}
-            {(hostLegendFilter?.accountIds?.size || activeParticipantKey) && (
+              {/* Clear filters */}
+              {(hostLegendFilter?.accountIds?.size || activeParticipantKey) && (
+                <button
+                  type="button"
+                  className="calendar-filter-clear-btn"
+                  onClick={() => {
+                    clearHostLegendFilter();
+                    setActiveParticipantKey('');
+                    setActiveTab('offices');
+                  }}
+                  title="Clear all filters"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {/* Right Section: View Switcher and Add Button */}
+          <div className="calendar-overview-right-section">
+            {/* View Switcher */}
+            <div className="calendar-view-switcher">
               <button
                 type="button"
-                className="calendar-filter-reset"
+                className={`calendar-view-btn ${currentView === 'dayGridMonth' ? 'active' : ''}`}
                 onClick={() => {
-                  clearHostLegendFilter();
-                  setActiveParticipantKey('');
-                  setActiveTab('offices');
+                  calendarRef.current?.getApi?.()?.changeView?.('dayGridMonth');
+                  setCurrentView('dayGridMonth');
                 }}
-                title="Clear all filters"
+                title="Month View"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
+                Month
               </button>
-            )}
+              <button
+                type="button"
+                className={`calendar-view-btn ${currentView === 'timeGridWeek' ? 'active' : ''}`}
+                onClick={() => {
+                  calendarRef.current?.getApi?.()?.changeView?.('timeGridWeek');
+                  setCurrentView('timeGridWeek');
+                }}
+                title="Week View"
+              >
+                Week
+              </button>
+              <button
+                type="button"
+                className={`calendar-view-btn ${currentView === 'timeGridDay' ? 'active' : ''}`}
+                onClick={() => {
+                  calendarRef.current?.getApi?.()?.changeView?.('timeGridDay');
+                  setCurrentView('timeGridDay');
+                }}
+                title="Day View"
+              >
+                Day
+              </button>
+            </div>
+            
+            {/* Add Schedule Button */}
+            <button
+              type="button"
+              className="calendar-add-schedule-btn"
+              onClick={() => {
+                if (isViewerLike) {
+                  setShowLoginModal(true);
+                } else {
+                  navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+                }
+              }}
+            >
+              + Add Schedule
+            </button>
           </div>
         </div>
       </div>
@@ -1187,11 +1275,7 @@ return parsedEvents
               const label = d.toLocaleDateString('en-US', { weekday: isWeekend ? 'short' : 'long' });
               return <span>{label}</span>;
             }}
-            headerToolbar={{
-              left: 'prev today next',
-              center: 'title',
-              right: 'addSchedule dayGridMonth,timeGridWeek,timeGridDay',
-            }}
+            headerToolbar={false}
             viewDidMount={() => {
               syncToolbarTabs();
             }}
@@ -1219,6 +1303,8 @@ return parsedEvents
                 setLoading(true);
                 setError('');
                 activeRangeRef.current = { start: arg.start, end: arg.end };
+                setCurrentDate(arg.start); // Update current date for title
+                setCurrentView(arg.view?.type || 'dayGridMonth'); // Update current view
                 setHolidayEvents(holidayEventsForRange(arg.start, arg.end));
                 await fetchEventsForRange(arg.start, arg.end);
               } catch (e) {

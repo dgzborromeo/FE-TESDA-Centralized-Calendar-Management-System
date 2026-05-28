@@ -2549,3 +2549,1061 @@
   color: #64748b;
   white-space: nowrap;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COMPREHENSIVE RESPONSIVE DESIGN
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Large tablets and small desktops (1200px - 1400px) ─────────────────── */
+@media (max-width: 1200px) {
+  .dashboard-panels {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-card-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .dashboard-card-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ── Tablets (768px - 1000px) ───────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .dashboard {
+    padding-inline: 0.75rem;
+  }
+
+  .dashboard-panel-overview {
+    padding: 1rem 1.2rem !important;
+  }
+
+  .dashboard-overview-brand {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .dashboard-overview-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .dashboard-panels-left {
+    gap: 1rem;
+  }
+
+  .dashboard-panel {
+    padding: 1.2rem;
+    min-height: 200px;
+  }
+
+  .dashboard-upcoming-list {
+    gap: 0.5rem;
+  }
+
+  .dashboard-mini-grid {
+    gap: 2px;
+  }
+
+  .dashboard-mini-cell {
+    min-height: 32px;
+  }
+
+  .dashboard-mini-day {
+    font-size: 0.7rem;
+  }
+}
+
+/* ── Mobile landscape / Small tablets (600px - 768px) ───────────────────── */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0.5rem;
+  }
+
+  .dashboard-panel-overview {
+    padding: 0.9rem 1rem !important;
+    margin-bottom: 0.75rem;
+  }
+
+  .dashboard-overview-top {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .dashboard-overview-side {
+    align-items: flex-start;
+  }
+
+  .dashboard-overview-clock {
+    align-items: flex-start;
+  }
+
+  .dashboard-overview-actions-desktop {
+    display: none;
+  }
+
+  .dashboard-overview-actions-mobile {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .dashboard-overview-actions-mobile .dashboard-btn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .dashboard-card {
+    padding: 1rem;
+  }
+
+  .dashboard-card-inner {
+    gap: 0.85rem;
+  }
+
+  .dashboard-card-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .dashboard-card-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .dashboard-card-value {
+    font-size: clamp(1.8rem, 5vw, 2.2rem);
+  }
+
+  .dashboard-panel {
+    padding: 1rem;
+    min-height: 180px;
+  }
+
+  .dashboard-upcoming-item {
+    padding: 0.75rem 0.85rem;
+    gap: 0.7rem;
+  }
+
+  .dashboard-upcoming-datebox {
+    min-width: 48px;
+    width: 48px;
+  }
+
+  .dashboard-upcoming-datebox-day {
+    font-size: 1.35rem;
+  }
+
+  .dashboard-upcoming-title {
+    font-size: 0.9rem;
+  }
+
+  .dashboard-upcoming-time {
+    font-size: 0.78rem;
+  }
+
+  .dashboard-mini-calendar-head {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .dashboard-mini-grid {
+    gap: 2px;
+  }
+
+  .dashboard-mini-cell {
+    min-height: 28px;
+  }
+
+  .dashboard-mini-day {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-mini-colors {
+    min-height: 4px;
+  }
+
+  .dashboard-mini-color {
+    height: 3px;
+  }
+
+  /* Today's Schedule */
+  .dashboard-today-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dashboard-today-header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-today-card {
+    padding: 0;
+  }
+
+  .dashboard-today-card-inner {
+    padding: 0.5rem 0.65rem;
+  }
+
+  /* EventsView */
+  .ev-search-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .events-view-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .events-view-tab {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .ev-toolbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ev-toolbar-right .dashboard-search-input {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .ev-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ev-filter-select {
+    width: 100%;
+  }
+
+  .ev-search-inline {
+    width: 100%;
+  }
+
+  .ev-card__date {
+    min-width: 64px;
+    padding: 12px 10px;
+  }
+
+  .ev-card__day {
+    font-size: 1.6rem;
+  }
+
+  .ev-card__body {
+    padding: 12px 14px;
+  }
+}
+
+/* ── Mobile portrait (420px - 600px) ────────────────────────────────────── */
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .dashboard-panel-overview {
+    padding: 0.85rem !important;
+    border-radius: 14px !important;
+  }
+
+  .dashboard-overview-brand {
+    gap: 0.5rem;
+  }
+
+  .dashboard-overview-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dashboard-title {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .dashboard-overview-clock-time {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+  }
+
+  .dashboard-overview-clock-date {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-overview-chip {
+    font-size: 0.72rem;
+    padding: 0.22rem 0.6rem;
+  }
+
+  .dashboard-cards {
+    gap: 0.65rem;
+  }
+
+  .dashboard-card {
+    padding: 0.85rem;
+    border-radius: 14px;
+  }
+
+  .dashboard-card-inner {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .dashboard-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .dashboard-card-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dashboard-card-value {
+    font-size: clamp(1.6rem, 6vw, 2rem);
+  }
+
+  .dashboard-card-label {
+    font-size: 0.78rem;
+  }
+
+  .dashboard-card-breakdown {
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+  }
+
+  .dashboard-card-breakdown-item {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .dashboard-panel {
+    padding: 0.85rem;
+    border-radius: 14px;
+    min-height: 160px;
+  }
+
+  .dashboard-panel-upcoming h2,
+  .dashboard-panel-mini-calendar h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-upcoming-list {
+    gap: 0.45rem;
+  }
+
+  .dashboard-upcoming-item {
+    padding: 0.65rem 0.75rem;
+    gap: 0.6rem;
+    border-radius: 12px;
+  }
+
+  .dashboard-upcoming-datebox {
+    min-width: 44px;
+    width: 44px;
+    padding: 0.35rem 0.25rem;
+    border-radius: 8px;
+  }
+
+  .dashboard-upcoming-datebox-month {
+    font-size: 0.6rem;
+  }
+
+  .dashboard-upcoming-datebox-day {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-upcoming-title {
+    font-size: 0.85rem;
+  }
+
+  .dashboard-upcoming-time {
+    font-size: 0.75rem;
+  }
+
+  .dashboard-upcoming-meta {
+    font-size: 0.72rem;
+  }
+
+  .dashboard-status-pill {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  .dashboard-mini-calendar-head span {
+    font-size: 0.88rem;
+  }
+
+  .dashboard-mini-month-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1rem;
+  }
+
+  .dashboard-mini-today-btn {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.75rem;
+  }
+
+  .dashboard-mini-grid {
+    gap: 1.5px;
+  }
+
+  .dashboard-mini-weekday {
+    font-size: 0.62rem;
+  }
+
+  .dashboard-mini-cell {
+    min-height: 26px;
+    border-radius: 5px;
+  }
+
+  .dashboard-mini-cell-btn {
+    padding: 0.08rem 0.15rem;
+  }
+
+  .dashboard-mini-day {
+    font-size: 0.65rem;
+  }
+
+  .dashboard-mini-colors {
+    min-height: 3px;
+    gap: 1px;
+  }
+
+  .dashboard-mini-color {
+    height: 2.5px;
+  }
+
+  /* Today's Schedule */
+  .dashboard-today-title {
+    font-size: 1rem;
+  }
+
+  .dashboard-today-date {
+    font-size: 0.75rem;
+    padding: 0.18rem 0.55rem;
+  }
+
+  .dashboard-today-view-all {
+    font-size: 0.75rem;
+    padding: 0.28rem 0.65rem;
+  }
+
+  .dashboard-today-group-label {
+    font-size: 0.7rem;
+  }
+
+  .dashboard-today-group-count {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-today-card {
+    border-radius: 10px;
+  }
+
+  .dashboard-today-card-bar {
+    width: 4px;
+  }
+
+  .dashboard-today-card-inner {
+    padding: 0.4rem 0.55rem;
+  }
+
+  .dashboard-today-card-time {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-today-card-title {
+    font-size: 0.82rem;
+  }
+
+  .dashboard-today-card-meta {
+    font-size: 0.7rem;
+  }
+
+  /* EventsView */
+  .events-view-tabs {
+    padding: 3px;
+    gap: 4px;
+  }
+
+  .events-view-tab {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .ev-card {
+    border-radius: 12px;
+  }
+
+  .ev-card__date {
+    min-width: 56px;
+    padding: 10px 8px;
+  }
+
+  .ev-card__month {
+    font-size: 0.58rem;
+  }
+
+  .ev-card__day {
+    font-size: 1.5rem;
+  }
+
+  .ev-card__dow {
+    font-size: 0.58rem;
+  }
+
+  .ev-card__body {
+    padding: 10px 12px;
+    gap: 4px;
+  }
+
+  .ev-card__title {
+    font-size: 0.88rem;
+  }
+
+  .ev-card__time {
+    font-size: 0.75rem;
+  }
+
+  .ev-card__loc {
+    font-size: 0.75rem;
+  }
+
+  .ev-card__info {
+    font-size: 0.72rem;
+  }
+
+  .ev-pagination__btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .ev-pagination__info {
+    font-size: 0.8rem;
+  }
+
+  /* Event list rows */
+  .dashboard-event-row {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    padding: 0.7rem 0.85rem;
+    padding-right: 2rem;
+  }
+
+  .dashboard-event-date {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-event-time {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-event-title {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .dashboard-event-location {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+/* ── Small mobile (320px - 420px) ───────────────────────────────────────── */
+@media (max-width: 420px) {
+  .dashboard {
+    padding: 0.4rem 0.2rem;
+  }
+
+  .dashboard-panel-overview {
+    padding: 0.75rem !important;
+    border-radius: 12px !important;
+  }
+
+  .dashboard-overview-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-title {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-overview-clock-time {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-overview-clock-date {
+    font-size: 0.65rem;
+  }
+
+  .dashboard-overview-chip {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .dashboard-overview-actions-mobile .dashboard-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .dashboard-cards {
+    gap: 0.55rem;
+  }
+
+  .dashboard-card {
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .dashboard-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .dashboard-card-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .dashboard-card-value {
+    font-size: clamp(1.4rem, 7vw, 1.8rem);
+  }
+
+  .dashboard-card-label {
+    font-size: 0.72rem;
+  }
+
+  .dashboard-card-breakdown-item {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.35rem;
+  }
+
+  .dashboard-panel {
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .dashboard-panel-upcoming h2,
+  .dashboard-panel-mini-calendar h2 {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-upcoming-item {
+    padding: 0.6rem 0.7rem;
+    gap: 0.55rem;
+    border-radius: 10px;
+  }
+
+  .dashboard-upcoming-datebox {
+    min-width: 40px;
+    width: 40px;
+    padding: 0.3rem 0.2rem;
+    border-radius: 7px;
+  }
+
+  .dashboard-upcoming-datebox-month {
+    font-size: 0.55rem;
+  }
+
+  .dashboard-upcoming-datebox-day {
+    font-size: 1.15rem;
+  }
+
+  .dashboard-upcoming-title {
+    font-size: 0.8rem;
+  }
+
+  .dashboard-upcoming-time {
+    font-size: 0.7rem;
+  }
+
+  .dashboard-upcoming-meta {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-status-pill {
+    font-size: 0.62rem;
+    padding: 0.18rem 0.5rem;
+  }
+
+  .dashboard-mini-calendar-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .dashboard-mini-calendar-head span {
+    font-size: 0.85rem;
+  }
+
+  .dashboard-mini-calendar-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-mini-month-btn {
+    width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.95rem;
+  }
+
+  .dashboard-mini-today-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .dashboard-mini-calendar-grid-wrap {
+    min-height: 200px;
+  }
+
+  .dashboard-mini-grid {
+    gap: 1px;
+  }
+
+  .dashboard-mini-weekday {
+    font-size: 0.58rem;
+    padding-bottom: 1px;
+  }
+
+  .dashboard-mini-cell {
+    min-height: 24px;
+    border-radius: 4px;
+  }
+
+  .dashboard-mini-cell-btn {
+    padding: 0.06rem 0.12rem;
+  }
+
+  .dashboard-mini-day {
+    font-size: 0.62rem;
+  }
+
+  .dashboard-mini-colors {
+    min-height: 2.5px;
+    gap: 1px;
+  }
+
+  .dashboard-mini-color {
+    height: 2px;
+  }
+
+  /* Today's Schedule */
+  .dashboard-today-title {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-today-title::before {
+    width: 3px;
+    height: 16px;
+  }
+
+  .dashboard-today-date {
+    font-size: 0.7rem;
+    padding: 0.16rem 0.5rem;
+  }
+
+  .dashboard-today-view-all {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .dashboard-today-group-label {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-today-group-count {
+    font-size: 0.65rem;
+    padding: 0.08rem 0.4rem;
+  }
+
+  .dashboard-today-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .dashboard-today-card {
+    border-radius: 9px;
+  }
+
+  .dashboard-today-card-bar {
+    width: 3.5px;
+  }
+
+  .dashboard-today-card-inner {
+    padding: 0.35rem 0.5rem;
+  }
+
+  .dashboard-today-card-time {
+    font-size: 0.65rem;
+  }
+
+  .dashboard-today-card-title {
+    font-size: 0.78rem;
+  }
+
+  .dashboard-today-card-meta {
+    font-size: 0.68rem;
+  }
+
+  /* EventsView */
+  .events-view-tabs {
+    flex-direction: column;
+    padding: 0;
+    background: transparent;
+    border: none;
+    gap: 0.35rem;
+  }
+
+  .events-view-tab {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.72rem;
+    border: 1px solid rgba(148,163,184,0.2);
+  }
+
+  .events-view-tab.active {
+    border-color: transparent;
+  }
+
+  .ev-card {
+    border-radius: 10px;
+  }
+
+  .ev-card__date {
+    min-width: 52px;
+    padding: 8px 6px;
+  }
+
+  .ev-card__month {
+    font-size: 0.55rem;
+  }
+
+  .ev-card__day {
+    font-size: 1.35rem;
+  }
+
+  .ev-card__dow {
+    font-size: 0.55rem;
+  }
+
+  .ev-card__body {
+    padding: 8px 10px;
+  }
+
+  .ev-card__title {
+    font-size: 0.82rem;
+  }
+
+  .ev-card__time {
+    font-size: 0.7rem;
+  }
+
+  .ev-card__loc {
+    font-size: 0.7rem;
+  }
+
+  .ev-card__info {
+    font-size: 0.68rem;
+  }
+
+  .ev-card__badge {
+    font-size: 0.62rem;
+    padding: 1px 6px;
+  }
+
+  .ev-pagination {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .ev-pagination__btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
+  }
+
+  .ev-pagination__info {
+    font-size: 0.75rem;
+  }
+
+  .ev-filter-select {
+    font-size: 0.8rem;
+    padding: 0.4rem 1.8rem 0.4rem 0.7rem;
+  }
+
+  .ev-filter-clear {
+    font-size: 0.78rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  /* Event list rows */
+  .dashboard-event-row {
+    padding: 0.65rem 0.75rem;
+    padding-right: 1.85rem;
+  }
+
+  .dashboard-event-row::after {
+    font-size: 1.2rem;
+    right: 0.7rem;
+  }
+}
+
+/* ── Extra small mobile (< 360px) ───────────────────────────────────────── */
+@media (max-width: 360px) {
+  .dashboard-card-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dashboard-card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dashboard-card-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dashboard-upcoming-datebox {
+    min-width: 36px;
+    width: 36px;
+  }
+
+  .dashboard-upcoming-datebox-day {
+    font-size: 1.05rem;
+  }
+
+  .ev-card__date {
+    min-width: 48px;
+    padding: 6px 5px;
+  }
+
+  .ev-card__day {
+    font-size: 1.2rem;
+  }
+}
+
+/* ── Landscape orientation adjustments ──────────────────────────────────── */
+@media (max-height: 600px) and (orientation: landscape) {
+  .dashboard-panel {
+    min-height: 140px;
+  }
+
+  .dashboard-mini-calendar-grid-wrap {
+    min-height: 180px;
+  }
+
+  .dashboard-mini-cell {
+    min-height: 22px;
+  }
+
+  .dashboard-event-list {
+    max-height: 280px;
+  }
+}
+
+/* ── Touch device optimizations ─────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .dashboard-card,
+  .dashboard-upcoming-item,
+  .dashboard-mini-cell,
+  .dashboard-today-card,
+  .ev-card,
+  .dashboard-event-row {
+    /* Larger tap targets for mobile */
+    min-height: 44px;
+  }
+
+  .dashboard-btn,
+  .dashboard-mini-month-btn,
+  .dashboard-mini-today-btn,
+  .dashboard-upcoming-page-btn,
+  .ev-pagination__btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .dashboard-card:hover,
+  .dashboard-upcoming-item:hover,
+  .dashboard-mini-cell.is-day:hover,
+  .dashboard-today-card:hover,
+  .ev-card:hover {
+    transform: none;
+  }
+
+  /* Add active state for touch feedback */
+  .dashboard-card:active,
+  .dashboard-upcoming-item:active,
+  .dashboard-today-card:active,
+  .ev-card:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+/* ── Print styles ───────────────────────────────────────────────────────── */
+@media print {
+  .dashboard-panel-overview,
+  .dashboard-btn,
+  .dashboard-mini-calendar-controls,
+  .dashboard-upcoming-pager,
+  .ev-pagination,
+  .ev-search-tabs-row {
+    display: none !important;
+  }
+
+  .dashboard-panels {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-card,
+  .dashboard-panel,
+  .ev-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

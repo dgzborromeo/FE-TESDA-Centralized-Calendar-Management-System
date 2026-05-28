@@ -421,3 +421,478 @@ a.calendar-legend-add,
     justify-content: center !important;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COMPREHENSIVE SYSTEM-WIDE RESPONSIVE DESIGN
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tablets (768px - 1024px) ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Layout adjustments */
+  .layout-main {
+    padding: 1rem !important;
+  }
+
+  /* Typography scaling */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  h4 { font-size: 1.1rem !important; }
+
+  /* Form elements */
+  input, select, textarea {
+    font-size: 0.9rem !important;
+    padding: 0.6rem 0.75rem !important;
+  }
+
+  /* Buttons */
+  button, .btn {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Tables */
+  table {
+    font-size: 0.85rem !important;
+  }
+
+  th, td {
+    padding: 0.6rem 0.75rem !important;
+  }
+
+  /* Cards */
+  .card, .panel {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Modals */
+  .modal {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    margin: 1rem !important;
+  }
+}
+
+/* ── Mobile (600px - 768px) ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Layout */
+  .layout-main {
+    padding: 0.75rem !important;
+  }
+
+  /* Typography */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.3rem !important; }
+  h3 { font-size: 1.15rem !important; }
+  h4 { font-size: 1rem !important; }
+
+  body {
+    font-size: 0.9rem !important;
+  }
+
+  /* Form elements */
+  input, select, textarea {
+    font-size: 0.85rem !important;
+    padding: 0.55rem 0.7rem !important;
+    border-radius: 8px !important;
+  }
+
+  label {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  /* Buttons */
+  button, .btn, a.btn {
+    padding: 0.55rem 0.9rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    min-height: 44px !important;
+  }
+
+  /* Tables - make scrollable */
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  table {
+    min-width: 600px !important;
+    font-size: 0.8rem !important;
+  }
+
+  th, td {
+    padding: 0.5rem 0.6rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* Cards */
+  .card, .panel {
+    padding: 0.85rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* Grids - stack to single column */
+  .grid, .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Flex containers */
+  .flex-row {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Modals */
+  .modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    margin: 0.5rem !important;
+    border-radius: 12px !important;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .modal-body {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .modal-footer button {
+    width: 100% !important;
+  }
+
+  /* Navigation */
+  nav {
+    flex-wrap: wrap !important;
+  }
+
+  .nav-link {
+    padding: 0.5rem 0.7rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Spacing utilities */
+  .p-4 { padding: 1rem !important; }
+  .p-3 { padding: 0.75rem !important; }
+  .p-2 { padding: 0.5rem !important; }
+  .m-4 { margin: 1rem !important; }
+  .m-3 { margin: 0.75rem !important; }
+  .m-2 { margin: 0.5rem !important; }
+  .gap-4 { gap: 1rem !important; }
+  .gap-3 { gap: 0.75rem !important; }
+  .gap-2 { gap: 0.5rem !important; }
+}
+
+/* ── Small Mobile (400px - 600px) ───────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Layout */
+  .layout-main {
+    padding: 0.5rem !important;
+  }
+
+  /* Typography */
+  h1 { font-size: 1.35rem !important; }
+  h2 { font-size: 1.2rem !important; }
+  h3 { font-size: 1.05rem !important; }
+  h4 { font-size: 0.95rem !important; }
+
+  body {
+    font-size: 0.85rem !important;
+  }
+
+  /* Form elements */
+  input, select, textarea {
+    font-size: 0.8rem !important;
+    padding: 0.5rem 0.65rem !important;
+    border-radius: 6px !important;
+  }
+
+  label {
+    font-size: 0.8rem !important;
+  }
+
+  /* Buttons */
+  button, .btn, a.btn {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+  }
+
+  /* Cards */
+  .card, .panel {
+    padding: 0.75rem !important;
+    border-radius: 8px !important;
+  }
+
+  /* Tables */
+  table {
+    font-size: 0.75rem !important;
+  }
+
+  th, td {
+    padding: 0.4rem 0.5rem !important;
+  }
+
+  /* Modals */
+  .modal {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 92vh !important;
+    margin: 0.35rem !important;
+    border-radius: 10px !important;
+  }
+
+  .modal-header {
+    padding: 0.75rem 0.85rem !important;
+  }
+
+  .modal-body {
+    padding: 0.75rem 0.85rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  /* Navigation */
+  .nav-link {
+    padding: 0.45rem 0.6rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Spacing */
+  .p-4 { padding: 0.85rem !important; }
+  .p-3 { padding: 0.65rem !important; }
+  .p-2 { padding: 0.45rem !important; }
+  .gap-4 { gap: 0.85rem !important; }
+  .gap-3 { gap: 0.65rem !important; }
+  .gap-2 { gap: 0.45rem !important; }
+}
+
+/* ── Extra Small Mobile (< 400px) ───────────────────────────────────────── */
+@media (max-width: 400px) {
+  /* Layout */
+  .layout-main {
+    padding: 0.4rem !important;
+  }
+
+  /* Typography */
+  h1 { font-size: 1.2rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 1rem !important; }
+  h4 { font-size: 0.9rem !important; }
+
+  body {
+    font-size: 0.8rem !important;
+  }
+
+  /* Form elements */
+  input, select, textarea {
+    font-size: 0.75rem !important;
+    padding: 0.45rem 0.6rem !important;
+  }
+
+  label {
+    font-size: 0.75rem !important;
+  }
+
+  /* Buttons */
+  button, .btn, a.btn {
+    padding: 0.45rem 0.7rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Cards */
+  .card, .panel {
+    padding: 0.65rem !important;
+    border-radius: 6px !important;
+  }
+
+  /* Modals */
+  .modal {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    max-height: 94vh !important;
+    margin: 0.25rem !important;
+  }
+
+  .modal-header, .modal-body, .modal-footer {
+    padding: 0.65rem 0.75rem !important;
+  }
+}
+
+/* ── Landscape orientation (height < 600px) ─────────────────────────────── */
+@media (max-height: 600px) and (orientation: landscape) {
+  .modal {
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+  }
+
+  .sidebar {
+    height: 100vh !important;
+  }
+
+  /* Reduce vertical padding */
+  .card, .panel {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  h1, h2, h3 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+/* ── Touch device optimizations ─────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger tap targets */
+  button, .btn, a.btn, input[type="checkbox"], input[type="radio"] {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  /* Remove hover effects */
+  *:hover {
+    /* Disable hover on touch devices */
+  }
+
+  /* Add active/pressed states */
+  button:active, .btn:active, a.btn:active {
+    transform: scale(0.97) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Larger form controls */
+  input, select, textarea {
+    min-height: 44px !important;
+  }
+
+  /* Larger checkboxes and radios */
+  input[type="checkbox"], input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Better scrolling */
+  * {
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* ── High DPI / Retina displays ─────────────────────────────────────────── */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper borders */
+  .card, .panel, .modal, button, input, select, textarea {
+    border-width: 0.5px !important;
+  }
+
+  /* Crisper text */
+  body {
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+  }
+}
+
+/* ── Print styles ───────────────────────────────────────────────────────── */
+@media print {
+  /* Hide non-essential elements */
+  .sidebar, .header, nav, button, .btn, .modal-overlay {
+    display: none !important;
+  }
+
+  /* Optimize for print */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .card, .panel {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Remove animations */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Expand content */
+  .layout-main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Show URLs for links */
+  a[href]:after {
+    content: " (" attr(href) ")" !important;
+    font-size: 0.8em !important;
+  }
+}
+
+/* ── Accessibility improvements ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  /* Increase contrast for better readability */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .card, .panel, button, input, select, textarea {
+    border-width: 2px !important;
+    border-color: black !important;
+  }
+
+  a {
+    text-decoration: underline !important;
+  }
+}
+
+/* ── Focus visible for keyboard navigation ──────────────────────────────── */
+*:focus-visible {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Safe area insets for notched devices ───────────────────────────────── */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left)) !important;
+    padding-right: max(0px, env(safe-area-inset-right)) !important;
+  }
+
+  .header, .sidebar {
+    padding-top: max(0px, env(safe-area-inset-top)) !important;
+  }
+
+  .footer {
+    padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+  }
+}
