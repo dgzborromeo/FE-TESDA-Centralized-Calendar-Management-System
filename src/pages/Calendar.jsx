@@ -1111,7 +1111,7 @@ return parsedEvents
               
               {/* Office filter */}
               <select
-                className="calendar-filter-select calendar-filter-select-compact"
+                className={`calendar-filter-select calendar-filter-select-compact ${hostLegendFilter ? 'has-value' : ''}`}
                 value={hostLegendFilter ? JSON.stringify({ kind: hostLegendFilter.kind, clusterId: hostLegendFilter.clusterId, officeName: hostLegendFilter.officeName ?? '' }) : ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -1154,7 +1154,7 @@ return parsedEvents
 
               {/* Participant filter */}
               <select
-                className="calendar-filter-select calendar-filter-select-compact"
+                className={`calendar-filter-select calendar-filter-select-compact ${activeParticipantKey ? 'has-value' : ''}`}
                 value={activeParticipantKey}
                 onChange={(e) => {
                   setActiveParticipantKey(e.target.value);

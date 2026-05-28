@@ -149,13 +149,34 @@
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 8px;
-  padding: 0.35rem 0.65rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.5rem;
   color: rgba(255,255,255,0.95);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 140px;
+  transition: width 0.3s ease, min-width 0.3s ease;
+  width: 155px;
+  min-width: 155px;
+  max-width: 155px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* When filter has a value selected, expand it to fit content */
+.calendar-filter-select-compact.has-value {
+  width: fit-content !important;
+  min-width: 180px !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+/* When focused (dropdown open), expand it */
+.calendar-filter-select-compact:focus {
+  width: fit-content !important;
+  min-width: 180px !important;
+  max-width: none !important;
+  overflow: visible !important;
 }
 
 .calendar-filter-select-compact:hover {
