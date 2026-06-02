@@ -17,10 +17,7 @@ export default function SimpleEventForm() {
   const [conflictMap, setConflictMap] = useState({});
   const [liveConflicts, setLiveConflicts] = useState([]);
   const [positions, setPositions] = useState([]);
-  const [focalships, setFocalships] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
-  const [selectedFocal, setSelectedFocal] = useState('');
-  const [selectedFocals, setSelectedFocals] = useState([]);
   const [showOthersInput, setShowOthersInput] = useState(false);
   const [clusters, setClusters] = useState([]);
 const [offices, setOffices] = useState([]);
@@ -60,21 +57,19 @@ const [newFocalName, setNewFocalName] = useState('');
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [posRes, focalRes, clusterRes, officeRes, regionRes, allProvRes, allTtiRes] = await Promise.all([
+        const [posRes, clusterRes, officeRes, regionRes, allProvRes, allTtiRes] = await Promise.all([
           scheduleAPI.getPositions(),
-          scheduleAPI.getFocalships(),
-          scheduleAPI.getClusters(), // Siguraduhin na may ganito sa API index.js
+          scheduleAPI.getClusters(),
           scheduleAPI.getOffices(),
           scheduleAPI.getRegions(),
-          scheduleAPI.getAllProvinces(), // Dapat may endpoint ka na kumukuha ng lahat, hindi lang per region
+          scheduleAPI.getAllProvinces(),
           scheduleAPI.getTTIs()
         ]);
         setPositions(posRes || []);
-        setFocalships(focalRes || []);
         setClusters(clusterRes || []);
       setOffices(officeRes || []);
       setRegions(regionRes || []);
-      setProvinces(allProvRes || []); // I-load lahat para searchable
+      setProvinces(allProvRes || []);
         setTempTtis(allTtiRes || []);   
       } catch (err) {
         console.error("Failed to fetch participant data", err);
@@ -172,14 +167,12 @@ useEffect(() => {
     form.endTime
   ]);
 
-  const updateParticipantsText = useCallback((selPos, selFocals) => {
-    const posNames = selPos.map(p => p.name);
-    const focalNames = selFocals.map(f => `Focal: ${f}`);
-    const combined = [...posNames, ...focalNames];
+  const updateParticipantsText = useCallback((selPos) => {
+    const allNames = selPos.map(p => p.name);
     
     setForm(prev => ({
       ...prev,
-      participants: combined.join(', ')
+      participants: allNames.join(', ')
     }));
   }, []);
 const getPosConfig = (posName) => {
@@ -207,11 +200,11 @@ const handlePositionDropdownChange = (e) => {
     if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
       const updated = [...selectedPositions, posObj];
       setSelectedPositions(updated);
-      updateParticipantsText(updated, selectedFocals);
+      updateParticipantsText(updated);
     }
   }
 };
-const handleSubSelect = (subItem, type, parentPos) => {
+const handleSubSelect = (subItem, type, parentPos, itemId = null) => {
   const labelMap = { 
     'tti': 'TTIs', 'district_ncr': 'Districts', 'prov_region': 'Provinces',
     'cluster': 'Clusters', 'office': 'Offices', 'region': 'Regions'
@@ -221,6 +214,22 @@ const handleSubSelect = (subItem, type, parentPos) => {
   const allLabel = `${parentPos} - All ${labelMap[type]}`;
   const itemNameOnly = subItem.includes(' - ') ? subItem.split(' - ').pop() : subItem;
   const fullName = `${parentPos} - ${itemNameOnly}`;
+  
+  // Extract ID from subItem if not provided
+  let extractedId = itemId;
+  if (!extractedId) {
+    // Try to find the item in the appropriate list
+    let itemsList = [];
+    if (type === 'tti') itemsList = tempTtis;
+    else if (type === 'district_ncr' || type === 'prov_region') itemsList = provinces;
+    else itemsList = { 'cluster': clusters, 'office': offices, 'region': regions }[type] || [];
+    
+    const foundItem = itemsList.find(item => {
+      const itemName = type === 'region' ? item.region : item.name;
+      return itemName === itemNameOnly || itemName === subItem;
+    });
+    extractedId = foundItem?.id || null;
+  }
 
   setSelectedPositions(prev => {
     const isAllActive = prev.some(p => p.name === allLabel);
@@ -259,13 +268,14 @@ const handleSubSelect = (subItem, type, parentPos) => {
           id: `${type}-${Date.now()}`,
           name: fullName,
           designationId: posObj?.id,
+          targetId: extractedId,
           targetType: type === 'prov_region' ? 'province' : (type === 'district_ncr' ? 'district' : type),
           isSub: true,
           isAll: false
         }];
       }
     }
-    updateParticipantsText(updated, selectedFocals);
+    updateParticipantsText(updated);
     return updated;
   });
 };
@@ -286,7 +296,7 @@ const handleSelectAll = (items, type, parentPos) => {
     if (isAlreadyAll) {
       // Kapag in-uncheck ang "Select All", empty na lahat sa category na yun
       const updated = prev.filter(p => p.name !== allLabel);
-      updateParticipantsText(updated, selectedFocals);
+      updateParticipantsText(updated);
       return updated;
     } else {
       // Pag kinlick ang "Select All", alisin muna ang mga individual items sa view na yun
@@ -306,7 +316,7 @@ const handleSelectAll = (items, type, parentPos) => {
       };
       
       const updated = [...filtered, allEntry];
-      updateParticipantsText(updated, selectedFocals);
+      updateParticipantsText(updated);
       return updated;
     }
   });
@@ -330,23 +340,9 @@ const handleRegionHover = async (regionId) => {
       updated = [...selectedPositions, pos];
     }
     setSelectedPositions(updated);
-    updateParticipantsText(updated, selectedFocal);
+    updateParticipantsText(updated);
   };
 
-const handleFocalDropdownChange = (e) => {
-    const val = e.target.value;
-    if (val === 'Others') {
-        setShowOthersInput(true);
-    } else {
-        setShowOthersInput(false);
-        if (val && !selectedFocals.includes(val)) {
-            const updatedFocals = [...selectedFocals, val];
-            setSelectedFocals(updatedFocals);
-            updateParticipantsText(selectedPositions, updatedFocals);
-        }
-    }
-    e.target.value = ""; // Reset dropdown
-};
 const handleRegionHoverTTI = async (regionId) => {
   setSelectedRegionIdForTTI(regionId);
   setSelectedProvinceIdForTTI(null);
@@ -370,37 +366,29 @@ const handleProvinceHoverTTI = async (provinceId) => {
   }
 };
 
-const handleAddCustomFocal = async () => {
+const handleAddCustomParticipant = () => {
     if (!newFocalName.trim()) return;
     
-    try {
-        setLoading(true);
-        const savedFocal = await scheduleAPI.addFocalship({ name: newFocalName });
-        setFocalships(prev => [...prev, savedFocal]);
-        
-        const updatedFocals = [...selectedFocals, savedFocal.name];
-        setSelectedFocals(updatedFocals);
-        updateParticipantsText(selectedPositions, updatedFocals);
-        
-        // Reset states
-        setNewFocalName('');
-        setShowOthersInput(false);
-    } catch (err) {
-        alert("Failed to add new focalship.");
-    } finally {
-        setLoading(false);
-    }
+    // Add as custom participant entry
+    const customEntry = {
+        id: `custom-${Date.now()}`,
+        name: newFocalName,
+        isCustom: true
+    };
+    
+    const updated = [...selectedPositions, customEntry];
+    setSelectedPositions(updated);
+    updateParticipantsText(updated);
+    
+    // Reset states
+    setNewFocalName('');
+    setShowOthersInput(false);
 };
-const removeParticipant = (item, type) => {
-    if (type === 'position') {
-        const updated = selectedPositions.filter(p => p.name !== item);
-        setSelectedPositions(updated);
-        updateParticipantsText(updated, selectedFocals);
-    } else {
-        const updated = selectedFocals.filter(f => f !== item);
-        setSelectedFocals(updated);
-        updateParticipantsText(selectedPositions, updated);
-    }
+
+const removeParticipant = (item) => {
+    const updated = selectedPositions.filter(p => p.name !== item);
+    setSelectedPositions(updated);
+    updateParticipantsText(updated);
 };
 
   const isZoomLink = (str) => {
@@ -546,8 +534,8 @@ const handleSubmit = async (e) => {
         };
 
         let finalLocType = 'Others'; 
-        if (selectedPositions.length === 0 && selectedFocals.length === 0) {
-            alert('Please select at least one participant or focalship.');
+        if (selectedPositions.length === 0) {
+            alert('Please select at least one participant.');
             setLoading(false);
             return;
         }
@@ -564,7 +552,11 @@ const handleSubmit = async (e) => {
         }
 
         // PARTICIPANTS PAYLOAD (Conflict Checking)
-        const participantDetails = selectedPositions.map(p => ({
+        // Separate positions and custom participants
+        const positions = selectedPositions.filter(p => !p.isCustom);
+        const customParticipants = selectedPositions.filter(p => p.isCustom).map(c => c.name);
+
+        const participantDetails = positions.map(p => ({
             designationId: parseInt(p.designationId || p.id),
             targetId: p.isAll ? null : (p.targetId ? parseInt(p.targetId) : null),
             targetType: p.targetType || null,
@@ -573,6 +565,11 @@ const handleSubmit = async (e) => {
 
         const finalPayload = participantDetails.filter(p => !isNaN(p.designationId));
         formData.append('selectedPositions', JSON.stringify(finalPayload));
+
+        // CUSTOM PARTICIPANTS as FOCALS
+        if (customParticipants.length > 0) {
+            formData.append('selectedFocals', JSON.stringify(customParticipants));
+        }
 
         // MEETING TYPE LOGIC
         const typeMapping = { 
@@ -1022,6 +1019,19 @@ useEffect(() => {
             </li>
           );
         })}
+        
+        {/* Add Others option at the bottom */}
+        <li
+          className="option-others"
+          onClick={() => {
+            setShowOthersInput(true);
+            setIsMenuOpen(false);
+            setHoveredPosition(null);
+          }}
+          style={{ borderTop: '1px solid #eee', marginTop: '5px', paddingTop: '10px', color: '#2563eb', fontWeight: '500' }}
+        >
+          + Others (Focals)
+        </li>
       </ul>
 
       {/* PANGALAWANG COLUMN WRAPPER */}
@@ -1060,7 +1070,7 @@ useEffect(() => {
                     const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All ${currentConfig?.label}`);
                     return (
                       <li key={item.id} className="checkbox-item">
-                        <label className="checkbox-label" onClick={() => handleSubSelect(itemName, subType, hoveredPosition)}>
+                        <label className="checkbox-label" onClick={() => handleSubSelect(itemName, subType, hoveredPosition, item.id)}>
                           <input type="checkbox" checked={isChecked} readOnly />
                           <span className="item-text">{itemName}</span>
                         </label>
@@ -1090,7 +1100,7 @@ useEffect(() => {
                   const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Districts`);
                   return (
                     <li key={pr.id} className="checkbox-item">
-                      <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'district_ncr', hoveredPosition)}>
+                      <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'district_ncr', hoveredPosition, pr.id)}>
                         <input type="checkbox" checked={isChecked} readOnly />
                         <span className="item-text">{pr.name}</span>
                       </label>
@@ -1136,7 +1146,7 @@ useEffect(() => {
                       const isChecked = selectedPositions.some(p => p.name === fullName || p.name === `${hoveredPosition} - All Provinces`);
                       return (
                         <li key={pr.id} className="checkbox-item">
-                          <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'prov_region', hoveredPosition)}>
+                          <label className="checkbox-label" onClick={() => handleSubSelect(pr.name, 'prov_region', hoveredPosition, pr.id)}>
                             <input type="checkbox" checked={isChecked} readOnly />
                             <span className="item-text">{pr.name}</span>
                           </label>
@@ -1210,7 +1220,7 @@ useEffect(() => {
                               <li key={tti.id} className="checkbox-item">
                                 <label 
                                   className="checkbox-label" 
-                                  onClick={() => handleSubSelect(tti.name, 'tti', hoveredPosition)}
+                                  onClick={() => handleSubSelect(tti.name, 'tti', hoveredPosition, tti.id)}
                                   style={{ display: 'flex', alignItems: 'center', width: '100%' }}
                                 >
                                   <input type="checkbox" checked={isChecked} readOnly />
@@ -1241,55 +1251,47 @@ useEffect(() => {
   )}
 </div>
 
-  {/* Focals Group */}
-  <div className="input-group-inline">
-    <select 
-      className="simple-event-input modern-select" 
-      onChange={handleFocalDropdownChange}
-      defaultValue=""
-    >
-      <option value="" disabled>-- Select Focals--</option>
-      {focalships.map(f => (
-        <option key={f.id} value={f.name}>{f.name}</option>
-      ))}
-      <option value="Others" className="option-others">+ Others (New)</option>
-    </select>
+</div>{/* end .participants-inline-row */}
 
-    {/* Others Field - appears below the Focals select */}
+    {/* Others Input Field - appears when Others is selected */}
     {showOthersInput && (
-      <div className="modern-inline-group others-animate">
+      <div className="modern-inline-group others-animate" style={{ marginTop: '10px' }}>
         <input 
           type="text"
           className="simple-event-input compact-input"
-          placeholder="Enter focal..."
+          placeholder="Enter focal name..."
           value={newFocalName}
           onChange={(e) => setNewFocalName(e.target.value)}
           autoFocus
         />
-        <button type="button" className="badge-type" onClick={handleAddCustomFocal}>Add</button>
-        <button type="button" className="btn-cancel-inline" onClick={() => setShowOthersInput(false)}>&times;</button>
+        <button 
+          type="button" 
+          className="badge-type" 
+          onClick={handleAddCustomParticipant}
+        >
+          Add
+        </button>
+        <button 
+          type="button" 
+          className="btn-cancel-inline" 
+          onClick={() => {
+            setShowOthersInput(false);
+            setNewFocalName('');
+          }}
+        >
+          &times;
+        </button>
       </div>
     )}
-  </div>
-        </div>{/* end .participants-inline-row */}
+    
   <label className="simple-event-label">Final Participants List (Review)</label>
-    {/* Unified Badge List (Always Sorted: Positions first) */}
+    {/* Unified Badge List */}
     <div className="unified-badges-list">
-      {/* First: Positions */}
       {selectedPositions.map((p) => (
-        <span key={`pos-${p.id}`} className="participant-badge badge-position">
-          <span className="badge-type">Position</span>
+        <span key={p.id} className={`participant-badge ${p.isCustom ? 'badge-focal' : 'badge-position'}`}>
+          <span className="badge-type">{p.isCustom ? 'Focal' : 'Position'}</span>
           {p.name}
-          <button type="button" onClick={() => removeParticipant(p.name, 'position')} className="remove-badge-btn">&times;</button>
-        </span>
-      ))}
-
-      {/* Second: Focals */}
-      {selectedFocals.map((f, idx) => (
-        <span key={`foc-${idx}`} className="participant-badge badge-focal">
-          <span className="badge-type">Focal</span>
-          {f}
-          <button type="button" onClick={() => removeParticipant(f, 'focal')} className="remove-badge-btn">&times;</button>
+          <button type="button" onClick={() => removeParticipant(p.name)} className="remove-badge-btn">&times;</button>
         </span>
       ))}
     </div>
@@ -1346,7 +1348,7 @@ useEffect(() => {
               hasBlockingErrors || 
               liveConflicts.length > 0 || // STOP pag may detected schedule conflict
               (form.meetingType === 'virtual' && !isZoomLink(form.zoomLink)) || 
-              (selectedPositions.length === 0 && selectedFocals.length === 0)
+              (selectedPositions.length === 0)
             }
           >
             {loading ? 'Saving...' : 'Save Event'}

@@ -858,6 +858,13 @@ select.modern-select {
     border: 1px solid #bbf7d0;
 }
 
+/* Style for Custom Participants (Purple) */
+.badge-custom {
+    background: #faf5ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+
 .badge-type {
     font-size: 0.65rem;
     text-transform: uppercase;

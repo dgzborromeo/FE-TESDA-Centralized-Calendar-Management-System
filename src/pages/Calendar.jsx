@@ -1061,9 +1061,9 @@ return parsedEvents
       {/* Overview Panel */}
       <div className="calendar-overview-panel">
         <div className="calendar-overview-row">
-          {/* Left Section: Title, Navigation, and Filters */}
+          {/* Left Section: Title and Filters */}
           <div className="calendar-overview-left-section">
-            {/* Title and Navigation Row */}
+            {/* Title Row */}
             <div className="calendar-overview-title-row">
               <div className="calendar-overview-title-group">
                 <svg className="calendar-overview-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1075,33 +1075,6 @@ return parsedEvents
                 <h2 className="calendar-overview-title">
                   {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </h2>
-              </div>
-              
-              {/* Navigation */}
-              <div className="calendar-nav-controls">
-                <button
-                  type="button"
-                  className="calendar-nav-btn calendar-nav-prev"
-                  onClick={() => calendarRef.current?.getApi?.()?.prev?.()}
-                  title="Previous"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  className="calendar-nav-btn calendar-nav-today"
-                  onClick={() => calendarRef.current?.getApi?.()?.today?.()}
-                >
-                  Today
-                </button>
-                <button
-                  type="button"
-                  className="calendar-nav-btn calendar-nav-next"
-                  onClick={() => calendarRef.current?.getApi?.()?.next?.()}
-                  title="Next"
-                >
-                  ›
-                </button>
               </div>
             </div>
             
@@ -1187,8 +1160,35 @@ return parsedEvents
             </div>
           </div>
           
-          {/* Right Section: View Switcher and Add Button */}
+          {/* Right Section: Navigation, View Switcher and Add Button */}
           <div className="calendar-overview-right-section">
+            {/* Navigation */}
+            <div className="calendar-nav-controls">
+              <button
+                type="button"
+                className="calendar-nav-btn calendar-nav-prev"
+                onClick={() => calendarRef.current?.getApi?.()?.prev?.()}
+                title="Previous"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="calendar-nav-btn calendar-nav-today"
+                onClick={() => calendarRef.current?.getApi?.()?.today?.()}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                className="calendar-nav-btn calendar-nav-next"
+                onClick={() => calendarRef.current?.getApi?.()?.next?.()}
+                title="Next"
+              >
+                ›
+              </button>
+            </div>
+            
             {/* View Switcher */}
             <div className="calendar-view-switcher">
               <button
