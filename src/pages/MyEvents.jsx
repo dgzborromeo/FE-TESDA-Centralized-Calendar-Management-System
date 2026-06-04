@@ -152,18 +152,6 @@ export default function MyEvents() {
   return (
     <>
       <div className="my-events-page">
-      <button
-        type="button"
-        className="my-events-back-btn"
-        onClick={() => navigate(-1)}
-        style={{ marginBottom: '0.6rem' }}
-      >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-        Back
-      </button>
-
       {/* Hero */}
       <div className="my-events-hero">
         <div className="my-events-hero-inner">
