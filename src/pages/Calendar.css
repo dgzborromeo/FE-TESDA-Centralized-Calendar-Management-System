@@ -165,9 +165,9 @@
   font-weight: 500;
   cursor: pointer;
   transition: width 0.3s ease, min-width 0.3s ease;
-  width: 130px;
-  min-width: 130px;
-  max-width: 130px;
+  width: 129px;
+  min-width: 129px;
+  max-width: 129px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -176,7 +176,7 @@
 /* When filter has a value selected, expand it to fit content */
 .calendar-filter-select-compact.has-value {
   width: fit-content !important;
-  min-width: 160px !important;
+  min-width: 159px !important;
   max-width: none !important;
   overflow: visible !important;
 }
@@ -184,7 +184,7 @@
 /* When focused (dropdown open), expand it */
 .calendar-filter-select-compact:focus {
   width: fit-content !important;
-  min-width: 160px !important;
+  min-width: 159px !important;
   max-width: none !important;
   overflow: visible !important;
 }
