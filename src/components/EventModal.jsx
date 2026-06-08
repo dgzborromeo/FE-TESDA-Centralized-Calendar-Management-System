@@ -367,9 +367,38 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   }
 
   // Plain text participants — comma-separated string (from promoted schedules)
-  const plainParticipants = rawParticipants && !rawParticipants.startsWith('[')
+  let plainParticipants = rawParticipants && !rawParticipants.startsWith('[')
     ? rawParticipants.split(',').map(s => s.trim()).filter(Boolean)
     : [];
+  
+  // Deduplicate: if "(All)" version exists, remove "- All XXX" versions
+  plainParticipants = plainParticipants.filter((name, index, arr) => {
+    const currentName = name.trim();
+    
+    // Extract base position name from current item
+    let baseName = currentName;
+    
+    // Remove "(All)" suffix if present
+    if (currentName.includes('(All)')) {
+      baseName = currentName.replace(/\s*\(All\)\s*$/, '').trim();
+    }
+    
+    // Remove "- All XXX" suffix if present
+    if (currentName.includes(' - All ')) {
+      baseName = currentName.split(' - ')[0].trim();
+    }
+    
+    // Check if there's an "(All)" version of this position
+    const allVersionName = `${baseName} (All)`;
+    const hasAllVersion = arr.some(other => other.trim() === allVersionName);
+    
+    // If this is a "- All XXX" version AND the "(All)" version exists, filter it out
+    if (currentName.includes(' - All ') && hasAllVersion) {
+      return false;
+    }
+    
+    return true; // Keep this participant
+  });
 
   const dbRdParticipants = parseRegionalDirectorsLabel(event.regional_directors_label);
   const dbPdParticipants = parseRegionalDirectorsLabel(event.provincial_directors_label);
@@ -378,13 +407,43 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const dbParticipantLines = [...dbRdParticipants, ...dbPdParticipants, ...dbEdParticipants];
 
   // Priority: JSON array > plain text > backend attendees > legacy label fields > local util
-  const participantLines =
+  let participantLines =
     participantsFromJson.length   ? participantsFromJson
     : plainParticipants.length    ? plainParticipants
     : hasBackendParticipants      ? backendParticipantLines
     : dbParticipantLines.length   ? dbParticipantLines
     : localRegionalDirectorParticipants.length ? localRegionalDirectorParticipants
     : ['No participants'];
+  
+  // Final deduplication: Remove "- All XXX" if "(All)" version exists
+  participantLines = participantLines.filter((name, index, arr) => {
+    const currentName = name.trim();
+    
+    // Extract base position name from current item
+    let baseName = currentName;
+    
+    // Remove "(All)" suffix if present
+    if (currentName.includes('(All)')) {
+      baseName = currentName.replace(/\s*\(All\)\s*$/, '').trim();
+    }
+    
+    // Remove "- All XXX" suffix if present
+    if (currentName.includes(' - All ')) {
+      baseName = currentName.split(' - ')[0].trim();
+    }
+    
+    // Check if there's an "(All)" version of this position
+    const allVersionName = `${baseName} (All)`;
+    const hasAllVersion = arr.some(other => other.trim() === allVersionName);
+    
+    // If this is a "- All XXX" version AND the "(All)" version exists, filter it out
+    if (currentName.includes(' - All ') && hasAllVersion) {
+      return false;
+    }
+    
+    return true; // Keep this participant
+  });
+  
   const descriptionText =
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';

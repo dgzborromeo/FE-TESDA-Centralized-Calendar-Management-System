@@ -168,7 +168,38 @@ useEffect(() => {
   ]);
 
   const updateParticipantsText = useCallback((selPos) => {
-    const allNames = selPos.map(p => p.name);
+    // Filter out duplicates: if "(All)" version exists, remove "- All XXX" versions
+    const filtered = selPos.filter((p, index, arr) => {
+      const currentName = p.name.trim();
+      
+      // Extract base position name from current item
+      // e.g., "Regional Director" from "Regional Director (All)" or "Regional Director - All Regions"
+      let baseName = currentName;
+      
+      // Remove "(All)" suffix if present
+      if (currentName.includes('(All)')) {
+        baseName = currentName.replace(/\s*\(All\)\s*$/, '').trim();
+      }
+      
+      // Remove "- All XXX" suffix if present
+      if (currentName.includes(' - All ')) {
+        baseName = currentName.split(' - ')[0].trim();
+      }
+      
+      // Check if there's an "(All)" version of this position in the array
+      const allVersionName = `${baseName} (All)`;
+      const hasAllVersion = arr.some(other => other.name.trim() === allVersionName);
+      
+      // If this is a "- All XXX" version AND the "(All)" version exists, filter it out
+      if (currentName.includes(' - All ') && hasAllVersion) {
+        console.log(`[Dedup] Filtering out "${currentName}" because "${allVersionName}" exists`);
+        return false;
+      }
+      
+      return true; // Keep this participant
+    });
+    
+    const allNames = filtered.map(p => p.name);
     
     setForm(prev => ({
       ...prev,
@@ -193,9 +224,22 @@ const handlePositionDropdownChange = (e) => {
   const config = getPosConfig(val);
 
   if (config) {
-    setSubType(config.type);
-    setHoveredPosition(val);
+    // Check if position name has "(All)" - if yes, treat as "select all" and don't show submenu
+    if (val.includes('(All)')) {
+      // This is an "All" position - add it directly without submenu
+      const posObj = positions.find(p => p.name === val);
+      if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
+        const updated = [...selectedPositions, posObj];
+        setSelectedPositions(updated);
+        updateParticipantsText(updated);
+      }
+    } else {
+      // Normal position with submenu
+      setSubType(config.type);
+      setHoveredPosition(val);
+    }
   } else {
+    // Position without subtype config - add directly
     const posObj = positions.find(p => p.name === val);
     if (posObj && !selectedPositions.find(p => p.id === posObj.id)) {
       const updated = [...selectedPositions, posObj];
@@ -291,6 +335,15 @@ const handleSelectAll = (items, type, parentPos) => {
   const posObj = positions.find(p => p.name === parentPos);
 
   setSelectedPositions(prev => {
+    // Check if "(All)" version of this position already exists
+    const allVersionName = `${parentPos} (All)`;
+    const hasAllVersion = prev.some(p => p.name === allVersionName);
+    if (hasAllVersion) {
+      // If "(All)" version exists, don't add "- All XXX" version
+      console.log(`[SelectAll] Not adding "${allLabel}" because "${allVersionName}" already exists`);
+      return prev;
+    }
+    
     const isAlreadyAll = prev.some(p => p.name === allLabel);
     
     if (isAlreadyAll) {
