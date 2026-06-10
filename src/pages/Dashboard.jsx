@@ -844,6 +844,164 @@ export default function Dashboard() {
         </section>
       </div>
 
+      {/* ── Leadership Schedule Overview ──────────────────────────── */}
+      <section className="dashboard-panel dashboard-panel-availability">
+        <div className="dashboard-section-head">
+          <h2>Leadership Schedule Overview</h2>
+          <span className="dashboard-section-subtitle">Executive availability and scheduled activities</span>
+        </div>
+        <div className="dashboard-availability-content">
+          {(() => {
+            // Define key participants to track
+            const keyParticipants = [
+              { role: 'Director General', label: 'DG', color: '#ef4444', keywords: ['director general', 'osec'], allKeywords: ['all dg', 'all director general'] },
+              { role: 'Deputy Director General', label: 'DDG', color: '#ec4899', keywords: ['deputy director general', 'ddg'], allKeywords: ['all ddg', 'all deputy'] },
+              { role: 'Executive Directors', label: 'EDs', color: '#06b6d4', keywords: ['executive director'], allKeywords: ['all eds', 'all executive'] },
+              { role: 'Regional Directors', label: 'RDs', color: '#f97316', keywords: ['regional director'], allKeywords: ['all rds', 'all regional'] },
+              { role: 'Provincial Directors', label: 'PDs', color: '#a855f7', keywords: ['provincial director', 'district director'], allKeywords: ['all pds', 'all provincial', 'all district'] },
+            ];
+
+            const participantAvailability = keyParticipants.map(participant => {
+              // Helper to extract participant names
+              const extractParticipants = (eventsArray) => {
+                const participantSet = new Set();
+                let hasAll = false;
+                
+                eventsArray.forEach(e => {
+                  const participants = String(e.participants || '');
+                  const rdLabel = String(e.regional_directors_label || '');
+                  const pdLabel = String(e.provincial_directors_label || '');
+                  const edLabel = String(e.executive_directors_label || '');
+                  
+                  // Check for "All" first
+                  const allText = `${participants} ${rdLabel} ${pdLabel} ${edLabel}`.toLowerCase();
+                  if (participant.allKeywords.some(kw => allText.includes(kw))) {
+                    hasAll = true;
+                  }
+                  
+                  // Extract specific participants from JSON or text
+                  if (participants.startsWith('[')) {
+                    try {
+                      const parsed = JSON.parse(participants);
+                      if (Array.isArray(parsed)) {
+                        parsed.forEach(p => {
+                          const name = p.name || p.label || p;
+                          const nameLower = String(name).toLowerCase();
+                          if (participant.keywords.some(kw => nameLower.includes(kw))) {
+                            // Extract location from parentheses
+                            const match = String(name).match(/\(([^)]+)\)/);
+                            if (match) {
+                              participantSet.add(match[1]);
+                            } else if (!participant.allKeywords.some(kw => nameLower.includes(kw))) {
+                              participantSet.add(String(name).substring(0, 20));
+                            }
+                          }
+                        });
+                      }
+                    } catch {}
+                  }
+                  
+                  // Extract from labels (Region I, Region II, etc.)
+                  [rdLabel, pdLabel, edLabel].forEach(label => {
+                    if (!label) return;
+                    const items = label.split(',').map(s => s.trim());
+                    items.forEach(item => {
+                      const itemLower = item.toLowerCase();
+                      if (participant.keywords.some(kw => itemLower.includes(kw))) {
+                        const match = item.match(/\(([^)]+)\)/);
+                        if (match) {
+                          participantSet.add(match[1]);
+                        }
+                      }
+                    });
+                  });
+                });
+                
+                return { hasAll, specific: Array.from(participantSet) };
+              };
+
+              // Get today's events
+              const todayEvents = events.filter(e => {
+                if (!isWithinRange(today, e.date, e.end_date || e.date)) return false;
+                const allText = `${e.participants} ${e.regional_directors_label} ${e.provincial_directors_label} ${e.executive_directors_label}`.toLowerCase();
+                return participant.keywords.some(kw => allText.includes(kw));
+              });
+
+              // Get week's events
+              const weekEvents = events.filter(e => {
+                const end = e.end_date || e.date;
+                if (end < weekMondayYmd || e.date > weekFridayYmd) return false;
+                const allText = `${e.participants} ${e.regional_directors_label} ${e.provincial_directors_label} ${e.executive_directors_label}`.toLowerCase();
+                return participant.keywords.some(kw => allText.includes(kw));
+              });
+
+              const todayDetails = extractParticipants(todayEvents);
+              const weekDetails = extractParticipants(weekEvents);
+              
+              const todayCount = todayEvents.length;
+              const weekCount = weekEvents.length;
+              const status = todayCount > 0 ? 'busy' : 'available';
+
+              return { 
+                ...participant, 
+                todayCount, 
+                weekCount, 
+                status,
+                todayDetails,
+                weekDetails
+              };
+            });
+
+            return (
+              <div className="dashboard-availability-grid">
+                {participantAvailability.map((p, idx) => (
+                  <div key={idx} className={`dashboard-availability-card dashboard-availability-${p.status}`}>
+                    <div className="dashboard-availability-card-header">
+                      <span className="dashboard-availability-badge" style={{ backgroundColor: p.color }}>
+                        {p.label}
+                      </span>
+                      <span className={`dashboard-availability-status dashboard-availability-status-${p.status}`}>
+                        {p.status === 'busy' ? '● Busy' : '○ Available'}
+                      </span>
+                    </div>
+                    <div className="dashboard-availability-card-body">
+                      <div className="dashboard-availability-role">{p.role}</div>
+                      <div className="dashboard-availability-stats">
+                        <div className="dashboard-availability-stat">
+                          <span className="dashboard-availability-stat-value">{p.todayCount}</span>
+                          <span className="dashboard-availability-stat-label">Today</span>
+                        </div>
+                        <div className="dashboard-availability-stat-divider" />
+                        <div className="dashboard-availability-stat">
+                          <span className="dashboard-availability-stat-value">{p.weekCount}</span>
+                          <span className="dashboard-availability-stat-label">This Week</span>
+                        </div>
+                      </div>
+                      {p.todayCount > 0 && (
+                        <div className="dashboard-availability-details">
+                          <div className="dashboard-availability-details-label">Today:</div>
+                          {p.todayDetails.hasAll && (
+                            <span className="dashboard-availability-tag dashboard-availability-tag-all">All {p.label}</span>
+                          )}
+                          {!p.todayDetails.hasAll && p.todayDetails.specific.slice(0, 3).map((name, i) => (
+                            <span key={i} className="dashboard-availability-tag">{name}</span>
+                          ))}
+                          {!p.todayDetails.hasAll && p.todayDetails.specific.length > 3 && (
+                            <span className="dashboard-availability-tag dashboard-availability-tag-more">
+                              +{p.todayDetails.specific.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      </section>
+
       {selectedEvent && (
         <EventModal
           eventId={selectedEvent}
