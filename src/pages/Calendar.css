@@ -2102,24 +2102,64 @@
   box-shadow: 0 4px 12px rgba(22,163,74,0.4) !important;
 }
 
-/* Event cards: clean card look */
+/* Event cards: clean card look with better contrast */
 .fc .fc-event {
   border-radius: 6px;
-  border-left-width: 4px !important;
+  border-left-width: 5px !important;
+  border-right-width: 5px !important;
   border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.06);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  border-right-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-left-width: 5px !important;
+  border-right-width: 5px !important;
+  box-shadow: 
+    0 1px 3px rgba(15,23,42,0.08),
+    0 1px 2px rgba(15,23,42,0.06),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
+  transition: all 0.2s ease;
   overflow: hidden;
+  position: relative;
 }
+
+/* Subtle gradient background for better depth - both sides */
+.fc .fc-event::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    var(--host-stripe-color, rgba(148, 163, 184, 0.08)) 0%,
+    transparent 8px,
+    transparent calc(100% - 8px),
+    var(--host-stripe-color, rgba(148, 163, 184, 0.08)) 100%
+  );
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .fc .fc-event:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(15,23,42,0.1);
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 4px 12px rgba(15,23,42,0.12),
+    0 2px 4px rgba(15,23,42,0.08),
+    inset 0 0 0 1px rgba(255,255,255,0.1);
+  border-color: rgba(203, 213, 225, 0.9) !important;
+  border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
+  border-right-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
   z-index: 10;
 }
+
 .fc .fc-event .fc-event-main {
   padding: 2px 6px 2px 5px;
+  position: relative;
+  z-index: 1;
 }
+
 .fc .fc-daygrid-event,
 .fc .fc-timegrid-event {
   border-radius: 8px;
@@ -2426,6 +2466,7 @@
 
 .fc .fc-event.fc-event-done {
   border-left-color: rgba(148, 163, 184, 0.6) !important; /* faded host stripe */
+  border-right-color: rgba(148, 163, 184, 0.6) !important; /* faded host stripe */
   opacity: 0.8;
   filter: none;
 }
@@ -2436,6 +2477,8 @@
 .fc .fc-event.fc-event-done:hover {
   opacity: 1;
   filter: none;
+  border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
+  border-right-color: var(--host-stripe-color, rgba(148, 163, 184, 0.9)) !important;
 }
 
 .fc .fc-event.fc-event-done .fc-event-host-stripe-bar {

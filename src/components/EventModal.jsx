@@ -449,10 +449,31 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
   const locationText = event.location || 'TBA';
   const getMeetingTypeLabel = (t) => {
     if (!t) return 'Event';
-    const s = String(t).toLowerCase();
-    if (s === 'face-to-face' || s === 'meeting' || s === 'event') return 'Face to Face';
-    if (s === 'hybrid') return 'Hybrid';
-    if (s === 'virtual' || s === 'zoom') return 'Virtual/Zoom';
+    const s = String(t).toLowerCase().trim();
+    
+    // Face to Face: handle all possible formats
+    // - 'face-to-face' (from EventForm)
+    // - 'face to face' (from SimpleEventForm)
+    // - 'meeting' (old format)
+    // - 'event' (old format)
+    if (s === 'face-to-face' || s === 'face to face' || s === 'meeting' || s === 'event') {
+      return 'Face to Face';
+    }
+    
+    // Hybrid
+    if (s === 'hybrid') {
+      return 'Hybrid';
+    }
+    
+    // Virtual/Zoom: handle all possible formats
+    // - 'virtual' (from EventForm)
+    // - 'virtual/zoom' (from SimpleEventForm)
+    // - 'zoom' (old format)
+    if (s === 'virtual' || s === 'zoom' || s === 'virtual/zoom') {
+      return 'Virtual/Zoom';
+    }
+    
+    // If no match, return original value
     return t;
   };
   const typeText = getMeetingTypeLabel(event.type);
