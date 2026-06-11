@@ -81,8 +81,16 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     if (!eventId) return;
     setLoading(true);
     setFetchError(null);
+    console.log('🔍 EventModal - Fetching event ID:', eventId);
     eventsApi.get(eventId)
       .then((e) => {
+        console.log('🔍 EventModal - Received event data:', {
+          id: e.id,
+          title: e.title,
+          type: e.type,
+          typeLength: String(e.type || '').length,
+          typeValue: JSON.stringify(e.type)
+        });
         setEvent(e);
         setRepName('');
         setDeclineReason('');
@@ -448,32 +456,31 @@ export default function EventModal({ eventId, onClose, onEdit, onDelete }) {
     tentativeMeta.plainDescription || event.description || 'No description available';
   const locationText = event.location || 'TBA';
   const getMeetingTypeLabel = (t) => {
+    console.log('🔍 EventModal - Received meeting type:', JSON.stringify(t), 'Type:', typeof t, 'Length:', String(t).length);
     if (!t) return 'Event';
     const s = String(t).toLowerCase().trim();
+    console.log('🔍 EventModal - After lowercase trim:', JSON.stringify(s), 'Length:', s.length);
     
     // Face to Face: handle all possible formats
-    // - 'face-to-face' (from EventForm)
-    // - 'face to face' (from SimpleEventForm)
-    // - 'meeting' (old format)
-    // - 'event' (old format)
     if (s === 'face-to-face' || s === 'face to face' || s === 'meeting' || s === 'event') {
+      console.log('✅ Matched: Face to Face');
       return 'Face to Face';
     }
     
     // Hybrid
     if (s === 'hybrid') {
+      console.log('✅ Matched: Hybrid');
       return 'Hybrid';
     }
     
     // Virtual/Zoom: handle all possible formats
-    // - 'virtual' (from EventForm)
-    // - 'virtual/zoom' (from SimpleEventForm)
-    // - 'zoom' (old format)
     if (s === 'virtual' || s === 'zoom' || s === 'virtual/zoom') {
+      console.log('✅ Matched: Virtual/Zoom');
       return 'Virtual/Zoom';
     }
     
     // If no match, return original value
+    console.log('⚠️ NO MATCH - returning original');
     return t;
   };
   const typeText = getMeetingTypeLabel(event.type);

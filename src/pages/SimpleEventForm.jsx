@@ -630,7 +630,9 @@ const handleSubmit = async (e) => {
             'hybrid': 'Hybrid', 
             'virtual': 'Virtual/Zoom' 
         };
-        formData.append('type', typeMapping[form.meetingType]);
+        const meetingTypeValue = typeMapping[form.meetingType];
+        console.log('🔍 FRONTEND - Meeting Type being sent:', meetingTypeValue);
+        formData.append('type', meetingTypeValue);
 
         // FINAL LOCATION TEXT
         let finalLocation = form.location;
