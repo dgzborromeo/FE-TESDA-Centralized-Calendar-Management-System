@@ -2106,6 +2106,7 @@
 .fc .fc-event {
   border-radius: 6px;
   border: 2px solid rgba(71, 85, 105, 0.35) !important;
+  cursor: pointer !important; /* Make events clearly clickable */
   border-left-width: 5px !important;
   border-right-width: 5px !important;
   border-left-color: var(--host-stripe-color, rgba(148, 163, 184, 0.95)) !important;
@@ -4366,4 +4367,29 @@
   .calendar-mini-cell {
     min-height: 40px !important;
   }
+}
+
+
+/* ============================================
+   CURSOR POINTER FOR ALL CALENDAR EVENTS
+   ============================================ */
+.fc .fc-event,
+.fc .fc-daygrid-event,
+.fc .fc-timegrid-event,
+.fc .fc-list-event {
+  cursor: pointer !important;
+}
+
+.fc .fc-event:hover,
+.fc .fc-daygrid-event:hover,
+.fc .fc-timegrid-event:hover,
+.fc .fc-list-event:hover {
+  cursor: pointer !important;
+}
+
+/* Ensure event content is also clickable */
+.fc .fc-event-main,
+.fc .fc-event-title,
+.fc .fc-event-time {
+  cursor: pointer !important;
 }
