@@ -117,7 +117,32 @@ export default function Sidebar() {
   const accountRef = useRef(null);
   const isCalendarPage = location.pathname.startsWith('/calendar');
 
-  // Close mobile sidebar on route change
+  // Auto-collapse when entering calendar page, restore when leaving
+  useEffect(() => {
+    if (isCalendarPage) {
+      setCollapsed(true);
+    } else {
+      setCollapsed(false);
+    }
+  }, [isCalendarPage]);
+
+  // Listen for external toggle from the Calendar toolbar hamburger
+  useEffect(() => {
+    const handler = () => {
+      if (isCalendarPage) {
+        setMobileOpen(v => {
+          const next = !v;
+          // When opening drawer on calendar page, ensure sidebar is not collapsed
+          if (next) setCollapsed(false);
+          return next;
+        });
+      } else {
+        setCollapsed(v => !v);
+      }
+    };
+    window.addEventListener('sidebar-toggle', handler);
+    return () => window.removeEventListener('sidebar-toggle', handler);
+  }, [isCalendarPage]);  // Close mobile sidebar on route change
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   // Sync calendar search with URL
@@ -180,8 +205,16 @@ export default function Sidebar() {
         <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />
       )}
 
+      {/* Backdrop for calendar drawer mode */}
+      {isCalendarPage && (
+        <div
+          className={`sidebar-drawer-backdrop ${mobileOpen ? 'is-open' : ''}`}
+          onClick={() => { setMobileOpen(false); setCollapsed(true); }}
+        />
+      )}
+
       {/* Sidebar wrapper — allows the toggle button to overflow */}
-      <div className="sidebar-wrapper">
+      <div className={`sidebar-wrapper ${isCalendarPage && mobileOpen ? 'sidebar-drawer-open' : ''}`}>
         <button
           className="sidebar-collapse-btn"
           onClick={() => setCollapsed(v => !v)}
@@ -195,7 +228,13 @@ export default function Sidebar() {
           </svg>
         </button>
 
-        <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--mobile-open' : ''}`}>
+        <aside
+          className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--mobile-open' : ''}`}
+          onClick={isCalendarPage ? (e) => {
+            // Close drawer when clicking a nav link
+            if (e.target.closest('a')) { setMobileOpen(false); setCollapsed(true); }
+          } : undefined}
+        >
 
         {/* Logo */}
         <div className="sidebar-logo">

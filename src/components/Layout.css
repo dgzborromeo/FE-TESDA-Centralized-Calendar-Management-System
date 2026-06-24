@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: row;
+  overflow: visible;
 }
 
 .layout-main {
@@ -14,10 +15,24 @@
   transition: margin-left var(--sidebar-transition);
 }
 
+/* ── Calendar page: full-height, zero padding — Google Calendar mode */
+.layout-main:has(.calendar-page) {
+  padding: 0 !important;
+  background: #fff !important;
+  overflow-x: visible !important;
+  overflow-y: hidden !important;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 /* Mobile — add top padding for the hamburger button */
 @media (max-width: 768px) {
   .layout-main {
     padding-top: 4rem;
+  }
+  .layout-main:has(.calendar-page) {
+    padding-top: 0 !important;
   }
 }
 

@@ -1058,191 +1058,162 @@ return parsedEvents
 
   return (
     <div className="calendar-page">
-      {/* Overview Panel */}
-      <div className="calendar-overview-panel">
-        <div className="calendar-overview-row">
-          {/* Left Section: Title and Filters */}
-          <div className="calendar-overview-left-section">
-            {/* Title Row */}
-            <div className="calendar-overview-title-row">
-              <div className="calendar-overview-title-group">
-                <svg className="calendar-overview-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <h2 className="calendar-overview-title">
-                  {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </h2>
-              </div>
-            </div>
-            
-            {/* Filters Row */}
-            <div className="calendar-filters-row">
-              <span className="calendar-filters-label">Filters:</span>
-              
-              {/* Office filter */}
-              <select
-                className={`calendar-filter-select calendar-filter-select-compact ${hostLegendFilter ? 'has-value' : ''}`}
-                value={hostLegendFilter ? JSON.stringify({ kind: hostLegendFilter.kind, clusterId: hostLegendFilter.clusterId, officeName: hostLegendFilter.officeName ?? '' }) : ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (!val) { clearHostLegendFilter(); return; }
-                  try {
-                    const { kind, clusterId, officeName } = JSON.parse(val);
-                    if (kind === 'cluster') {
-                      const ids = hostAccountIdsByCluster.get(clusterId);
-                      if (!ids || ids.size === 0) return;
-                      const label = hostClusterNameById.get(clusterId) || 'Cluster';
-                      setHostLegendFilter({ kind: 'cluster', clusterId, officeName: '', label, accountIds: ids });
-                    } else {
-                      const officeOpt = hostOfficeOptionMap.get(`${clusterId}::${officeName}`);
-                      const id = Number(officeOpt?.accountId);
-                      if (!Number.isFinite(id) || id <= 0) return;
-                      setHostLegendFilter({ kind: 'office', clusterId, officeName, label: officeName, accountIds: new Set([id]) });
-                    }
-                  } catch { clearHostLegendFilter(); }
-                }}
-                title="Filter by Office"
-              >
-                <option value="">All Offices</option>
-                {clusterLegend.map(cluster => (
-                  <optgroup key={cluster.id} label={cluster.name}>
-                    {hostClusterOptionMap.has(cluster.id) && (
-                      <option value={JSON.stringify({ kind: 'cluster', clusterId: cluster.id, officeName: '' })}>
-                        {cluster.name} (All)
-                      </option>
-                    )}
-                    {(cluster.offices || []).map(office =>
-                      hostOfficeOptionMap.has(`${cluster.id}::${office.name}`) ? (
-                        <option key={office.name} value={JSON.stringify({ kind: 'office', clusterId: cluster.id, officeName: office.name })}>
-                          {office.name}
-                        </option>
-                      ) : null
-                    )}
-                  </optgroup>
-                ))}
-              </select>
+      {/* Google Calendar-style top toolbar */}
+      <header className="gcal-toolbar">
+        {/* Hamburger — toggles sidebar drawer */}
+        <button
+          type="button"
+          className="gcal-menu-btn"
+          title="Toggle menu"
+          aria-label="Toggle menu"
+          onClick={() => window.dispatchEvent(new Event('sidebar-toggle'))}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
 
-              {/* Participant filter */}
-              <select
-                className={`calendar-filter-select calendar-filter-select-compact ${activeParticipantKey ? 'has-value' : ''}`}
-                value={activeParticipantKey}
-                onChange={(e) => {
-                  setActiveParticipantKey(e.target.value);
-                  if (e.target.value) setActiveTab('participants');
-                  else setActiveTab('offices');
-                }}
-                title="Filter by Participant"
-              >
-                <option value="">All Participants</option>
-                {PARTICIPANT_LEGEND_ITEMS.map(item => (
-                  <option key={item.key} value={item.key}>{item.label}</option>
-                ))}
-              </select>
+        {/* + create button */}
+        <button
+          type="button"
+          className="gcal-create-btn"
+          title="Add Schedule"
+          aria-label="Add Schedule"
+          onClick={() => {
+            if (isViewerLike) setShowLoginModal(true);
+            else navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+          }}
+        >
+          <svg className="gcal-create-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span className="gcal-create-label">New Schedule</span>
+        </button>
 
-              {/* Clear filters */}
-              {(hostLegendFilter?.accountIds?.size || activeParticipantKey) && (
-                <button
-                  type="button"
-                  className="calendar-filter-clear-btn"
-                  onClick={() => {
-                    clearHostLegendFilter();
-                    setActiveParticipantKey('');
-                    setActiveTab('offices');
-                  }}
-                  title="Clear all filters"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {/* Right Section: Navigation, View Switcher and Add Button */}
-          <div className="calendar-overview-right-section">
-            {/* Navigation */}
-            <div className="calendar-nav-controls">
-              <button
-                type="button"
-                className="calendar-nav-btn calendar-nav-prev"
-                onClick={() => calendarRef.current?.getApi?.()?.prev?.()}
-                title="Previous"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="calendar-nav-btn calendar-nav-today"
-                onClick={() => calendarRef.current?.getApi?.()?.today?.()}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                className="calendar-nav-btn calendar-nav-next"
-                onClick={() => calendarRef.current?.getApi?.()?.next?.()}
-                title="Next"
-              >
-                ›
-              </button>
-            </div>
-            
-            {/* View Switcher */}
-            <div className="calendar-view-switcher">
-              <button
-                type="button"
-                className={`calendar-view-btn ${currentView === 'dayGridMonth' ? 'active' : ''}`}
-                onClick={() => {
-                  calendarRef.current?.getApi?.()?.changeView?.('dayGridMonth');
-                  setCurrentView('dayGridMonth');
-                }}
-                title="Month View"
-              >
-                Month
-              </button>
-              <button
-                type="button"
-                className={`calendar-view-btn ${currentView === 'timeGridWeek' ? 'active' : ''}`}
-                onClick={() => {
-                  calendarRef.current?.getApi?.()?.changeView?.('timeGridWeek');
-                  setCurrentView('timeGridWeek');
-                }}
-                title="Week View"
-              >
-                Week
-              </button>
-              <button
-                type="button"
-                className={`calendar-view-btn ${currentView === 'timeGridDay' ? 'active' : ''}`}
-                onClick={() => {
-                  calendarRef.current?.getApi?.()?.changeView?.('timeGridDay');
-                  setCurrentView('timeGridDay');
-                }}
-                title="Day View"
-              >
-                Day
-              </button>
-            </div>
-            
-            {/* Add Schedule Button */}
+        {/* Center-left: Today + nav arrows + title */}
+        <div className="gcal-nav">
+          <button
+            type="button"
+            className="gcal-today-btn"
+            onClick={() => calendarRef.current?.getApi?.()?.today?.()}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            className="gcal-arrow-btn"
+            onClick={() => calendarRef.current?.getApi?.()?.prev?.()}
+            aria-label="Previous"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button
+            type="button"
+            className="gcal-arrow-btn"
+            onClick={() => calendarRef.current?.getApi?.()?.next?.()}
+            aria-label="Next"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <h1 className="gcal-title">
+            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </h1>
+        </div>
+
+        {/* Right: filters + view switcher */}
+        <div className="gcal-right">
+          {/* Office filter */}
+          <select
+            className={`gcal-filter-select ${hostLegendFilter ? 'gcal-filter-select--active' : ''}`}
+            value={hostLegendFilter ? JSON.stringify({ kind: hostLegendFilter.kind, clusterId: hostLegendFilter.clusterId, officeName: hostLegendFilter.officeName ?? '' }) : ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (!val) { clearHostLegendFilter(); return; }
+              try {
+                const { kind, clusterId, officeName } = JSON.parse(val);
+                if (kind === 'cluster') {
+                  const ids = hostAccountIdsByCluster.get(clusterId);
+                  if (!ids || ids.size === 0) return;
+                  const label = hostClusterNameById.get(clusterId) || 'Cluster';
+                  setHostLegendFilter({ kind: 'cluster', clusterId, officeName: '', label, accountIds: ids });
+                } else {
+                  const officeOpt = hostOfficeOptionMap.get(`${clusterId}::${officeName}`);
+                  const id = Number(officeOpt?.accountId);
+                  if (!Number.isFinite(id) || id <= 0) return;
+                  setHostLegendFilter({ kind: 'office', clusterId, officeName, label: officeName, accountIds: new Set([id]) });
+                }
+              } catch { clearHostLegendFilter(); }
+            }}
+            title="Filter by Office"
+          >
+            <option value="">All Offices</option>
+            {clusterLegend.map(cluster => (
+              <optgroup key={cluster.id} label={cluster.name}>
+                {hostClusterOptionMap.has(cluster.id) && (
+                  <option value={JSON.stringify({ kind: 'cluster', clusterId: cluster.id, officeName: '' })}>
+                    {cluster.name} (All)
+                  </option>
+                )}
+                {(cluster.offices || []).map(office =>
+                  hostOfficeOptionMap.has(`${cluster.id}::${office.name}`) ? (
+                    <option key={office.name} value={JSON.stringify({ kind: 'office', clusterId: cluster.id, officeName: office.name })}>
+                      {office.name}
+                    </option>
+                  ) : null
+                )}
+              </optgroup>
+            ))}
+          </select>
+
+          {/* Participant filter */}
+          <select
+            className={`gcal-filter-select ${activeParticipantKey ? 'gcal-filter-select--active' : ''}`}
+            value={activeParticipantKey}
+            onChange={(e) => {
+              setActiveParticipantKey(e.target.value);
+              setActiveTab(e.target.value ? 'participants' : 'offices');
+            }}
+            title="Filter by Participant"
+          >
+            <option value="">All Participants</option>
+            {PARTICIPANT_LEGEND_ITEMS.map(item => (
+              <option key={item.key} value={item.key}>{item.label}</option>
+            ))}
+          </select>
+
+          {/* Clear filters */}
+          {(hostLegendFilter?.accountIds?.size || activeParticipantKey) && (
             <button
               type="button"
-              className="calendar-add-schedule-btn"
-              onClick={() => {
-                if (isViewerLike) {
-                  setShowLoginModal(true);
-                } else {
-                  navigate('/simple-event-form', { state: { backTo: '/calendar' } });
-                }
-              }}
+              className="gcal-clear-btn"
+              onClick={() => { clearHostLegendFilter(); setActiveParticipantKey(''); setActiveTab('offices'); }}
             >
-              + Add Schedule
+              ✕ Clear
             </button>
+          )}
+
+          {/* View switcher */}
+          <div className="gcal-view-switcher">
+            {[
+              { view: 'dayGridMonth', label: 'Month' },
+              { view: 'timeGridWeek', label: 'Week' },
+              { view: 'timeGridDay',  label: 'Day'   },
+            ].map(({ view, label }) => (
+              <button
+                key={view}
+                type="button"
+                className={`gcal-view-btn ${currentView === view ? 'active' : ''}`}
+                onClick={() => { calendarRef.current?.getApi?.()?.changeView?.(view); setCurrentView(view); }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="calendar-content">
         <div
@@ -1270,9 +1241,7 @@ return parsedEvents
             }}
             dayHeaderContent={(arg) => {
               const d = arg?.date instanceof Date ? arg.date : new Date(arg?.date);
-              const day = d.getDay(); // 0=Sun, 6=Sat
-              const isWeekend = day === 0 || day === 6;
-              const label = d.toLocaleDateString('en-US', { weekday: isWeekend ? 'short' : 'long' });
+              const label = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
               return <span>{label}</span>;
             }}
             headerToolbar={false}
@@ -1290,7 +1259,7 @@ return parsedEvents
             // Don't show previous/next month days in the month grid,
             // so events only appear in their actual month when you navigate.
             showNonCurrentDates={false}
-            height="auto"
+            height="100%"
             editable={activeTab !== 'participants' && !isReadOnlyOffice && !isViewerLike}
             selectable={activeTab !== 'participants' && !isViewerLike}
             dayMaxEventRows={3}
@@ -1929,6 +1898,23 @@ return parsedEvents
           </div>
         </div>
       )}
+
+      {/* Floating Action Button — Google Calendar-style "+" */}
+      <button
+        type="button"
+        className="calendar-fab"
+        title="Add Schedule"
+        aria-label="Add Schedule"
+        onClick={() => {
+          if (isViewerLike) {
+            setShowLoginModal(true);
+          } else {
+            navigate('/simple-event-form', { state: { backTo: '/calendar' } });
+          }
+        }}
+      >
+        +
+      </button>
 
       {pendingMove && (
         <div className="calendar-move-modal-overlay" onClick={cancelPendingMove}>
