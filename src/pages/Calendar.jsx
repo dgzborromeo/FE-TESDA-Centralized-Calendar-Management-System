@@ -1075,6 +1075,14 @@ return parsedEvents
           </svg>
         </button>
 
+        {/* Date badge + app name — unique TESDA style */}
+        <div className="gcal-date-brand">
+          <div className="gcal-date-badge">
+            <span className="gcal-date-day">{new Date().getDate()}</span>
+          </div>
+          <span className="gcal-date-appname">Calendar</span>
+        </div>
+
         {/* + create button */}
         <button
           type="button"

@@ -5833,3 +5833,302 @@
 .calendar-page .calendar-content:has(.calendar-side-panel) .calendar-main {
   border-right: none !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER ROW — light gray background, no bottom border (Google Cal exact)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Gray background on the entire header row */
+.calendar-page .fc .fc-col-header {
+  background: #f1f3f4 !important;
+}
+
+.calendar-page .fc .fc-col-header-cell {
+  background: #f1f3f4 !important;
+  border-bottom: none !important;
+  padding: 8px 0 6px !important;
+}
+
+/* Weekend header cells — slightly darker gray text, same bg */
+.calendar-page .fc .fc-col-header-cell.fc-day-sat,
+.calendar-page .fc .fc-col-header-cell.fc-day-sun {
+  background: #f1f3f4 !important;
+  color: #b0b6bc !important;
+}
+
+/* Remove the border between header and first row of cells */
+.calendar-page .fc .fc-scrollgrid-section-header td,
+.calendar-page .fc .fc-scrollgrid-section-header th {
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+/* Cell borders — very light, matching Google Cal */
+.calendar-page .fc-theme-standard td,
+.calendar-page .fc-theme-standard th {
+  border-color: #e0e0e0 !important;
+}
+
+/* Top border of scrollgrid — remove so header row blends with toolbar */
+.calendar-page .fc .fc-scrollgrid {
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* Keep cell vertical/horizontal lines */
+.calendar-page .fc .fc-daygrid-day {
+  border-color: #e0e0e0 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOOLBAR GRAY + CALENDAR WHITE + NO LINE UNDER DAY HEADERS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Toolbar = light gray background */
+.gcal-toolbar {
+  background: #f1f3f4 !important;
+  border-bottom: none !important;
+}
+
+/* Day header row = also gray (seamless with toolbar) */
+.calendar-page .fc .fc-col-header,
+.calendar-page .fc .fc-col-header-cell {
+  background: #f1f3f4 !important;
+}
+
+/* NO border/line under the day header cells */
+.calendar-page .fc .fc-col-header-cell {
+  border-bottom: none !important;
+  border-top: none !important;
+}
+
+/* The scrollgrid section that holds the header — no bottom border */
+.calendar-page .fc .fc-scrollgrid-section-header > td,
+.calendar-page .fc .fc-scrollgrid-section-header > th {
+  border-bottom: none !important;
+}
+
+/* Calendar body cells = pure white */
+.calendar-page .fc .fc-daygrid-day {
+  background: #fff !important;
+}
+.calendar-page .fc .fc-day-today.fc-daygrid-day {
+  background: #f0f4ff !important;
+}
+.calendar-page .fc .fc-day-sat,
+.calendar-page .fc .fc-day-sun {
+  background: #fafafa !important;
+}
+
+/* Cell borders = very subtle */
+.calendar-page .fc-theme-standard td,
+.calendar-page .fc-theme-standard th {
+  border-color: #e0e0e0 !important;
+}
+
+/* Remove outer scrollgrid border */
+.calendar-page .fc .fc-scrollgrid {
+  border: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINAL FIX — Day header = pure white, same as cells. Toolbar only = gray.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Day header cells = WHITE, not gray */
+.calendar-page .fc .fc-col-header,
+.calendar-page .fc .fc-col-header-cell {
+  background: #fff !important;
+  border-bottom: none !important;
+  border-top: none !important;
+}
+
+/* No line between header row and first cell row */
+.calendar-page .fc .fc-scrollgrid-section-header > td,
+.calendar-page .fc .fc-scrollgrid-section-header > th {
+  border-bottom: none !important;
+}
+
+/* Day name text (MON, TUE..) — small, gray, centered */
+.calendar-page .fc .fc-col-header-cell-cushion {
+  font-size: 0.7rem !important;
+  font-weight: 500 !important;
+  color: #70757a !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  text-decoration: none !important;
+  display: block !important;
+  text-align: center !important;
+  padding: 6px 0 4px !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REMOVE ALL LINES UNDER DAY HEADERS — nuclear override
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Target every possible element that could draw that bottom line */
+.calendar-page .fc .fc-col-header-cell,
+.calendar-page .fc .fc-col-header-cell *,
+.calendar-page .fc .fc-scrollgrid-section-header,
+.calendar-page .fc .fc-scrollgrid-section-header td,
+.calendar-page .fc .fc-scrollgrid-section-header th,
+.calendar-page .fc .fc-scrollgrid-section-header > td,
+.calendar-page .fc .fc-scrollgrid-section-header > th,
+.calendar-page .fc thead td,
+.calendar-page .fc thead th,
+.calendar-page .fc thead tr,
+.calendar-page .fc thead {
+  border-bottom: none !important;
+  border-bottom-color: transparent !important;
+  border-bottom-width: 0 !important;
+}
+
+/* The scroller wrapper that holds the header table */
+.calendar-page .fc .fc-scroller-harness:first-child,
+.calendar-page .fc .fc-col-header {
+  border-bottom: none !important;
+}
+
+/* Any td/th at the bottom of the header section */
+.calendar-page .fc [data-date] th,
+.calendar-page .fc .fc-daygrid-body th {
+  border-bottom: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DONE EVENTS — single line: ✓ + title on one row
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Make fc-event-main a single flex row */
+.calendar-page .fc .fc-event.fc-event-done .fc-event-main {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 3px !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  padding: 1px 5px 2px !important;
+}
+
+/* Checkmark — inline before text, no block */
+.calendar-page .fc .fc-event.fc-event-done .fc-event-main::before {
+  content: '✓' !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.65rem !important;
+  font-weight: 800 !important;
+  color: #16a34a !important;
+  background: #dcfce7 !important;
+  border-radius: 3px !important;
+  padding: 0 3px !important;
+  line-height: 1.4 !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Title wrap — single line, no wrap */
+.calendar-page .fc .fc-event.fc-event-done .fc-event-title-wrap {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Hide the separate done badge inside title wrap — checkmark is enough */
+.calendar-page .fc .fc-event.fc-event-done .fc-event-done-badge {
+  display: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATE BADGE + APP NAME — TESDA-styled, inspired by but unique from Google Cal
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.gcal-date-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 6px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* The date badge — navy rounded square with month + day */
+.gcal-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #0d1f45 0%, #1a3a7a 100%);
+  box-shadow: 0 2px 6px rgba(13, 31, 69, 0.35);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 2px 0 0;
+}
+
+.gcal-date-month {
+  font-size: 0.45rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.gcal-date-day {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* "Calendar" app name */
+.gcal-date-appname {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #3c4043;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+
+/* Date badge — number only, perfectly centered */
+.gcal-date-badge {
+  padding: 0 !important;
+  justify-content: center !important;
+}
+.gcal-date-day {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+
+/* Filter selects — wide enough to show full default text */
+.gcal-filter-select {
+  min-width: 155px !important;
+  width: 155px !important;
+  max-width: 155px !important;
+}
+
+/* When active (has a selected value) — expand to show full text */
+.gcal-filter-select--active {
+  min-width: 155px !important;
+  width: auto !important;
+  max-width: 260px !important;
+}
