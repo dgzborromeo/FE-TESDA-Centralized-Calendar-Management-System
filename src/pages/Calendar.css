@@ -6132,3 +6132,166 @@
   width: auto !important;
   max-width: 260px !important;
 }
+
+
+/* ── Weekends: white background, rounded date number ─────────────────── */
+.calendar-page .fc .fc-day-sat,
+.calendar-page .fc .fc-day-sun,
+.calendar-page .fc .fc-timegrid-col.fc-day-sat,
+.calendar-page .fc .fc-timegrid-col.fc-day-sun {
+  background: #ffffff !important;
+}
+
+/* Weekend column headers — lighter text, same bg */
+.calendar-page .fc .fc-col-header-cell.fc-day-sat,
+.calendar-page .fc .fc-col-header-cell.fc-day-sun {
+  background: #fff !important;
+  color: #b0b6bc !important;
+}
+
+/* Weekend date numbers — same circular style as weekdays */
+.calendar-page .fc .fc-day-sat .fc-daygrid-day-number,
+.calendar-page .fc .fc-day-sun .fc-daygrid-day-number {
+  color: #94a3b8 !important;
+  border-radius: 50% !important;
+  font-weight: 400 !important;
+}
+
+.calendar-page .fc .fc-day-sat .fc-daygrid-day-number:hover,
+.calendar-page .fc .fc-day-sun .fc-daygrid-day-number:hover {
+  background: #f1f3f4 !important;
+  color: #64748b !important;
+}
+
+
+/* ── Calendar grid — rounded corners like Google Calendar ────────────── */
+.calendar-page .fc .fc-scrollgrid {
+  border-radius: 30px !important;
+  overflow: hidden !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+/* Keep inner borders normal, only outer corners rounded */
+.calendar-page .fc .fc-scrollgrid-section-header .fc-scroller,
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller {
+  overflow: hidden !important;
+}
+
+/* Round the top-left and top-right header cells */
+.calendar-page .fc .fc-col-header-cell:first-child {
+  border-top-left-radius: 12px !important;
+}
+.calendar-page .fc .fc-col-header-cell:last-child {
+  border-top-right-radius: 12px !important;
+}
+
+/* Round the bottom-left and bottom-right last row cells */
+.calendar-page .fc .fc-daygrid-body tr:last-child td:first-child .fc-daygrid-day-frame {
+  border-bottom-left-radius: 12px !important;
+}
+.calendar-page .fc .fc-daygrid-body tr:last-child td:last-child .fc-daygrid-day-frame {
+  border-bottom-right-radius: 12px !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIX: Calendar body scrollable — last row no longer cut off
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Allow the body scroller to scroll vertically */
+.calendar-page .fc .fc-daygrid-body-natural .fc-daygrid-day-events {
+  overflow: visible !important;
+}
+
+/* The body section scrolls, header stays fixed */
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  /* Max height = viewport minus gcal-toolbar minus col-header row */
+  max-height: calc(100vh - 56px - 38px) !important;
+}
+
+/* Header scroller stays fixed, no scroll */
+.calendar-page .fc .fc-scrollgrid-section-header .fc-scroller {
+  overflow: hidden !important;
+}
+
+/* Remove the forced fixed height on the fc root so content can expand */
+.calendar-page .fc {
+  height: auto !important;
+  min-height: calc(100vh - 56px) !important;
+}
+
+/* view-harness: auto height to fit content */
+.calendar-page .fc .fc-view-harness,
+.calendar-page .fc .fc-view-harness-active {
+  height: auto !important;
+  min-height: calc(100vh - 56px - 38px) !important;
+}
+
+/* Day frame: auto height, not forced */
+.calendar-page .fc .fc-daygrid-day-frame {
+  min-height: 100px !important;
+  height: auto !important;
+}
+
+/* Each row: auto height based on content */
+.calendar-page .fc .fc-daygrid-body tbody tr {
+  height: auto !important;
+}
+
+/* Scrollbar styling for the body */
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FULL PAGE + EXPAND ROWS — fills viewport, rows expand for content
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* FC root: fixed viewport height */
+.calendar-page .fc {
+  height: calc(100vh - 56px) !important;
+  min-height: 0 !important;
+}
+
+/* view harness fills FC root */
+.calendar-page .fc .fc-view-harness,
+.calendar-page .fc .fc-view-harness-active {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* Body scroller: no overflow — expandRows handles height */
+.calendar-page .fc .fc-scrollgrid-section-body .fc-scroller {
+  overflow: hidden !important;
+}
+
+/* Header scroller: no overflow */
+.calendar-page .fc .fc-scrollgrid-section-header .fc-scroller {
+  overflow: hidden !important;
+}
+
+/* Scrollgrid fills its container */
+.calendar-page .fc .fc-scrollgrid,
+.calendar-page .fc .fc-scroller-harness,
+.calendar-page .fc .fc-scroller-harness-liquid {
+  height: 100% !important;
+}
+
+/* Day frame fills its row */
+.calendar-page .fc .fc-daygrid-day-frame {
+  height: 100% !important;
+  min-height: 0 !important;
+}

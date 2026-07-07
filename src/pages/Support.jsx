@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './Info.css';
 import './Dashboard.css';
 
@@ -7,6 +8,7 @@ export default function Support() {
     <div className="info-page">
       <section className="dashboard-panel dashboard-panel-overview ev-hero-panel">
         <div className="dashboard-overview-top">
+          <HamburgerBtn />
           <div className="dashboard-overview-titleblock">
             <h1 className="dashboard-title">Contact / Support</h1>
             <p className="dashboard-subtitle">Where to report issues or request assistance with the ONE Calendar System.</p>

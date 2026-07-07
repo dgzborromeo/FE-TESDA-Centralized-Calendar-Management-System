@@ -6,6 +6,7 @@ import { getRegionalDirectorsForEvent } from '../utils/regionalDirectorsParticip
 import { parseRegionalDirectorsLabel } from '../utils/regionalDirectorsLabel';
 import EventModal from '../components/EventModal';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './Dashboard.css';
 import './Calendar.css';
 
@@ -502,6 +503,7 @@ export default function EventsView() {
       {/* topbar — styled like dashboard-panel-overview */}
       <section className="dashboard-panel dashboard-panel-overview ev-hero-panel">
         <div className="dashboard-overview-top">
+          <HamburgerBtn />
           <div className="dashboard-overview-titleblock">
             <h1 className="dashboard-title">{tabLabel}</h1>
             <p className="dashboard-subtitle">

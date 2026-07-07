@@ -1268,6 +1268,7 @@ return parsedEvents
             // so events only appear in their actual month when you navigate.
             showNonCurrentDates={false}
             height="100%"
+            expandRows={true}
             editable={activeTab !== 'participants' && !isReadOnlyOffice && !isViewerLike}
             selectable={activeTab !== 'participants' && !isViewerLike}
             dayMaxEventRows={3}

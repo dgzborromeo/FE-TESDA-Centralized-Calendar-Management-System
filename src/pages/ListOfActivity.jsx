@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { config as scheduleAPI, events as eventsAPI } from '../api'; 
+import HamburgerBtn from '../components/HamburgerBtn';
 import './ListOfActivity.css';
 
 export default function ListOfActivity() {
@@ -150,8 +151,11 @@ const filteredData = useMemo(() => {
   return (
     <div className="list-of-activity-page">
       <header className="list-of-activity-header">
-        <h1 className="list-of-activity-title">Activity Validation List</h1>
-        <p className="list-of-activity-subtitle">Filter and manage all office schedules efficiently.</p>
+        <HamburgerBtn />
+        <div>
+          <h1 className="list-of-activity-title">Activity Validation List</h1>
+          <p className="list-of-activity-subtitle">Filter and manage all office schedules efficiently.</p>
+        </div>
       </header>
 
       {/* Summary Cards */}

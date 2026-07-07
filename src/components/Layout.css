@@ -8,25 +8,24 @@
 .layout-main {
   flex: 1;
   min-width: 0;
+  width: 100%;
   padding: clamp(0.95rem, 1.4vw, 1.5rem);
   overflow-x: hidden;
   background: linear-gradient(180deg, #f0f3fa 0%, #f5f7fb 30%, #ffffff 100%);
   min-height: 100vh;
-  transition: margin-left var(--sidebar-transition);
+  transition: none;
 }
 
-/* ── Calendar page: full-height, zero padding — Google Calendar mode */
+/* Calendar page: full-height, zero padding */
 .layout-main:has(.calendar-page) {
   padding: 0 !important;
   background: #fff !important;
-  overflow-x: visible !important;
-  overflow-y: hidden !important;
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-/* Mobile — add top padding for the hamburger button */
 @media (max-width: 768px) {
   .layout-main {
     padding-top: 4rem;
@@ -169,3 +168,12 @@
   .layout-transition-loader { animation: none; }
   .layout-cal-cell { animation: none; transform: scale(1); opacity: 1; }
 }
+
+/* ── Normal page padding (no topbar) ─────────────────────────────────── */
+.layout-main:not(:has(.calendar-page)) {
+  padding: clamp(0.95rem, 1.4vw, 1.5rem);
+}
+
+/* Remove old hamburger/topbar styles */
+.layout-hamburger  { display: none !important; }
+.layout-topbar     { display: none !important; }

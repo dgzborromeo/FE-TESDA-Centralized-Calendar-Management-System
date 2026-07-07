@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { reports as reportsApi } from '../api';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './Reports.css';
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -204,7 +205,8 @@ export default function Reports() {
       {/* ── Hero ── */}
       <div className="reports-hero">
         <div className="reports-hero-inner">
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <HamburgerBtn />
             <h1 className="reports-title">Event Reports</h1>
             <p className="reports-subtitle">Generate and export event/schedule reports</p>
           </div>

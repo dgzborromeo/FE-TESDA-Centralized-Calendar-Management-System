@@ -569,30 +569,29 @@
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CALENDAR PAGE — sidebar as full slide-in drawer
+   GLOBAL DRAWER MODE — sidebar is always an overlay drawer on all pages
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* On calendar page, sidebar-wrapper is a fixed overlay — hidden by default */
-.layout:has(.calendar-page) .sidebar-wrapper {
+/* Sidebar wrapper: fixed overlay, hidden off-screen by default */
+.sidebar-wrapper {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   height: 100vh !important;
   z-index: 500 !important;
   overflow: visible !important;
-  /* Start hidden off-screen */
   transform: translateX(-100%) !important;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
   pointer-events: none !important;
 }
 
-/* When open: slide in and enable pointer events */
-.layout:has(.calendar-page) .sidebar-wrapper.sidebar-drawer-open {
+/* When open: slide in */
+.sidebar-wrapper.sidebar-drawer-open {
   transform: translateX(0) !important;
   pointer-events: auto !important;
 }
 
-/* Dim overlay — rendered when drawer is open */
+/* Backdrop */
 .sidebar-drawer-backdrop {
   display: none;
   position: fixed;
@@ -606,11 +605,11 @@
 }
 
 /* Hide collapse btn inside drawer */
-.layout:has(.calendar-page) .sidebar-collapse-btn {
+.sidebar-collapse-btn {
   display: none !important;
 }
 
-/* Hide mobile toggle — using our own hamburger in gcal-toolbar */
-.layout:has(.calendar-page) .sidebar-mobile-toggle {
+/* Hide mobile toggle — using hamburger in layout header */
+.sidebar-mobile-toggle {
   display: none !important;
 }

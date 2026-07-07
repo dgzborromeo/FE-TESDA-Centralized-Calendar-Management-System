@@ -127,22 +127,22 @@ export default function Sidebar() {
   }, [isCalendarPage]);
 
   // Listen for external toggle from the Calendar toolbar hamburger
+  // Auto-collapse when entering calendar page, restore when leaving
+  // (no longer needed — drawer mode on all pages)
+
+  // Listen for hamburger toggle from anywhere in the app
+  // Works on ALL pages now, not just calendar
   useEffect(() => {
     const handler = () => {
-      if (isCalendarPage) {
-        setMobileOpen(v => {
-          const next = !v;
-          // When opening drawer on calendar page, ensure sidebar is not collapsed
-          if (next) setCollapsed(false);
-          return next;
-        });
-      } else {
-        setCollapsed(v => !v);
-      }
+      setMobileOpen(v => {
+        const next = !v;
+        if (next) setCollapsed(false); // ensure full sidebar shows
+        return next;
+      });
     };
     window.addEventListener('sidebar-toggle', handler);
     return () => window.removeEventListener('sidebar-toggle', handler);
-  }, [isCalendarPage]);  // Close mobile sidebar on route change
+  }, []);  // Close mobile sidebar on route change
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   // Sync calendar search with URL
@@ -205,16 +205,14 @@ export default function Sidebar() {
         <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Backdrop for calendar drawer mode */}
-      {isCalendarPage && (
-        <div
-          className={`sidebar-drawer-backdrop ${mobileOpen ? 'is-open' : ''}`}
-          onClick={() => { setMobileOpen(false); setCollapsed(true); }}
-        />
-      )}
+      {/* Backdrop — shown on all pages when drawer is open */}
+      <div
+        className={`sidebar-drawer-backdrop ${mobileOpen ? 'is-open' : ''}`}
+        onClick={() => setMobileOpen(false)}
+      />
 
-      {/* Sidebar wrapper — allows the toggle button to overflow */}
-      <div className={`sidebar-wrapper ${isCalendarPage && mobileOpen ? 'sidebar-drawer-open' : ''}`}>
+      {/* Sidebar wrapper — always drawer mode */}
+      <div className={`sidebar-wrapper ${mobileOpen ? 'sidebar-drawer-open' : ''}`}>
         <button
           className="sidebar-collapse-btn"
           onClick={() => setCollapsed(v => !v)}
@@ -230,10 +228,10 @@ export default function Sidebar() {
 
         <aside
           className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${mobileOpen ? 'sidebar--mobile-open' : ''}`}
-          onClick={isCalendarPage ? (e) => {
-            // Close drawer when clicking a nav link
-            if (e.target.closest('a')) { setMobileOpen(false); setCollapsed(true); }
-          } : undefined}
+          onClick={(e) => {
+            // Close drawer when clicking any nav link on any page
+            if (e.target.closest('a')) { setMobileOpen(false); }
+          }}
         >
 
         {/* Logo */}

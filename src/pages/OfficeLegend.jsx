@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { users as usersApi } from '../api';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './OfficeLegend.css';
 
 const PARTICIPANT_LEGEND_ITEMS = [
@@ -47,6 +48,7 @@ export default function OfficeLegend() {
           <div className="ol-hero-grid" />
         </div>
         <div className="ol-hero-content">
+          <HamburgerBtn className="ol-hamburger" />
           <div className="ol-hero-left">
             <div className="ol-hero-kicker">
               <span className="ol-hero-kicker-dot" />

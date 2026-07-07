@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { config as configApi, users as usersApi } from '../api';
 import { dayFlags as dayFlagsApi } from '../api';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './UserConfig.css';
 
 const TABS = [
@@ -580,8 +581,11 @@ const handleDelete = async (id) => {
   return (
     <div className="user-config-page">
       <header className="user-config-header">
-        <h1 className="user-config-title">User Configuration</h1>
-        <p className="user-config-subtitle">Manage system structure and settings.</p>
+        <HamburgerBtn />
+        <div>
+          <h1 className="user-config-title">User Configuration</h1>
+          <p className="user-config-subtitle">Manage system structure and settings.</p>
+        </div>
       </header>
 
       <div className="user-config-tabs">

@@ -5,6 +5,7 @@ import { events as eventsApi } from '../api';
 import { parseTentativeDescription } from '../utils/tentativeSchedule';
 import EventModal from '../components/EventModal';
 import { SkeletonEventList } from '../components/SkeletonLoader';
+import HamburgerBtn from '../components/HamburgerBtn';
 import './MyEvents.css';
 
 function toLocalYMD(d) {
@@ -156,6 +157,7 @@ export default function MyEvents() {
       <div className="my-events-hero">
         <div className="my-events-hero-inner">
           <div className="my-events-hero-left">
+            <HamburgerBtn />
             <h1 className="my-events-title">My Schedules</h1>
             <span className="my-events-subtitle">All schedules you created - track their status here</span>
           </div>
