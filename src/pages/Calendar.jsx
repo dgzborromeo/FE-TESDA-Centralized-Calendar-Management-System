@@ -432,6 +432,8 @@ export default function Calendar() {
   const [isSidePanelHidden, setIsSidePanelHidden] = useState(false);
   const [currentView, setCurrentView] = useState('dayGridMonth');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef(null);
 
   const activeRangeRef = useRef({ start: null, end: null });
     // Idagdag ito sa tabi ng iba pang useState
@@ -1131,8 +1133,35 @@ return parsedEvents
           </h1>
         </div>
 
-        {/* Right: filters + view switcher */}
+        {/* Right: search + filters + view switcher */}
         <div className="gcal-right">
+          {/* Search bar — always visible, no toggle button */}
+          <div className="gcal-search-wrap">
+            <div className="gcal-search-input-wrap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="search"
+                className="gcal-search-input"
+                placeholder="Search events..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') setSearchQuery(''); }}
+                style={{ outline: 'none', boxShadow: 'none' }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="gcal-search-clear"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >×</button>
+              )}
+            </div>
+          </div>
+
           {/* Office filter */}
           <select
             className={`gcal-filter-select ${hostLegendFilter ? 'gcal-filter-select--active' : ''}`}
@@ -1671,16 +1700,27 @@ return parsedEvents
           {eventHover && (
             <div
               className="calendar-event-hover-card"
-              style={{
-                left: Math.min(
-                  Math.max(8, (eventHover.x || 0) + 12),
-                  typeof window !== 'undefined' ? window.innerWidth - 340 : (eventHover.x || 0)
-                ),
-                top: Math.min(
-                  Math.max(8, (eventHover.y || 0) + 14),
-                  typeof window !== 'undefined' ? window.innerHeight - 220 : (eventHover.y || 0)
-                ),
-              }}
+              style={(() => {
+                const x = eventHover.x || 0;
+                const y = eventHover.y || 0;
+                const cardW = 320;
+                const cardH = 220;
+                const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+                const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+                const offset = 12;
+
+                // Horizontal: right of cursor, flip left if near right edge
+                const left = x + offset + cardW > vw - 8
+                  ? Math.max(8, x - cardW - offset)
+                  : x + offset;
+
+                // Vertical: below cursor, flip above if near bottom
+                const top = y + offset + cardH > vh - 8
+                  ? Math.max(8, y - cardH - offset)
+                  : y + offset;
+
+                return { left, top };
+              })()}
               onMouseEnter={() => {
                 if (eventHoverLeaveRef.current) {
                   clearTimeout(eventHoverLeaveRef.current);
